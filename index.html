@@ -1,39 +1,109 @@
-function enviar() {
-    const btn = document.querySelector('button');
-    btn.disabled = true; 
-    btn.innerText = "PROCESANDO...";
-    
-    const datos = {
-        action: "generar_codigo",
-        nombre: document.getElementById('nombre').value,
-        dni: document.getElementById('dni').value,
-        area: document.getElementById('area').value,
-        turno: document.getElementById('turno').value,
-        dieta: document.getElementById('dieta').value
-    };
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA NUTRICIÓN - HISJB</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-transform: uppercase; }
+        h2 { text-align: center; color: #1a73e8; margin-bottom: 20px; }
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 0.8rem; color: #555; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; text-transform: uppercase; }
+        button { width: 100%; padding: 15px; background-color: #1a73e8; color: white; border: none; border-radius: 8px; margin-top: 25px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:disabled { background-color: #ccc; }
+        #resultado { display: none; margin-top: 25px; padding: 20px; background-color: #e6f4ea; border: 2px dashed #34a853; border-radius: 10px; text-align: center; }
+        .codigo-texto { font-size: 3rem; font-weight: bold; color: #188038; margin: 10px 0; display: block; }
+    </style>
+</head>
+<body>
 
-    fetch(API, {
-        method: 'POST',
-        mode: 'cors', // Agregado para evitar el bloqueo
-        body: JSON.stringify(datos)
-    })
-    .then(res => res.json())
-    .then(res => {
-        if(res.status === "success") {
-            document.getElementById('codigo').innerText = res.codigo;
+<div class="card">
+    <h2>RESERVA DE MENÚ</h2>
+    
+    <label>Apellido y Nombre</label>
+    <input type="text" id="nombre" placeholder="EJ: PEREZ JUAN">
+
+    <label>DNI</label>
+    <input type="number" id="dni" placeholder="SÓLO NÚMEROS">
+
+    <label>Turno</label>
+    <select id="turno">
+        <option value="MAÑANA">TURNO MAÑANA</option>
+        <option value="NOCHE">TURNO NOCHE</option>
+    </select>
+
+    <label>Tipo de Dieta</label>
+    <select id="dieta">
+        <option value="GENERAL">GENERAL / COMÚN</option>
+        <option value="HIPOSÓDICA">HIPOSÓDICA</option>
+        <option value="DIABÉTICA">DIABÉTICA</option>
+    </select>
+
+    <button id="btnEnviar" onclick="procesar()">GENERAR CÓDIGO</button>
+
+    <div id="resultado">
+        <span style="color: #188038; font-weight: bold;">¡REGISTRO EXITOSO!</span>
+        <p style="margin: 5px 0;">TU CÓDIGO DE RETIRO ES:</p>
+        <span id="codigoFinal" class="codigo-texto">----</span>
+        <p style="font-size: 0.7rem;">MUESTRE ESTE CÓDIGO EN COCINA</p>
+    </div>
+</div>
+
+<script>
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+
+    function generarCodigoAleatorio() {
+        const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let resultado = '';
+        for (let i = 0; i < 4; i++) {
+            resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+        }
+        return resultado;
+    }
+
+    async function procesar() {
+        const btn = document.getElementById('btnEnviar');
+        const nombre = document.getElementById('nombre').value.trim();
+        const dni = document.getElementById('dni').value.trim();
+        
+        if(!nombre || !dni) return alert("POR FAVOR COMPLETE NOMBRE Y DNI");
+
+        btn.disabled = true;
+        btn.innerText = "ENVIANDO...";
+
+        const miCodigo = generarCodigoAleatorio();
+        const datos = {
+            nombre: nombre,
+            dni: dni,
+            turno: document.getElementById('turno').value,
+            dieta: document.getElementById('dieta').value,
+            codigo: miCodigo,
+            tipo: "WEB",
+            action: "generar_codigo"
+        };
+
+        try {
+            // Usamos 'no-cors' para asegurar que la petición pase sin bloqueos de seguridad
+            await fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(datos)
+            });
+
+            // Mostramos el resultado al usuario
+            document.getElementById('codigoFinal').innerText = miCodigo;
             document.getElementById('resultado').style.display = 'block';
-            btn.innerText = "GENERAR OTRO";
-            btn.disabled = false;
-        } else {
-            alert("Error: " + res.message);
+            btn.innerText = "LISTO";
+            
+        } catch (error) {
+            console.error(error);
+            alert("ERROR AL CONECTAR CON EL SERVIDOR");
             btn.disabled = false;
             btn.innerText = "REINTENTAR";
         }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Hubo un problema de conexión con el servidor.");
-        btn.disabled = false;
-        btn.innerText = "REINTENTAR";
-    });
-}
+    }
+</script>
+
+</body>
+</html>
