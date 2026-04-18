@@ -60,7 +60,7 @@
 </div>
 
 <script>
-    const API = 'TU_URL_DE_APPS_SCRIPT_AQUI';
+    const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
     const hora = new Date().getHours();
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     document.getElementById('txtTurno').innerText = (turnoActual === "MAÑANA") ? "SERVICIO: ALMUERZO" : "SERVICIO: CENA";
