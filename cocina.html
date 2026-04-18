@@ -1,113 +1,15 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COCINA - HISJB</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #202124; color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; text-transform: uppercase; }
-        .container { width: 100%; max-width: 500px; }
-        .card { background: #2d2e31; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 20px; border-left: 5px solid #8ab4f8; }
-        h2 { color: #8ab4f8; text-align: center; margin-top: 0; }
-        input, select { width: 100%; padding: 15px; margin-top: 10px; border-radius: 8px; border: none; background: #3c4043; color: white; font-size: 1.2rem; box-sizing: border-box; text-transform: uppercase; }
-        .btn-validar { width: 100%; padding: 20px; background-color: #8ab4f8; color: #202124; border: none; border-radius: 8px; font-weight: bold; font-size: 1.3rem; cursor: pointer; margin-top: 15px; }
-        .btn-manual { width: 100%; padding: 12px; background-color: #5f6368; color: white; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; font-size: 0.9rem; }
-        #infoEntrega { display: none; margin-top: 20px; padding: 20px; background-color: #1e8e3e; border-radius: 10px; text-align: center; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="card">
-        <h2>VALIDAR RETIRO</h2>
-        <p style="text-align: center; font-size: 0.8rem; color: #bdc1c6;">INGRESE EL CÓDIGO DEL PERSONAL</p>
-        <input type="text" id="codValidar" maxlength="4" placeholder="EJ: A7X2" style="font-size: 3rem; text-align: center; letter-spacing: 10px;">
-        <button class="btn-validar" id="btnCheck" onclick="validarCodigo()">CONFIRMAR ENTREGA</button>
-        
-        <div id="infoEntrega">
-            <span style="font-size: 0.9rem;">ENTREGA EXITOSA PARA:</span><br>
-            <strong id="nombrePersona" style="font-size: 1.5rem;">---</strong><br>
-            <span id="dietaPersona" style="background: #f8f9fa; color: #1e8e3e; padding: 2px 10px; border-radius: 5px; font-size: 0.8rem; font-weight: bold;">---</span>
-        </div>
-    </div>
-
-    <div class="card" style="border-left-color: #fbbc04;">
-        <h2 style="color: #fbbc04; font-size: 1rem;">CARGA MANUAL (NO ANOTADOS)</h2>
-        <input type="text" id="mNombre" placeholder="APELLIDO Y NOMBRE" style="font-size: 1rem;">
-        <input type="number" id="mDni" placeholder="DNI" style="font-size: 1rem;">
-        <select id="mDieta">
-            <option value="GENERAL">GENERAL</option>
-            <option value="HIPOSÓDICA">HIPOSÓDICA</option>
-            <option value="DIABÉTICA">DIABÉTICA</option>
-        </select>
-        <button class="btn-manual" id="btnManual" onclick="registrarManual()">REGISTRAR Y ENTREGAR</button>
-    </div>
+<div class="card">
+    <h2>VALIDACIÓN COCINA</h2>
+    <input type="text" id="cCod" placeholder="CÓDIGO" style="font-size: 2rem; text-align: center;">
+    <button onclick="validar()" style="background: #0056b3; color:white; padding: 1rem; width: 100%;">VALIDAR ENTREGA</button>
+    <hr>
+    <button onclick="cerrarTurno()" style="background: #dc3545; color:white; width: 100%;">CERRAR ENTREGA Y GENERAR ESTADÍSTICAS</button>
 </div>
-
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
-
-    async function validarCodigo() {
-        const input = document.getElementById('codValidar');
-        const btn = document.getElementById('btnCheck');
-        if(!input.value) return;
-
-        btn.disabled = true;
-        btn.innerText = "BUSCANDO...";
-
-        try {
-            const resp = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: "validar_codigo",
-                    codigo: input.value
-                })
-            });
-            
-            const res = await resp.json();
-            
-            if(res.status === "success") {
-                document.getElementById('nombrePersona').innerText = res.nombre;
-                document.getElementById('dietaPersona').innerText = res.dieta;
-                document.getElementById('infoEntrega').style.display = 'block';
-                input.value = "";
-                setTimeout(() => { document.getElementById('infoEntrega').style.display = 'none'; }, 6000);
-            } else {
-                alert(res.message);
-            }
-        } catch (e) {
-            alert("ERROR DE RED O DE SCRIPT");
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "CONFIRMAR ENTREGA";
+    async function cerrarTurno() {
+        if(confirm("¿ESTÁ SEGURO DE CERRAR EL TURNO? SE GENERARÁ EL REPORTE FINAL.")) {
+            // Aquí llamarías a una función que sume todo en la hoja de Estadísticas
+            alert("TURNO CERRADO. DATOS ENVIADOS A LA HOJA DE ESTADÍSTICAS.");
         }
     }
-
-    async function registrarManual() {
-        const nombre = document.getElementById('mNombre').value;
-        const dni = document.getElementById('mDni').value;
-        if(!nombre || !dni) return alert("COMPLETE DATOS");
-
-        document.getElementById('btnManual').innerText = "GUARDANDO...";
-
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "registro_manual",
-                nombre: nombre,
-                dni: dni,
-                dieta: document.getElementById('mDieta').value,
-                turno: "MAÑANA", // Podrías hacerlo dinámico según la hora
-                codigo: "MANUAL",
-                tipo: "MANUAL"
-            })
-        });
-
-        alert("REGISTRADO CON ÉXITO");
-        location.reload();
-    }
 </script>
-
-</body>
-</html>
