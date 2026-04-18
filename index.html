@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva de Menú - Nutrición</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+        .form-group { margin-bottom: 15px; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 5px; }
+        button { background-color: #0056b3; color: white; border: none; cursor: pointer; }
+        #resultado { margin-top: 20px; padding: 15px; background-color: #d4edda; display: none; text-align: center; }
+        h1 { text-align: center; color: #333; }
+    </style>
+</head>
+<body>
+
+    <h1>Reserva de Menú</h1>
+    <p>Complete sus datos para obtener el código de retiro.</p>
+
+    <div class="form-group">
+        <label>Turno:</label>
+        <select id="turno">
+            <option value="Mañana">Mañana</option>
+            <option value="Noche">Noche</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label>Nombre Completo:</label>
+        <input type="text" id="nombre" placeholder="Ej. Juan Pérez" required>
+    </div>
+
+    <div class="form-group">
+        <label>DNI:</label>
+        <input type="number" id="dni" placeholder="Sin puntos" required>
+    </div>
+
+    <div class="form-group">
+        <label>Tipo de Dieta:</label>
+        <select id="dieta">
+            <option value="General">General</option>
+            <option value="Hiposódica">Hiposódica (Baja en sal)</option>
+            <option value="Diabética">Diabética</option>
+        </select>
+    </div>
+
+    <button onclick="solicitarCodigo()">Solicitar Código</button>
+
+    <div id="resultado">
+        <h3>¡Reserva Confirmada!</h3>
+        <p>Tu código de retiro en cocina es:</p>
+        <h2 id="codigo_generado"></h2>
+    </div>
+
+    <script>
+        // ¡ATENCIÓN! Reemplaza esta URL con la que obtuviste en el Paso 1 de Apps Script
+        const URL_WEB_APP = 'TU_URL_DE_APPS_SCRIPT_AQUI';
+
+        function solicitarCodigo() {
+            const btn = document.querySelector('button');
+            btn.innerText = "Procesando...";
+            btn.disabled = true;
+
+            const datos = {
+                action: "generar_codigo",
+                turno: document.getElementById('turno').value,
+                nombre: document.getElementById('nombre').value,
+                dni: document.getElementById('dni').value,
+                dieta: document.getElementById('dieta').value
+            };
+
+            fetch(URL_WEB_APP, {
+                method: 'POST',
+                mode: 'no-cors', // Evita problemas de conexión iniciales, aunque Apps Script maneja sus propios headers
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            })
+            .then(response => {
+                // Como usamos no-cors para simplificar, asumimos que llegó a la hoja de cálculo.
+                // En una versión más avanzada, procesaremos el JSON de respuesta exacto.
+                btn.innerText = "Solicitado con éxito";
+                document.getElementById('resultado').style.display = 'block';
+                // Generamos una previsualización del código temporalmente (luego lo ataremos al JSON de respuesta real)
+                document.getElementById('codigo_generado').innerText = "Revisar Sistema"; 
+                alert("Los datos han sido enviados. Por favor, verifique la recepción en Google Sheets.");
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                btn.innerText = "Error - Reintentar";
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
