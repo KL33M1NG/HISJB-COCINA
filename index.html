@@ -3,84 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NUTRICIÓN - HISJB</title>
+    <title>SISTEMA NUTRICIÓN - HISJB</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; text-transform: uppercase; }
-        header { background: #0056b3; color: white; padding: 1.5rem; text-align: center; }
-        .container { max-width: 500px; margin: 2rem auto; padding: 1rem; }
-        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-        .btn { width: 100%; padding: 1rem; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
-        .btn-solicitar { background: #28a745; color: white; display: none; }
-        .btn-disabled { background: #ccc; color: #666; cursor: not-allowed; }
-        .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
-        .alert-error { background: #f8d7da; color: #721c24; }
-        input, select { width: 100%; padding: 0.8rem; margin: 0.5rem 0; box-sizing: border-box; }
+        :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--gray); margin: 0; text-transform: uppercase; }
+        header { background: var(--blue); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 500px; margin: 20px auto; padding: 15px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        .status { padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
+        .disponible { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .agotado { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; text-transform: uppercase; }
+        .btn-enviar { width: 100%; padding: 15px; background: var(--green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        #resultado { display: none; margin-top: 20px; border: 3px dashed var(--green); padding: 20px; border-radius: 10px; }
     </style>
 </head>
 <body>
-    <header><h1>HOSPITAL SAN JUAN BAUTISTA</h1></header>
-    <div class="container">
-        <div class="card" id="mainCard">
-            <h2 id="turnoTexto">COMPROBANDO TURNO...</h2>
-            <div id="status">Buscando menú del día...</div>
-            
-            <div id="formPersonal" style="display:none; margin-top: 2rem; text-align: left;">
-                <label>NOMBRE Y APELLIDO</label>
-                <input type="text" id="nombre">
-                <label>DNI</label>
-                <input type="number" id="dni">
-                <label>DIETA</label>
-                <select id="dieta">
-                    <option value="GENERAL">GENERAL</option>
-                    <option value="HIPOSÓDICA">HIPOSÓDICA</option>
-                    <option value="DIABÉTICA">DIABÉTICA</option>
-                    <option value="CELIACA">CELIACA</option>
-                    <option value="GÁSTRICA">GÁSTRICA</option>
-                </select>
-                <button class="btn btn-solicitar" id="btnFinal" onclick="enviarPedido()" style="display:block;">SOLICITAR COMIDA</button>
-            </div>
-        </div>
+
+<header>
+    <h1>HOSPITAL SAN JUAN BAUTISTA</h1>
+    <p style="margin:0; font-size: 0.8rem;">GESTIÓN DIGITAL DE ALIMENTACIÓN</p>
+</header>
+
+<div class="container">
+    <div class="card" id="formCard">
+        <h2 id="txtTurno">VERIFICANDO TURNO...</h2>
+        <div id="statusBox" class="status">CONSULTANDO DISPONIBILIDAD...</div>
         
-        <div id="resultado" class="card" style="display:none; border: 3px dashed #28a745; margin-top: 1rem;">
-            <p>TU CÓDIGO DE RETIRO:</p>
-            <h1 id="codigoFinal" style="font-size: 3.5rem; color: #28a745;"></h1>
+        <div id="menuInfo" style="margin-bottom: 20px; color: #555; font-size: 0.9rem;"></div>
+
+        <div id="camposPersonal" style="display: none; text-align: left;">
+            <label>APELLIDO Y NOMBRE</label>
+            <input type="text" id="nombre" placeholder="COMO FIGURA EN DNI">
+            
+            <label>DNI</label>
+            <input type="number" id="dni" placeholder="SÓLO NÚMEROS">
+
+            <label>TIPO DE DIETA</label>
+            <select id="dieta">
+                <option value="GENERAL">GENERAL</option>
+                <option value="HIPOSÓDICA">HIPOSÓDICA</option>
+                <option value="DIABÉTICA">DIABÉTICA</option>
+                <option value="CELIACA">CELIACA</option>
+                <option value="GÁSTRICA">GÁSTRICA</option>
+            </select>
+            
+            <button class="btn-enviar" id="btnAccion" onclick="solicitarComida()">SOLICITAR VIANDA</button>
         </div>
     </div>
 
-    <script>
-        const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
-        const hora = new Date().getHours();
-        const turnoActual = (hora < 15) ? "ALMUERZO" : "CENA";
-        document.getElementById('turnoTexto').innerText = turnoActual;
+    <div id="resultado" class="card">
+        <p>REGISTRO EXITOSO. TU CÓDIGO ES:</p>
+        <h1 id="codigoDisplay" style="font-size: 4rem; color: var(--green); margin: 10px 0;">----</h1>
+        <p style="font-size: 0.7rem;">MUESTRE ESTE CÓDIGO AL RETIRAR EN COCINA</p>
+    </div>
+</div>
 
-        async function checkMenu() {
-            const resp = await fetch(API + '?action=obtener_menu');
-            const res = await resp.json();
-            if (res.disponible) {
-                document.getElementById('status').innerHTML = "<b style='color:green'>MENÚ DISPONIBLE</b>";
-                document.getElementById('formPersonal').style.display = 'block';
+<script>
+    const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+    const hora = new Date().getHours();
+    const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
+    document.getElementById('txtTurno').innerText = (turnoActual === "MAÑANA") ? "SERVICIO: ALMUERZO" : "SERVICIO: CENA";
+
+    async function validarMenu() {
+        try {
+            const r = await fetch(API + '?action=obtener_menu');
+            const res = await r.json();
+            const box = document.getElementById('statusBox');
+            
+            if(res.disponible) {
+                box.innerText = "MENÚ PUBLICADO";
+                box.className = "status disponible";
+                document.getElementById('menuInfo').innerText = "HOY: " + res.datos[0][2];
+                document.getElementById('camposPersonal').style.display = 'block';
             } else {
-                document.getElementById('status').innerHTML = "<div class='alert alert-error'>EL MENÚ DE HOY AÚN NO HA SIDO CARGADO POR NUTRICIÓN.</div>";
+                box.innerText = "MENÚ NO DISPONIBLE";
+                box.className = "status agotado";
+                document.getElementById('menuInfo').innerText = "EL EQUIPO DE NUTRICIÓN AÚN NO HA HABILITADO LOS PEDIDOS.";
             }
-        }
+        } catch(e) { console.error(e); }
+    }
 
-        async function enviarPedido() {
-            const btn = document.getElementById('btnFinal');
-            btn.disabled = true;
-            const datos = {
+    async function solicitarComida() {
+        const nom = document.getElementById('nombre').value;
+        const dni = document.getElementById('dni').value;
+        if(!nom || !dni) return alert("COMPLETE SUS DATOS");
+
+        document.getElementById('btnAccion').disabled = true;
+        document.getElementById('btnAccion').innerText = "PROCESANDO...";
+
+        const miCodigo = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+        await fetch(API, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
                 action: "generar_codigo",
-                nombre: document.getElementById('nombre').value,
-                dni: document.getElementById('dni').value,
+                nombre: nom,
+                dni: dni,
                 dieta: document.getElementById('dieta').value,
-                turno: turnoActual
-            };
-            const resp = await fetch(API, { method: 'POST', body: JSON.stringify(datos) });
-            const res = await resp.json();
-            document.getElementById('mainCard').style.display = 'none';
-            document.getElementById('resultado').style.display = 'block';
-            document.getElementById('codigoFinal').innerText = res.codigo;
-        }
-        checkMenu();
-    </script>
+                turno: turnoActual,
+                codigo: miCodigo,
+                tipo: "WEB"
+            })
+        });
+
+        document.getElementById('formCard').style.display = 'none';
+        document.getElementById('codigoDisplay').innerText = miCodigo;
+        document.getElementById('resultado').style.display = 'block';
+    }
+    validarMenu();
+</script>
 </body>
 </html>
