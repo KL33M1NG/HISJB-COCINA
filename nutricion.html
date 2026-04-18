@@ -1,19 +1,42 @@
-<div class="card">
-    <h2>CARGA DE MENÚ - NUTRICIÓN</h2>
-    <select id="nTurno"><option value="MAÑANA">ALMUERZO</option><option value="NOCHE">CENA</option></select>
-    <input type="text" id="nPlato" placeholder="PLATO PRINCIPAL">
-    <p>ESTA CARGA HABILITARÁ EL FORMULARIO PARA EL PERSONAL</p>
-    <button onclick="cargar()">PUBLICAR MENÚ</button>
-</div>
-<script>
-    async function cargar() {
-        const datos = {
-            action: "cargar_menu",
-            turno: document.getElementById('nTurno').value,
-            plato: document.getElementById('nPlato').value,
-            dietas: "GENERAL, HIPOSÓDICA, DIABÉTICA, CELIACA, GÁSTRICA"
-        };
-        await fetch('TU_URL_DE_APPS_SCRIPT', { method: 'POST', body: JSON.stringify(datos) });
-        alert("MENÚ PUBLICADO EXITOSAMENTE");
-    }
-</script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>NUTRICIÓN - HISJB</title>
+    <style>
+        body { font-family: sans-serif; background: #e8ecef; padding: 20px; text-transform: uppercase; }
+        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+        button { background: #0056b3; color: white; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3>PUBLICAR MENÚ DEL DÍA</h3>
+        <label>TURNO</label>
+        <select id="t">
+            <option value="MAÑANA">ALMUERZO</option>
+            <option value="NOCHE">CENA</option>
+        </select>
+        <label>PLATO PRINCIPAL</label>
+        <input type="text" id="p" placeholder="EJ: GUISO DE LENTEJAS">
+        <button onclick="enviar()">HABILITAR PEDIDOS</button>
+    </div>
+
+    <script>
+        async function enviar() {
+            const API = 'TU_URL_DE_APPS_SCRIPT_AQUI';
+            await fetch(API, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({
+                    action: "cargar_menu",
+                    turno: document.getElementById('t').value,
+                    plato: document.getElementById('p').value
+                })
+            });
+            alert("MENÚ PUBLICADO. EL PERSONAL YA PUEDE ANOTARSE.");
+        }
+    </script>
+</body>
+</html>
