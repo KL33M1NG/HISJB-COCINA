@@ -5,76 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NUTRICIÓN - HISJB</title>
     <style>
-        :root { --primary: #0056b3; --secondary: #6c757d; --success: #28a745; --light: #f8f9fa; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--light); color: #333; text-transform: uppercase; }
-        header { background: var(--primary); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .container { max-width: 600px; margin: 20px auto; padding: 20px; }
-        .menu-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; }
-        .status-badge { padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-        .disponible { background: #d4edda; color: #155724; }
-        .no-disponible { background: #f8d7da; color: #721c24; }
-        .btn-solicitar { width: 100%; padding: 20px; font-size: 1.2rem; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; font-weight: bold; margin-top: 15px; }
-        .btn-enabled { background: var(--success); color: white; }
-        .btn-disabled { background: var(--secondary); color: #ccc; cursor: not-allowed; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; text-transform: uppercase; }
+        header { background: #0056b3; color: white; padding: 1.5rem; text-align: center; }
+        .container { max-width: 500px; margin: 2rem auto; padding: 1rem; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        .btn { width: 100%; padding: 1rem; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 1rem; }
+        .btn-solicitar { background: #28a745; color: white; display: none; }
+        .btn-disabled { background: #ccc; color: #666; cursor: not-allowed; }
+        .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+        input, select { width: 100%; padding: 0.8rem; margin: 0.5rem 0; box-sizing: border-box; }
     </style>
 </head>
 <body>
-
-<header>
-    <h1 style="margin:0;">HOSPITAL SAN JUAN BAUTISTA</h1>
-    <small>SISTEMA DIGITAL DE NUTRICIÓN</small>
-</header>
-
-<div class="container">
-    <div class="menu-card">
-        <div id="statusMenu" class="status-badge no-disponible">CONSULTANDO MENÚ...</div>
-        <h2 id="tituloTurno">CARGANDO...</h2>
-        <div id="detalleMenu" style="margin: 20px 0; font-style: italic; color: #555;">
-            ESPERANDO QUE NUTRICIÓN CARGUE EL MENÚ DEL DÍA.
+    <header><h1>HOSPITAL SAN JUAN BAUTISTA</h1></header>
+    <div class="container">
+        <div class="card" id="mainCard">
+            <h2 id="turnoTexto">COMPROBANDO TURNO...</h2>
+            <div id="status">Buscando menú del día...</div>
+            
+            <div id="formPersonal" style="display:none; margin-top: 2rem; text-align: left;">
+                <label>NOMBRE Y APELLIDO</label>
+                <input type="text" id="nombre">
+                <label>DNI</label>
+                <input type="number" id="dni">
+                <label>DIETA</label>
+                <select id="dieta">
+                    <option value="GENERAL">GENERAL</option>
+                    <option value="HIPOSÓDICA">HIPOSÓDICA</option>
+                    <option value="DIABÉTICA">DIABÉTICA</option>
+                    <option value="CELIACA">CELIACA</option>
+                    <option value="GÁSTRICA">GÁSTRICA</option>
+                </select>
+                <button class="btn btn-solicitar" id="btnFinal" onclick="enviarPedido()" style="display:block;">SOLICITAR COMIDA</button>
+            </div>
         </div>
-        <button id="btnPedido" class="btn-solicitar btn-disabled" disabled>
-            SOLICITAR SERVICIO
-        </button>
+        
+        <div id="resultado" class="card" style="display:none; border: 3px dashed #28a745; margin-top: 1rem;">
+            <p>TU CÓDIGO DE RETIRO:</p>
+            <h1 id="codigoFinal" style="font-size: 3.5rem; color: #28a745;"></h1>
+        </div>
     </div>
-</div>
 
-<script>
-    const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+    <script>
+        const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+        const hora = new Date().getHours();
+        const turnoActual = (hora < 15) ? "ALMUERZO" : "CENA";
+        document.getElementById('turnoTexto').innerText = turnoActual;
 
-    async function chequearMenu() {
-        try {
+        async function checkMenu() {
             const resp = await fetch(API + '?action=obtener_menu');
             const res = await resp.json();
-            
-            const btn = document.getElementById('btnPedido');
-            const status = document.getElementById('statusMenu');
-            const detalle = document.getElementById('detalleMenu');
-            const titulo = document.getElementById('tituloTurno');
-
-            // Lógica de horario para el texto del botón
-            const hora = new Date().getHours();
-            const turnoActual = (hora < 15) ? "ALMUERZO" : "CENA";
-            titulo.innerText = "MENÚ DE " + turnoActual;
-
-            if(res.datos && res.datos.length > 0) {
-                status.innerText = "MENÚ DISPONIBLE";
-                status.className = "status-badge disponible";
-                detalle.innerText = "EL MENÚ YA SE ENCUENTRA CARGADO. PUEDE REALIZAR SU PEDIDO.";
-                btn.innerText = "SOLICITAR " + turnoActual;
-                btn.className = "btn-solicitar btn-enabled";
-                btn.disabled = false;
-                btn.onclick = () => location.href = 'solicitud.html';
+            if (res.disponible) {
+                document.getElementById('status').innerHTML = "<b style='color:green'>MENÚ DISPONIBLE</b>";
+                document.getElementById('formPersonal').style.display = 'block';
             } else {
-                status.innerText = "MENÚ NO CARGADO";
-                status.className = "status-badge no-disponible";
-                detalle.innerText = "EL EQUIPO DE NUTRICIÓN AÚN NO HA PUBLICADO EL MENÚ DE HOY.";
-                btn.innerText = "PEDIDO INHABILITADO";
+                document.getElementById('status').innerHTML = "<div class='alert alert-error'>EL MENÚ DE HOY AÚN NO HA SIDO CARGADO POR NUTRICIÓN.</div>";
             }
-        } catch (e) {
-            console.error("Error al conectar");
         }
-    }
-    chequearMenu();
-</script>
+
+        async function enviarPedido() {
+            const btn = document.getElementById('btnFinal');
+            btn.disabled = true;
+            const datos = {
+                action: "generar_codigo",
+                nombre: document.getElementById('nombre').value,
+                dni: document.getElementById('dni').value,
+                dieta: document.getElementById('dieta').value,
+                turno: turnoActual
+            };
+            const resp = await fetch(API, { method: 'POST', body: JSON.stringify(datos) });
+            const res = await resp.json();
+            document.getElementById('mainCard').style.display = 'none';
+            document.getElementById('resultado').style.display = 'block';
+            document.getElementById('codigoFinal').innerText = res.codigo;
+        }
+        checkMenu();
+    </script>
 </body>
 </html>
