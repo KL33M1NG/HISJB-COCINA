@@ -2,68 +2,41 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Cocina - HISJB</title>
+    <title>Cocina - HISJB</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input { font-size: 1.5rem; text-align: center; width: 150px; }
-        .btn-validar { background: #28a745; color: white; padding: 15px; border: none; font-size: 1.2rem; cursor: pointer; }
-        .btn-manual { background: #6c757d; color: white; padding: 10px; border: none; margin-top: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #343a40; color: white; padding: 20px; text-transform: uppercase; }
+        .card { max-width: 500px; margin: auto; background: #495057; padding: 30px; border-radius: 15px; text-align: center; }
+        input { width: 200px; font-size: 2.5rem; text-align: center; border-radius: 10px; border: none; margin-bottom: 20px; text-transform: uppercase; }
+        .btn-check { background: #28a745; color: white; padding: 20px 40px; font-size: 1.5rem; border: none; cursor: pointer; border-radius: 10px; width: 100%; }
     </style>
 </head>
 <body>
-    <h1>Módulo de Validación - Cocina</h1>
-
     <div class="card">
-        <h3>Validar Pedido por Código</h3>
-        <input type="text" id="inputCodigo" placeholder="ABCD" maxlength="4">
-        <button class="btn-validar" onclick="validarPedido()">ENTREGAR COMIDA</button>
-        <div id="resultadoValidacion"></div>
-    </div>
-
-    <div class="card">
-        <h3>Registro Manual (Personal no anotado)</h3>
-        <input type="text" id="manualNombre" placeholder="Nombre Apellido" style="width: 80%;">
-        <input type="number" id="manualDNI" placeholder="DNI" style="width: 80%; margin-top:5px;">
-        <select id="manualDieta" style="width: 85%; margin-top:5px; padding:10px;">
-            <option value="General">General</option>
-            <option value="Hiposódica">Hiposódica</option>
-            <option value="Diabética">Diabética</option>
-        </select>
-        <button class="btn-manual" onclick="registroManual()">Registrar y Entregar</button>
+        <h2>VALIDACIÓN DE COMIDA</h2>
+        <p>INGRESE EL CÓDIGO DE 4 DÍGITOS:</p>
+        <input type="text" id="cod" maxlength="4" placeholder="....">
+        <button class="btn-check" onclick="validar()">CONFIRMAR ENTREGA</button>
+        <div id="info" style="margin-top: 20px; font-size: 1.2rem; color: #ffc107;"></div>
     </div>
 
     <script>
-        const API_URL = 'TU_URL_DE_APPS_SCRIPT_AQUI';
-
-        function validarPedido() {
-            const cod = document.getElementById('inputCodigo').value.toUpperCase();
-            fetch(API_URL, {
+        const API = 'TU_URL_DE_APPS_SCRIPT';
+        function validar() {
+            const cod = document.getElementById('cod').value;
+            fetch(API, {
                 method: 'POST',
                 body: JSON.stringify({ action: "validar_codigo", codigo: cod })
             })
             .then(res => res.json())
-            .then(data => {
-                if(data.status === "success") {
-                    alert("¡ENTREGA REGISTRADA! \nPersonal: " + data.info[2]);
-                    document.getElementById('inputCodigo').value = "";
+            .then(res => {
+                if(res.status === "success") {
+                    document.getElementById('info').innerText = "ENTREGA EXITOSA: " + res.nombre;
+                    document.getElementById('cod').value = "";
                 } else {
-                    alert("ERROR: " + data.message);
+                    alert(res.message);
                 }
             });
         }
-
-        function registroManual() {
-            const datos = {
-                action: "registro_manual",
-                nombre: document.getElementById('manualNombre').value,
-                dni: document.getElementById('manualDNI').value,
-                dieta: document.getElementById('manualDieta').value,
-                turno: "Mañana" // Esto puede ser dinámico
-            };
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(datos) })
-            .then(() => alert("Registro manual guardado con éxito"));
-        }
     </script>
 </body>
-</html>cocina.html
+</html>
