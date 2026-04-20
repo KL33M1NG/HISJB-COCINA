@@ -4,38 +4,81 @@
     <meta charset="UTF-8">
     <title>NUTRICIÓN - HISJB</title>
     <style>
-        body { font-family: sans-serif; background: #e8ecef; padding: 20px; text-transform: uppercase; }
-        .card { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
-        input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
-        button { background: #0056b3; color: white; font-weight: bold; cursor: pointer; }
+        body { font-family: 'Segoe UI', sans-serif; background: #e8ecef; padding: 20px; text-transform: uppercase; }
+        .card { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input, select, button, textarea { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #0056b3; color: white; font-weight: bold; cursor: pointer; border: none; }
+        button:hover { background: #004094; }
+        h3 { color: #0056b3; }
+        .dieta-group { background: #f9f9f9; padding: 10px; border-radius: 8px; margin: 15px 0; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h3>PUBLICAR MENÚ DEL DÍA</h3>
+        <h3>📋 PUBLICAR MENÚ DEL DÍA</h3>
         <label>TURNO</label>
-        <select id="t">
+        <select id="turno">
             <option value="MAÑANA">ALMUERZO</option>
             <option value="NOCHE">CENA</option>
         </select>
-        <label>PLATO PRINCIPAL</label>
-        <input type="text" id="p" placeholder="EJ: GUISO DE LENTEJAS">
-        <button onclick="enviar()">HABILITAR PEDIDOS</button>
+
+        <label>PLATO PRINCIPAL (nombre genérico)</label>
+        <input type="text" id="platoPrincipal" placeholder="Ej: GUISO DE LENTEJAS" required>
+
+        <div class="dieta-group">
+            <p><strong>ESPECIFICACIONES POR DIETA (opcional)</strong></p>
+            <label>GENERAL:</label>
+            <input type="text" id="dietaGeneral" placeholder="Descripción para dieta general">
+            <label>HIPOSÓDICA:</label>
+            <input type="text" id="dietaHipo" placeholder="Ej: sin sal agregada">
+            <label>DIABÉTICA:</label>
+            <input type="text" id="dietaDiabetica" placeholder="Ej: sin azúcar, legumbres controladas">
+            <label>CELIACA:</label>
+            <input type="text" id="dietaCeliaca" placeholder="Ej: sin TACC">
+            <label>GÁSTRICA:</label>
+            <input type="text" id="dietaGastrica" placeholder="Ej: sin condimentos picantes">
+        </div>
+
+        <button onclick="publicarMenu()">✅ HABILITAR PEDIDOS</button>
+        <div id="mensaje" style="margin-top: 15px; color: green; font-weight: bold;"></div>
     </div>
 
     <script>
-        async function enviar() {
-            const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
-            await fetch(API, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({
-                    action: "cargar_menu",
-                    turno: document.getElementById('t').value,
-                    plato: document.getElementById('p').value
-                })
-            });
-            alert("MENÚ PUBLICADO. EL PERSONAL YA PUEDE ANOTARSE.");
+        const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+
+        async function publicarMenu() {
+            const turno = document.getElementById('turno').value;
+            const platoPrincipal = document.getElementById('platoPrincipal').value.trim();
+            if (!platoPrincipal) {
+                alert('Debe ingresar un plato principal');
+                return;
+            }
+
+            const dietas = {
+                GENERAL: document.getElementById('dietaGeneral').value.trim() || platoPrincipal,
+                HIPOSÓDICA: document.getElementById('dietaHipo').value.trim() || platoPrincipal + " (adaptado)",
+                DIABÉTICA: document.getElementById('dietaDiabetica').value.trim() || platoPrincipal + " (adaptado)",
+                CELIACA: document.getElementById('dietaCeliaca').value.trim() || platoPrincipal + " (adaptado)",
+                GÁSTRICA: document.getElementById('dietaGastrica').value.trim() || platoPrincipal + " (adaptado)"
+            };
+
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({
+                        action: "cargar_menu",
+                        turno: turno,
+                        platoPrincipal: platoPrincipal,
+                        dietas: dietas
+                    })
+                });
+                const result = await response.json();
+                document.getElementById('mensaje').innerText = result.message || "Menú publicado. El personal ya puede anotarse.";
+            } catch (error) {
+                alert("Error al publicar: " + error);
+            }
         }
     </script>
 </body>
