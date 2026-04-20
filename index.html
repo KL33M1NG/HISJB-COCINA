@@ -249,60 +249,78 @@
         });
         
         // Validar menú disponible
-        validarMenu();
-    }
-
-    function actualizarHora() {
-        const ahora = new Date();
-        const horaStr = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('horaActual').innerText = `🕐 Hora actual: ${horaStr} | Turno: ${turnoActual === "MAÑANA" ? "Almuerzo" : "Cena"}`;
-    }
-
-    // ==================== VALIDAR MENÚ DISPONIBLE ====================
-    async function validarMenu() {
-        const box = document.getElementById('statusBox');
-        const menuInfo = document.getElementById('menuInfo');
+// ==================== VALIDAR MENÚ DISPONIBLE (con JSONP) ====================
+async function validarMenu() {
+    const box = document.getElementById('statusBox');
+    const menuInfo = document.getElementById('menuInfo');
+    
+    try {
+        box.innerText = "🔄 CONSULTANDO DISPONIBILIDAD...";
+        box.className = "status cargando";
         
-        try {
-            box.innerText = "🔄 CONSULTANDO DISPONIBILIDAD...";
-            box.className = "status cargando";
+        // Usar JSONP para evitar CORS
+        const callbackName = 'jsonpCallback_' + Date.now();
+        
+        // Crear promesa para manejar JSONP
+        const menuData = await new Promise((resolve, reject) => {
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                resolve(data);
+            };
             
-            const response = await fetch(API + '?action=obtener_menu');
-            const res = await response.json();
+            const script = document.createElement('script');
+            script.src = API + '?action=obtener_menu&callback=' + callbackName;
+            script.onerror = function() {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                reject(new Error('Error cargando menú'));
+            };
             
-            if (res.disponible && res.datos && res.datos.length > 0) {
-                // Menú disponible
-                box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
-                box.className = "status disponible";
-                
-                // Almacenar datos del menú
-                menuData = res.datos[0];
-                
-                // Mostrar información básica
-                const platoPrincipal = menuData[2] || 'Menú del día';
-                menuInfo.innerHTML = `🍲 HOY: <strong>${platoPrincipal}</strong>`;
-                
-                // Habilitar campos del personal
-                document.getElementById('camposPersonal').style.display = 'block';
-                
-                // Actualizar descripción de dieta
-                actualizarDescripcionDieta();
-                
-            } else {
-                // Menú no disponible
-                box.innerText = "⛔ MENÚ NO DISPONIBLE";
-                box.className = "status agotado";
-                menuInfo.innerHTML = "❌ EL EQUIPO DE NUTRICIÓN AÚN NO HA HABILITADO LOS PEDIDOS PARA ESTE TURNO.<br>⚠️ Por favor, intente más tarde.";
-                document.getElementById('camposPersonal').style.display = 'none';
-            }
-        } catch (error) {
-            console.error('Error validando menú:', error);
-            box.innerText = "⚠️ ERROR DE CONEXIÓN";
+            document.body.appendChild(script);
+            
+            // Timeout de seguridad
+            setTimeout(() => {
+                if (window[callbackName]) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    reject(new Error('Timeout'));
+                }
+            }, 10000);
+        });
+        
+        if (menuData.disponible && menuData.datos && menuData.datos.length > 0) {
+            // Menú disponible
+            box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
+            box.className = "status disponible";
+            
+            // Almacenar datos del menú
+            menuDataGlobal = menuData.datos[0];
+            
+            // Mostrar información básica
+            const platoPrincipal = menuDataGlobal.platoPrincipal || 'Menú del día';
+            menuInfo.innerHTML = `🍲 HOY: <strong>${platoPrincipal}</strong>`;
+            
+            // Habilitar campos del personal
+            document.getElementById('camposPersonal').style.display = 'block';
+            
+            // Actualizar descripción de dieta
+            actualizarDescripcionDieta();
+            
+        } else {
+            // Menú no disponible
+            box.innerText = "⛔ MENÚ NO DISPONIBLE";
             box.className = "status agotado";
-            menuInfo.innerHTML = "No se pudo conectar con el servidor. Intente recargar la página.";
+            menuInfo.innerHTML = "❌ EL EQUIPO DE NUTRICIÓN AÚN NO HA HABILITADO LOS PEDIDOS PARA ESTE TURNO.<br>⚠️ Por favor, intente más tarde.";
+            document.getElementById('camposPersonal').style.display = 'none';
         }
+    } catch (error) {
+        console.error('Error validando menú:', error);
+        box.innerText = "⚠️ ERROR DE CONEXIÓN";
+        box.className = "status agotado";
+        menuInfo.innerHTML = "No se pudo conectar con el servidor. Intente recargar la página.";
     }
-
+}
     // ==================== ACTUALIZAR DESCRIPCIÓN DE DIETA ====================
     function actualizarDescripcionDieta() {
         const descripcionSpan = document.getElementById('descripcionDieta');
