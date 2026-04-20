@@ -229,8 +229,8 @@
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     
     // Variables globales para almacenar datos del menú
-    let menuData = null;
-    let dietaActual = 'GENERAL';
+  let menuDataGlobal = null;
+let dietaActual = 'GENERAL';
 
     // ==================== INICIALIZACIÓN ====================
     function inicializar() {
@@ -323,39 +323,38 @@ async function validarMenu() {
 }
     // ==================== ACTUALIZAR DESCRIPCIÓN DE DIETA ====================
     function actualizarDescripcionDieta() {
-        const descripcionSpan = document.getElementById('descripcionDieta');
-        
-        if (!menuData) {
-            descripcionSpan.innerText = 'Menú no cargado';
-            return;
-        }
-        
-        try {
-            // Intentar parsear el JSON de dietas (columna 3 - índice 3)
-            let dietasObj = {};
-            if (menuData[3] && typeof menuData[3] === 'string') {
-                dietasObj = JSON.parse(menuData[3]);
-            }
-            
-            const dietaSeleccionada = document.getElementById('dieta').value;
-            let descripcion = dietasObj[dietaSeleccionada] || menuData[2] || 'Menú del día';
-            
-            // Mostrar también el plato principal
-            const platoBase = menuData[2] || '';
-            descripcionSpan.innerHTML = `<strong>${platoBase}</strong><br>`;
-            
-            if (dietaSeleccionada !== 'GENERAL') {
-                descripcionSpan.innerHTML += `↳ Adaptación ${dietaSeleccionada}: ${descripcion}`;
-            } else {
-                descripcionSpan.innerHTML += descripcion;
-            }
-            
-        } catch (e) {
-            // Si no hay JSON válido, mostrar solo el plato principal
-            descripcionSpan.innerText = menuData[2] || 'Menú del día';
-        }
+    const descripcionSpan = document.getElementById('descripcionDieta');
+    
+    if (!menuDataGlobal) {
+        descripcionSpan.innerText = 'Menú no cargado';
+        return;
     }
-
+    
+    try {
+        // Intentar parsear el JSON de dietas
+        let dietasObj = {};
+        if (menuDataGlobal.dietas && typeof menuDataGlobal.dietas === 'string') {
+            dietasObj = JSON.parse(menuDataGlobal.dietas);
+        }
+        
+        const dietaSeleccionada = document.getElementById('dieta').value;
+        let descripcion = dietasObj[dietaSeleccionada] || menuDataGlobal.platoPrincipal || 'Menú del día';
+        
+        // Mostrar también el plato principal
+        const platoBase = menuDataGlobal.platoPrincipal || '';
+        descripcionSpan.innerHTML = `<strong>${platoBase}</strong><br>`;
+        
+        if (dietaSeleccionada !== 'GENERAL') {
+            descripcionSpan.innerHTML += `↳ Adaptación ${dietaSeleccionada}: ${descripcion}`;
+        } else {
+            descripcionSpan.innerHTML += descripcion;
+        }
+        
+    } catch (e) {
+        // Si no hay JSON válido, mostrar solo el plato principal
+        descripcionSpan.innerText = menuDataGlobal.platoPrincipal || 'Menú del día';
+    }
+}
     // ==================== SOLICITAR COMIDA ====================
     async function solicitarComida() {
         const nombreInput = document.getElementById('nombre');
