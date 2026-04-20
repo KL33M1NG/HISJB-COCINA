@@ -1,15 +1,172 @@
-<div class="card">
-    <h2>VALIDACIÓN COCINA</h2>
-    <input type="text" id="cCod" placeholder="CÓDIGO" style="font-size: 2rem; text-align: center;">
-    <button onclick="validar()" style="background: #0056b3; color:white; padding: 1rem; width: 100%;">VALIDAR ENTREGA</button>
-    <hr>
-    <button onclick="cerrarTurno()" style="background: #dc3545; color:white; width: 100%;">CERRAR ENTREGA Y GENERAR ESTADÍSTICAS</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>COCINA - HISJB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; text-transform: uppercase; }
+        .container { max-width: 900px; margin: auto; }
+        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        h2, h3 { color: #0056b3; margin-top: 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0; }
+        .stat-card { background: #e9ecef; padding: 15px; border-radius: 10px; text-align: center; }
+        .stat-number { font-size: 2.5rem; font-weight: bold; color: #0056b3; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn-primary { background: #0056b3; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        input { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; text-transform: uppercase; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        .entregado { background: #d4edda; }
+        .pendiente { background: #fff3cd; }
+        .mensaje { margin-top: 10px; font-weight: bold; }
+        .turno-activo { font-size: 1.2rem; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h2>🍽️ PANEL DE COCINA</h2>
+        <div class="turno-activo" id="turnoInfo">Turno: CARGANDO...</div>
+        
+        <!-- Resumen de pedidos -->
+        <h3>📊 PEDIDOS PENDIENTES POR DIETA</h3>
+        <div class="stats-grid" id="resumenDietas">
+            <!-- Se llena con JS -->
+        </div>
+        <div><strong>Total pendientes:</strong> <span id="totalPendientes">0</span></div>
+
+        <!-- Validación de código -->
+        <h3>🔍 VALIDAR ENTREGA</h3>
+        <input type="text" id="codigoInput" placeholder="INGRESE CÓDIGO DE 4 CARACTERES" maxlength="4">
+        <button class="btn btn-primary" onclick="validarCodigo()" style="margin-top: 10px;">✅ VALIDAR Y MARCAR ENTREGADO</button>
+        <div id="mensajeValidacion" class="mensaje"></div>
+
+        <!-- Lista de pendientes -->
+        <h3>📋 LISTA DE PENDIENTES</h3>
+        <table id="tablaPendientes">
+            <thead>
+                <tr><th>Código</th><th>Nombre</th><th>Dieta</th><th>Acción</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>🔒 CERRAR TURNO</h3>
+        <p>Al cerrar el turno se generarán las estadísticas del día y se guardarán en la hoja "Estadisticas".</p>
+        <button class="btn btn-danger" onclick="cerrarTurno()">🚫 CERRAR TURNO Y GENERAR REPORTE</button>
+    </div>
 </div>
+
 <script>
-    async function cerrarTurno() {
-        if(confirm("¿ESTÁ SEGURO DE CERRAR EL TURNO? SE GENERARÁ EL REPORTE FINAL.")) {
-            // Aquí llamarías a una función que sume todo en la hoja de Estadísticas
-            alert("TURNO CERRADO. DATOS ENVIADOS A LA HOJA DE ESTADÍSTICAS.");
+    const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+    const hora = new Date().getHours();
+    const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
+    document.getElementById('turnoInfo').innerText = `TURNO: ${turnoActual === "MAÑANA" ? "ALMUERZO" : "CENA"}`;
+
+    // Actualizar datos cada 10 segundos
+    let intervalo = setInterval(cargarPendientes, 10000);
+    cargarPendientes();
+
+    async function cargarPendientes() {
+        try {
+            const resp = await fetch(API + '?action=obtener_pendientes');
+            const data = await resp.json();
+            
+            // Actualizar conteo de dietas
+            const conteo = data.conteoDietas;
+            const resumenDiv = document.getElementById('resumenDietas');
+            resumenDiv.innerHTML = '';
+            for (let dieta in conteo) {
+                resumenDiv.innerHTML += `
+                    <div class="stat-card">
+                        <div>${dieta}</div>
+                        <div class="stat-number">${conteo[dieta]}</div>
+                    </div>
+                `;
+            }
+            document.getElementById('totalPendientes').innerText = data.totalPendientes;
+
+            // Llenar tabla
+            const tbody = document.querySelector('#tablaPendientes tbody');
+            tbody.innerHTML = '';
+            data.listaPendientes.forEach(p => {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td><strong>${p.codigo}</strong></td>
+                    <td>${p.nombre}</td>
+                    <td>${p.dieta}</td>
+                    <td><button class="btn btn-success" onclick="entregarRapido('${p.codigo}')">✔ Entregar</button></td>
+                `;
+                tbody.appendChild(fila);
+            });
+        } catch (error) {
+            console.error("Error cargando pendientes:", error);
         }
     }
+
+    async function validarCodigo() {
+        const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
+        if (codigo.length !== 4) {
+            alert("El código debe tener 4 caracteres");
+            return;
+        }
+
+        try {
+            const resp = await fetch(API, {
+                method: 'POST',
+                mode: 'cors',
+                body: JSON.stringify({
+                    action: "validar_codigo",
+                    codigo: codigo
+                })
+            });
+            const result = await resp.json();
+            const msgDiv = document.getElementById('mensajeValidacion');
+            if (result.status === "success") {
+                msgDiv.style.color = "green";
+                msgDiv.innerText = `✅ ENTREGADO a ${result.nombre} (Dieta: ${result.dieta})`;
+                document.getElementById('codigoInput').value = '';
+                cargarPendientes(); // refrescar
+            } else {
+                msgDiv.style.color = "red";
+                msgDiv.innerText = `❌ ${result.message}`;
+            }
+        } catch (error) {
+            alert("Error de conexión");
+        }
+    }
+
+    // Función rápida desde la tabla
+    async function entregarRapido(codigo) {
+        document.getElementById('codigoInput').value = codigo;
+        await validarCodigo();
+    }
+
+    async function cerrarTurno() {
+        if (!confirm("¿Está seguro de cerrar el turno? Se generará el reporte en la hoja Estadísticas.")) return;
+        try {
+            const resp = await fetch(API, {
+                method: 'POST',
+                mode: 'cors',
+                body: JSON.stringify({
+                    action: "cerrar_turno",
+                    turno: turnoActual
+                })
+            });
+            const result = await resp.json();
+            alert(result.message || "Turno cerrado.");
+            // Opcional: redirigir o mostrar mensaje
+        } catch (error) {
+            alert("Error al cerrar turno");
+        }
+    }
+
+    // Limpiar intervalo al cerrar página (buena práctica)
+    window.addEventListener('beforeunload', () => clearInterval(intervalo));
 </script>
+</body>
+</html>
