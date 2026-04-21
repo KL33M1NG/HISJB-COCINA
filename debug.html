@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>DEBUG - Menú</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .card { background: #2d2d2d; padding: 20px; border-radius: 10px; max-width: 900px; margin: auto; }
+        button { background: #007acc; color: white; border: none; padding: 10px 20px; margin: 5px; cursor: pointer; border-radius: 5px; }
+        button:hover { background: #005a9e; }
+        pre { background: #1e1e1e; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #444; }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .warning { color: #dcdcaa; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🔍 DIAGNÓSTICO DE MENÚ</h2>
+        
+        <button onclick="verTodo()">📊 VER TODO EL CONTENIDO DE Menu_Dia</button>
+        <button onclick="verificarFecha()">📅 VERIFICAR FECHA ACTUAL</button>
+        <button onclick="simularBusqueda()">🔎 SIMULAR BÚSQUEDA</button>
+        
+        <h3>Resultado:</h3>
+        <pre id="resultado">Haga clic en un botón para ver los datos...</pre>
+    </div>
+
+    <script>
+        const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+        
+        async function verTodo() {
+            document.getElementById('resultado').textContent = 'Cargando...';
+            
+            const callbackName = 'debugCallback_' + Date.now();
+            
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                document.getElementById('resultado').textContent = JSON.stringify(data, null, 2);
+            };
+            
+            const script = document.createElement('script');
+            script.src = API + '?action=obtener_menu&callback=' + callbackName;
+            document.body.appendChild(script);
+        }
+        
+        function verificarFecha() {
+            const ahora = new Date();
+            const info = {
+                fecha_actual_objeto: ahora.toString(),
+                fecha_local: ahora.toLocaleDateString('es-ES'),
+                fecha_local_AR: ahora.toLocaleDateString('es-AR'),
+                dia: ahora.getDate(),
+                mes: ahora.getMonth() + 1,
+                año: ahora.getFullYear(),
+                hora: ahora.getHours(),
+                minutos: ahora.getMinutes(),
+                zona_horaria: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+            
+            document.getElementById('resultado').textContent = JSON.stringify(info, null, 2);
+        }
+        
+        async function simularBusqueda() {
+            const ahora = new Date();
+            const fechaStr = ahora.toLocaleDateString('es-ES');
+            
+            document.getElementById('resultado').textContent = `Buscando menús para fecha: ${fechaStr}...\n`;
+            
+            const callbackName = 'simularCallback_' + Date.now();
+            
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                
+                let output = `Fecha buscada: ${fechaStr}\n`;
+                output += `Menús disponibles: ${data.disponible}\n`;
+                output += `Cantidad de menús: ${data.datos ? data.datos.length : 0}\n\n`;
+                
+                if (data.datos && data.datos.length > 0) {
+                    output += "MENÚS ENCONTRADOS:\n";
+                    data.datos.forEach((menu, i) => {
+                        output += `\n--- Menú ${i+1} ---\n`;
+                        output += `Fecha: ${menu.fecha}\n`;
+                        output += `Turno: ${menu.turno}\n`;
+                        output += `Plato: ${menu.platoPrincipal}\n`;
+                        output += `Estado: ${menu.estado}\n`;
+                    });
+                } else {
+                    output += "⚠️ NO SE ENCONTRARON MENÚS PARA HOY\n";
+                    output += "Posibles causas:\n";
+                    output += "- El menú no se guardó con la fecha de hoy\n";
+                    output += "- El estado no es 'PUBLICADO'\n";
+                    output += "- La hoja 'Menu_Dia' no existe o está vacía\n";
+                }
+                
+                output += "\n\nDATOS COMPLETOS:\n" + JSON.stringify(data, null, 2);
+                document.getElementById('resultado').textContent = output;
+            };
+            
+            const script = document.createElement('script');
+            script.src = API + '?action=obtener_menu&callback=' + callbackName;
+            document.body.appendChild(script);
+        }
+    </script>
+</body>
+</html>
