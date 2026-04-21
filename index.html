@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SISTEMA NUTRICIÓN - HISJB</title>
+    
+    <!-- ========== CSS PRINCIPAL ========== -->
     <style>
         :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; --red: #dc3545; }
         * { box-sizing: border-box; }
@@ -49,6 +51,9 @@
             header h1 { font-size: 1.2rem; }
         }
     </style>
+    
+    <!-- ========== CSS DE ANIMACIONES (EXTERNO) ========== -->
+    <link rel="stylesheet" href="assets/css/animaciones.css">
 </head>
 <body>
 
@@ -142,6 +147,7 @@
             delete window[callbackName];
             
             if (data.disponible && data.datos && data.datos.length > 0) {
+                // ========== MENÚ DISPONIBLE ==========
                 box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
                 box.className = "status disponible";
                 menuDataGlobal = data.datos[0];
@@ -150,9 +156,30 @@
                 document.getElementById('camposPersonal').style.display = 'block';
                 actualizarDescripcionDieta();
             } else {
-                box.innerText = "⛔ MENÚ NO DISPONIBLE";
-                box.className = "status agotado";
-                menuInfo.innerHTML = "❌ EL EQUIPO DE NUTRICIÓN AÚN NO HA HABILITADO LOS PEDIDOS PARA ESTE TURNO.<br>⚠️ Por favor, intente más tarde.";
+                // ========== MENÚ NO DISPONIBLE - ANIMACIÓN CON GIFS ==========
+                box.innerText = "👨‍🍳 MENÚ EN PREPARACIÓN";
+                box.className = "status cargando";
+                menuInfo.innerHTML = `
+                    <div class="cocinando-container">
+                        <div class="cocinando-titulo">
+                            <span class="emoji-chef">👨‍🍳</span> 
+                            NUESTROS CHEFS ESTÁN COCINANDO 
+                            <span class="emoji-chef">👩‍🍳</span>
+                        </div>
+                        
+                        <div class="gifs-container">
+                            <img src="assets/gifs/chef1.gif" alt="Chef cocinando" class="gif-chef">
+                            <img src="assets/gifs/chef2.gif" alt="Chef preparando" class="gif-chef">
+                            <img src="assets/gifs/chef3.gif" alt="Chef chef" class="gif-chef">
+                            <img src="assets/gifs/chef4.gif" alt="Cocinando" class="gif-chef">
+                        </div>
+                        
+                        <div class="cocinando-mensaje">
+                            🍳 El equipo de nutrición está preparando el menú del día<br>
+                            <span>⏳ Por favor, vuelva en unos minutos</span>
+                        </div>
+                    </div>
+                `;
                 document.getElementById('camposPersonal').style.display = 'none';
             }
         };
@@ -209,7 +236,6 @@
         const nombre = nombreInput.value.trim().toUpperCase();
         const dni = dniInput.value.trim();
         
-        // Validaciones
         errorDiv.innerText = '';
         
         if (!nombre) {
@@ -230,17 +256,14 @@
             return;
         }
         
-        // Deshabilitar botón
         const btn = document.getElementById('btnAccion');
         btn.disabled = true;
         btn.innerText = "⏳ PROCESANDO SOLICITUD...";
         
-        // Generar código
         const miCodigo = Math.random().toString(36).substring(2, 6).toUpperCase();
         const dietaSeleccionada = document.getElementById('dieta').value;
         const callbackName = 'solicitudCallback_' + Date.now();
         
-        // Definir callback
         window[callbackName] = function(data) {
             console.log('Callback ejecutado:', data);
             delete window[callbackName];
@@ -257,7 +280,6 @@
             }
         };
         
-        // Construir URL
         const params = new URLSearchParams({
             action: 'generar_codigo',
             nombre: nombre,
@@ -271,7 +293,6 @@
         const scriptUrl = API + '?' + params.toString();
         console.log('URL de solicitud:', scriptUrl);
         
-        // Crear script
         const script = document.createElement('script');
         script.src = scriptUrl;
         
@@ -289,7 +310,6 @@
         
         document.body.appendChild(script);
         
-        // Timeout de seguridad
         setTimeout(() => {
             if (window[callbackName]) {
                 console.error('Timeout - callback no llamado');
@@ -303,21 +323,16 @@
 
     // ==================== INICIALIZACIÓN ====================
     function inicializar() {
-        // Mostrar turno
         const turnoTexto = (turnoActual === "MAÑANA") ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
         document.getElementById('txtTurno').innerText = turnoTexto;
         
-        // Hora actual
         actualizarHora();
         setInterval(actualizarHora, 1000);
         
-        // Evento cambio de dieta
         document.getElementById('dieta').addEventListener('change', actualizarDescripcionDieta);
         
-        // Validar menú
         validarMenu();
         
-        // Permitir Enter en campos
         ['nombre', 'dni'].forEach(id => {
             document.getElementById(id).addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -331,10 +346,7 @@
         });
     }
 
-    // ==================== ARRANCAR ====================
     document.addEventListener('DOMContentLoaded', inicializar);
-    
-    // Exponer función global
     window.solicitarComida = solicitarComida;
 </script>
 </body>
