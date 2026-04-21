@@ -25,128 +25,24 @@
         }
         header h1 { margin: 0; font-size: 1.5rem; }
         header p { margin: 5px 0 0; font-size: 0.8rem; opacity: 0.9; }
-        
-        .container { 
-            max-width: 550px; 
-            margin: 20px auto; 
-            padding: 15px; 
-            flex: 1;
-        }
-        .card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 15px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            text-align: center; 
-            margin-bottom: 20px;
-        }
-        .status { 
-            padding: 12px; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            margin-bottom: 20px; 
-        }
-        .disponible { 
-            background: #d4edda; 
-            color: #155724; 
-            border: 1px solid #c3e6cb; 
-        }
-        .agotado { 
-            background: #f8d7da; 
-            color: #721c24; 
-            border: 1px solid #f5c6cb; 
-        }
-        .cargando {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-        input, select { 
-            width: 100%; 
-            padding: 14px; 
-            margin: 10px 0; 
-            border: 2px solid #ddd; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            text-transform: uppercase; 
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--blue);
-        }
-        label {
-            display: block;
-            text-align: left;
-            margin-top: 15px;
-            font-weight: bold;
-            color: #333;
-            font-size: 0.9rem;
-        }
-        .btn-enviar { 
-            width: 100%; 
-            padding: 16px; 
-            background: var(--green); 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 1.2rem; 
-            margin-top: 20px;
-            transition: background 0.3s, transform 0.1s;
-            text-transform: uppercase;
-        }
-        .btn-enviar:hover { 
-            background: #218838; 
-        }
-        .btn-enviar:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-        }
-        .btn-enviar:active {
-            transform: scale(0.98);
-        }
-        #resultado { 
-            display: none; 
-            margin-top: 20px; 
-            border: 3px dashed var(--green); 
-            padding: 30px 20px; 
-            border-radius: 10px; 
-            background: white;
-        }
-        #codigoDisplay {
-            font-size: 5rem;
-            color: var(--green);
-            margin: 15px 0;
-            font-weight: bold;
-            letter-spacing: 5px;
-        }
-        .menu-info-detalle {
-            background: #e7f3ff;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            text-align: left;
-            border-left: 5px solid var(--blue);
-        }
-        .error-mensaje {
-            color: var(--red);
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-        .hora-actual {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 5px;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 0.75rem;
-        }
+        .container { max-width: 550px; margin: 20px auto; padding: 15px; flex: 1; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; }
+        .status { padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
+        .disponible { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .agotado { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .cargando { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; text-transform: uppercase; font-size: 1rem; }
+        input:focus, select:focus { outline: none; border-color: var(--blue); }
+        label { display: block; text-align: left; margin-top: 15px; font-weight: bold; color: #333; font-size: 0.9rem; }
+        .btn-enviar { width: 100%; padding: 16px; background: var(--green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.2rem; margin-top: 20px; text-transform: uppercase; }
+        .btn-enviar:hover { background: #218838; }
+        .btn-enviar:disabled { background: #6c757d; cursor: not-allowed; }
+        #resultado { display: none; margin-top: 20px; border: 3px dashed var(--green); padding: 30px 20px; border-radius: 10px; background: white; }
+        #codigoDisplay { font-size: 5rem; color: var(--green); margin: 15px 0; font-weight: bold; letter-spacing: 5px; }
+        .menu-info-detalle { background: #e7f3ff; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left; border-left: 5px solid var(--blue); }
+        .error-mensaje { color: var(--red); margin-top: 10px; font-size: 0.9rem; }
+        .hora-actual { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 0.75rem; }
         @media (max-width: 480px) {
             .container { padding: 10px; }
             .card { padding: 20px 15px; }
@@ -217,14 +113,11 @@
     // ==================== CONFIGURACIÓN ====================
     const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
     
-    // Determinar turno según hora actual
     const fecha = new Date();
     const hora = fecha.getHours();
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     
-    // Variables globales
     let menuDataGlobal = null;
-    let dietaActual = 'GENERAL';
 
     // ==================== FUNCIONES ====================
     
@@ -234,79 +127,45 @@
         document.getElementById('horaActual').innerText = `🕐 Hora actual: ${horaStr} | Turno: ${turnoActual === "MAÑANA" ? "Almuerzo" : "Cena"}`;
     }
 
-    // ==================== VALIDAR MENÚ DISPONIBLE (con JSONP) ====================
-    async function validarMenu() {
+    // ==================== VALIDAR MENÚ DISPONIBLE ====================
+    function validarMenu() {
         const box = document.getElementById('statusBox');
         const menuInfo = document.getElementById('menuInfo');
         
-        try {
-            box.innerText = "🔄 CONSULTANDO DISPONIBILIDAD...";
-            box.className = "status cargando";
+        box.innerText = "🔄 CONSULTANDO DISPONIBILIDAD...";
+        box.className = "status cargando";
+        
+        const callbackName = 'menuCallback_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            console.log('Datos recibidos:', data);
+            delete window[callbackName];
             
-            // Usar JSONP para evitar CORS
-            const callbackName = 'jsonpCallback_' + Date.now();
-            
-            // Crear promesa para manejar JSONP
-            const menuData = await new Promise((resolve, reject) => {
-                window[callbackName] = function(data) {
-                    delete window[callbackName];
-                    document.body.removeChild(script);
-                    resolve(data);
-                };
-                
-                const script = document.createElement('script');
-                script.src = API + '?action=obtener_menu&callback=' + callbackName;
-                script.onerror = function() {
-                    delete window[callbackName];
-                    document.body.removeChild(script);
-                    reject(new Error('Error cargando menú'));
-                };
-                
-                document.body.appendChild(script);
-                
-                // Timeout de seguridad
-                setTimeout(() => {
-                    if (window[callbackName]) {
-                        delete window[callbackName];
-                        document.body.removeChild(script);
-                        reject(new Error('Timeout'));
-                    }
-                }, 10000);
-            });
-            
-            console.log('Datos recibidos:', menuData);
-            
-            if (menuData.disponible && menuData.datos && menuData.datos.length > 0) {
-                // Menú disponible
+            if (data.disponible && data.datos && data.datos.length > 0) {
                 box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
                 box.className = "status disponible";
-                
-                // Almacenar datos del menú
-                menuDataGlobal = menuData.datos[0];
-                
-                // Mostrar información básica
+                menuDataGlobal = data.datos[0];
                 const platoPrincipal = menuDataGlobal.platoPrincipal || 'Menú del día';
                 menuInfo.innerHTML = `🍲 HOY: <strong>${platoPrincipal}</strong>`;
-                
-                // Habilitar campos del personal
                 document.getElementById('camposPersonal').style.display = 'block';
-                
-                // Actualizar descripción de dieta
                 actualizarDescripcionDieta();
-                
             } else {
-                // Menú no disponible
                 box.innerText = "⛔ MENÚ NO DISPONIBLE";
                 box.className = "status agotado";
                 menuInfo.innerHTML = "❌ EL EQUIPO DE NUTRICIÓN AÚN NO HA HABILITADO LOS PEDIDOS PARA ESTE TURNO.<br>⚠️ Por favor, intente más tarde.";
                 document.getElementById('camposPersonal').style.display = 'none';
             }
-        } catch (error) {
-            console.error('Error validando menú:', error);
+        };
+        
+        const script = document.createElement('script');
+        script.src = API + '?action=obtener_menu&callback=' + callbackName;
+        script.onerror = function() {
+            delete window[callbackName];
             box.innerText = "⚠️ ERROR DE CONEXIÓN";
             box.className = "status agotado";
             menuInfo.innerHTML = "No se pudo conectar con el servidor. Intente recargar la página.";
-        }
+        };
+        document.body.appendChild(script);
     }
 
     // ==================== ACTUALIZAR DESCRIPCIÓN DE DIETA ====================
@@ -319,7 +178,6 @@
         }
         
         try {
-            // Intentar parsear el JSON de dietas
             let dietasObj = {};
             if (menuDataGlobal.dietas && typeof menuDataGlobal.dietas === 'string') {
                 dietasObj = JSON.parse(menuDataGlobal.dietas);
@@ -328,7 +186,6 @@
             const dietaSeleccionada = document.getElementById('dieta').value;
             let descripcion = dietasObj[dietaSeleccionada] || menuDataGlobal.platoPrincipal || 'Menú del día';
             
-            // Mostrar también el plato principal
             const platoBase = menuDataGlobal.platoPrincipal || '';
             descripcionSpan.innerHTML = `<strong>${platoBase}</strong><br>`;
             
@@ -345,11 +202,10 @@
     }
 
     // ==================== SOLICITAR COMIDA ====================
-    async function solicitarComida() {
+    function solicitarComida() {
         const nombreInput = document.getElementById('nombre');
         const dniInput = document.getElementById('dni');
         const errorDiv = document.getElementById('errorMensaje');
-        
         const nombre = nombreInput.value.trim().toUpperCase();
         const dni = dniInput.value.trim();
         
@@ -374,56 +230,75 @@
             return;
         }
         
-        // Deshabilitar botón y mostrar estado
+        // Deshabilitar botón
         const btn = document.getElementById('btnAccion');
         btn.disabled = true;
         btn.innerText = "⏳ PROCESANDO SOLICITUD...";
         
-        // Generar código aleatorio de 4 caracteres
+        // Generar código
         const miCodigo = Math.random().toString(36).substring(2, 6).toUpperCase();
         const dietaSeleccionada = document.getElementById('dieta').value;
+        const callbackName = 'solicitudCallback_' + Date.now();
         
-        try {
-            const response = await fetch(API, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "generar_codigo",
-                    nombre: nombre,
-                    dni: dni,
-                    dieta: dietaSeleccionada,
-                    turno: turnoActual,
-                    codigo: miCodigo,
-                    tipo: "WEB"
-                })
-            });
+        // Definir callback
+        window[callbackName] = function(data) {
+            console.log('Callback ejecutado:', data);
+            delete window[callbackName];
             
-            const result = await response.json();
-            
-            if (result.status === "success") {
-                // Mostrar resultado exitoso
+            if (data && data.status === "success") {
                 document.getElementById('formCard').style.display = 'none';
                 document.getElementById('codigoDisplay').innerText = miCodigo;
                 document.getElementById('resultado').style.display = 'block';
-                
-                // Scroll suave hacia el resultado
                 document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
-                // Error del servidor
-                errorDiv.innerText = '❌ Error al registrar: ' + (result.message || 'Intente nuevamente');
+                errorDiv.innerText = '❌ Error al registrar: ' + (data?.message || 'Intente nuevamente');
                 btn.disabled = false;
                 btn.innerText = "🍴 SOLICITAR VIANDA";
             }
-            
-        } catch (error) {
-            console.error('Error en solicitud:', error);
-            errorDiv.innerText = '❌ Error de conexión. Verifique su internet e intente nuevamente.';
+        };
+        
+        // Construir URL
+        const params = new URLSearchParams({
+            action: 'generar_codigo',
+            nombre: nombre,
+            dni: dni,
+            dieta: dietaSeleccionada,
+            turno: turnoActual,
+            codigo: miCodigo,
+            callback: callbackName
+        });
+        
+        const scriptUrl = API + '?' + params.toString();
+        console.log('URL de solicitud:', scriptUrl);
+        
+        // Crear script
+        const script = document.createElement('script');
+        script.src = scriptUrl;
+        
+        script.onload = function() {
+            console.log('Script cargado exitosamente');
+        };
+        
+        script.onerror = function() {
+            console.error('Error cargando script');
+            delete window[callbackName];
+            errorDiv.innerText = '❌ Error de conexión. Intente nuevamente.';
             btn.disabled = false;
             btn.innerText = "🍴 SOLICITAR VIANDA";
-        }
+        };
+        
+        document.body.appendChild(script);
+        
+        // Timeout de seguridad
+        setTimeout(() => {
+            if (window[callbackName]) {
+                console.error('Timeout - callback no llamado');
+                delete window[callbackName];
+                errorDiv.innerText = '❌ Tiempo de espera agotado. Intente nuevamente.';
+                btn.disabled = false;
+                btn.innerText = "🍴 SOLICITAR VIANDA";
+            }
+        }, 15000);
     }
 
     // ==================== INICIALIZACIÓN ====================
@@ -432,43 +307,34 @@
         const turnoTexto = (turnoActual === "MAÑANA") ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
         document.getElementById('txtTurno').innerText = turnoTexto;
         
-        // Mostrar hora actual
+        // Hora actual
         actualizarHora();
         setInterval(actualizarHora, 1000);
         
-        // Escuchar cambios en el selector de dieta
-        document.getElementById('dieta').addEventListener('change', function(e) {
-            dietaActual = e.target.value;
-            actualizarDescripcionDieta();
-        });
+        // Evento cambio de dieta
+        document.getElementById('dieta').addEventListener('change', actualizarDescripcionDieta);
         
-        // Validar menú disponible
+        // Validar menú
         validarMenu();
+        
+        // Permitir Enter en campos
+        ['nombre', 'dni'].forEach(id => {
+            document.getElementById(id).addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnAccion');
+                    if (btn && !btn.disabled) {
+                        solicitarComida();
+                    }
+                }
+            });
+        });
     }
 
-    // ==================== EVENT LISTENERS ====================
-    document.addEventListener('DOMContentLoaded', function() {
-        inicializar();
-        
-        // Permitir enviar con Enter
-        const inputs = ['nombre', 'dni'];
-        inputs.forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const btn = document.getElementById('btnAccion');
-                        if (btn && !btn.disabled) {
-                            solicitarComida();
-                        }
-                    }
-                });
-            }
-        });
-    });
-
-    // ==================== FUNCIÓN GLOBAL PARA EL BOTÓN ====================
+    // ==================== ARRANCAR ====================
+    document.addEventListener('DOMContentLoaded', inicializar);
+    
+    // Exponer función global
     window.solicitarComida = solicitarComida;
 </script>
 </body>
