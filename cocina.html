@@ -8,66 +8,49 @@
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; text-transform: uppercase; }
         .container { max-width: 900px; margin: auto; }
         .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        h2, h3 { color: #0056b3; margin-top: 0; }
+        h2, h3 { color: #0056b3; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0; }
         .stat-card { background: #e9ecef; padding: 15px; border-radius: 10px; text-align: center; }
         .stat-number { font-size: 2.5rem; font-weight: bold; color: #0056b3; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; margin: 5px; }
         .btn-primary { background: #0056b3; color: white; }
         .btn-danger { background: #dc3545; color: white; }
         .btn-success { background: #28a745; color: white; }
-        input { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; text-transform: uppercase; }
+        input { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border: 2px solid #ccc; border-radius: 8px; text-transform: uppercase; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
-        .mensaje { margin-top: 10px; font-weight: bold; }
+        .mensaje { margin-top: 10px; font-weight: bold; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
         .turno-activo { font-size: 1.2rem; margin-bottom: 10px; }
-        .loading { color: #666; font-style: italic; }
-        .error { color: #dc3545; }
-        .success { color: #28a745; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="card">
         <h2>🍽️ PANEL DE COCINA</h2>
-        <div class="turno-activo" id="turnoInfo">Turno: CARGANDO...</div>
+        <div class="turno-activo" id="turnoInfo"></div>
         
-        <!-- Resumen de pedidos -->
-        <h3>📊 PEDIDOS PENDIENTES POR DIETA</h3>
-        <div class="stats-grid" id="resumenDietas">
-            <div class="stat-card">
-                <div>CARGANDO...</div>
-                <div class="stat-number">--</div>
-            </div>
-        </div>
+        <h3>📊 PEDIDOS PENDIENTES</h3>
+        <div class="stats-grid" id="resumenDietas"></div>
         <div><strong>Total pendientes:</strong> <span id="totalPendientes">0</span></div>
 
-        <!-- Validación de código -->
         <h3>🔍 VALIDAR ENTREGA</h3>
-        <input type="text" id="codigoInput" placeholder="INGRESE CÓDIGO DE 4 CARACTERES" maxlength="4" autocomplete="off">
-        <button class="btn btn-primary" onclick="validarCodigo()" style="margin-top: 10px;">✅ VALIDAR Y MARCAR ENTREGADO</button>
+        <input type="text" id="codigoInput" placeholder="CÓDIGO 4 CARACTERES" maxlength="4">
+        <button class="btn btn-primary" onclick="validarCodigo()">✅ VALIDAR ENTREGA</button>
         <div id="mensajeValidacion" class="mensaje"></div>
 
-        <!-- Lista de pendientes -->
         <h3>📋 LISTA DE PENDIENTES</h3>
-        <div id="tablaContainer">
-            <table id="tablaPendientes">
-                <thead>
-                    <tr><th>Código</th><th>Nombre</th><th>Dieta</th><th>Acción</th></tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="4" class="loading">Cargando pedidos...</td></tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <button class="btn btn-primary" onclick="cargarPendientes()" style="margin-top: 10px;">🔄 ACTUALIZAR LISTA</button>
+        <table id="tablaPendientes">
+            <thead><tr><th>Código</th><th>Nombre</th><th>Dieta</th><th>Acción</th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <button class="btn btn-primary" onclick="cargarPendientes()">🔄 ACTUALIZAR</button>
     </div>
 
     <div class="card">
         <h3>🔒 CERRAR TURNO</h3>
-        <p>Al cerrar el turno se generarán las estadísticas del día y se guardarán en la hoja "Estadisticas".</p>
-        <button class="btn btn-danger" onclick="cerrarTurno()">🚫 CERRAR TURNO Y GENERAR REPORTE</button>
+        <button class="btn btn-danger" onclick="cerrarTurno()">🚫 CERRAR TURNO</button>
         <div id="mensajeCierre" class="mensaje"></div>
     </div>
 </div>
@@ -78,208 +61,9 @@
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     document.getElementById('turnoInfo').innerText = `TURNO: ${turnoActual === "MAÑANA" ? "ALMUERZO" : "CENA"}`;
 
-    // Actualizar datos cada 15 segundos
     let intervalo = setInterval(cargarPendientes, 15000);
-    
-    // Cargar al iniciar
-    document.addEventListener('DOMContentLoaded', function() {
-        cargarPendientes();
-    });
+    cargarPendientes();
 
-    // Función para cargar pendientes usando JSONP
     function cargarPendientes() {
-        const callbackName = 'jsonpCocina_' + Date.now();
-        
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            mostrarPendientes(data);
-        };
-        
-        const script = document.createElement('script');
-        script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
-        script.onerror = function() {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            mostrarErrorCarga();
-        };
-        
-        document.body.appendChild(script);
-        
-        // Timeout de seguridad
-        setTimeout(() => {
-            if (window[callbackName]) {
-                delete window[callbackName];
-                document.body.removeChild(script);
-                mostrarErrorCarga();
-            }
-        }, 10000);
-    }
-
-    function mostrarPendientes(data) {
-        if (!data || data.error) {
-            mostrarErrorCarga();
-            return;
-        }
-        
-        // Actualizar conteo de dietas
-        const conteo = data.conteoDietas || {};
-        const resumenDiv = document.getElementById('resumenDietas');
-        resumenDiv.innerHTML = '';
-        
-        const dietas = ['GENERAL', 'HIPOSÓDICA', 'DIABÉTICA', 'CELIACA', 'GÁSTRICA'];
-        dietas.forEach(dieta => {
-            const cantidad = conteo[dieta] || 0;
-            resumenDiv.innerHTML += `
-                <div class="stat-card">
-                    <div>${dieta}</div>
-                    <div class="stat-number">${cantidad}</div>
-                </div>
-            `;
-        });
-        
-        document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
-
-        // Llenar tabla
-        const tbody = document.querySelector('#tablaPendientes tbody');
-        tbody.innerHTML = '';
-        
-        const pendientes = data.listaPendientes || [];
-        
-        if (pendientes.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">✅ No hay pedidos pendientes</td></tr>';
-            return;
-        }
-        
-        pendientes.forEach(p => {
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td><strong>${p.codigo || 'N/A'}</strong></td>
-                <td>${p.nombre || 'N/A'}</td>
-                <td>${p.dieta || 'N/A'}</td>
-                <td><button class="btn btn-success" onclick="entregarRapido('${p.codigo}')">✔ Entregar</button></td>
-            `;
-            tbody.appendChild(fila);
-        });
-    }
-
-    function mostrarErrorCarga() {
-        const resumenDiv = document.getElementById('resumenDietas');
-        resumenDiv.innerHTML = '<div class="stat-card"><div>ERROR</div><div class="stat-number">⚠️</div></div>';
-        document.getElementById('totalPendientes').innerText = 'ERROR';
-        
-        const tbody = document.querySelector('#tablaPendientes tbody');
-        tbody.innerHTML = '<tr><td colspan="4" class="error">❌ Error al cargar los pedidos. Intente actualizar.</td></tr>';
-    }
-
-    async function validarCodigo() {
-        const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
-        const msgDiv = document.getElementById('mensajeValidacion');
-        
-        if (codigo.length !== 4) {
-            msgDiv.className = 'mensaje error';
-            msgDiv.innerText = "❌ El código debe tener 4 caracteres";
-            return;
-        }
-
-        msgDiv.className = 'mensaje loading';
-        msgDiv.innerText = "Validando código...";
-
-        try {
-            const resp = await fetch(API, {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "validar_codigo",
-                    codigo: codigo
-                })
-            });
-            
-            const result = await resp.json();
-            
-            if (result.status === "success") {
-                msgDiv.className = 'mensaje success';
-                msgDiv.innerText = `✅ ENTREGADO a ${result.nombre} (Dieta: ${result.dieta})`;
-                document.getElementById('codigoInput').value = '';
-                cargarPendientes(); // refrescar lista
-            } else {
-                msgDiv.className = 'mensaje error';
-                msgDiv.innerText = `❌ ${result.message}`;
-            }
-        } catch (error) {
-            console.error('Error validando:', error);
-            msgDiv.className = 'mensaje error';
-            msgDiv.innerText = "❌ Error de conexión. Intente nuevamente.";
-        }
-    }
-
-    // Función rápida desde la tabla
-    function entregarRapido(codigo) {
-        document.getElementById('codigoInput').value = codigo;
-        validarCodigo();
-    }
-
-    async function cerrarTurno() {
-        const msgDiv = document.getElementById('mensajeCierre');
-        
-        if (!confirm("⚠️ ¿Está seguro de cerrar el turno?\nSe generará el reporte en la hoja Estadísticas.")) {
-            return;
-        }
-        
-        msgDiv.className = 'mensaje loading';
-        msgDiv.innerText = "Cerrando turno y generando estadísticas...";
-        
-        try {
-            const resp = await fetch(API, {
-                method: 'POST',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: "cerrar_turno",
-                    turno: turnoActual
-                })
-            });
-            
-            const result = await resp.json();
-            
-            if (result.status === "success") {
-                msgDiv.className = 'mensaje success';
-                msgDiv.innerText = `✅ ${result.message}`;
-                setTimeout(() => {
-                    msgDiv.innerText = '';
-                }, 5000);
-            } else {
-                msgDiv.className = 'mensaje error';
-                msgDiv.innerText = `❌ ${result.message || 'Error al cerrar turno'}`;
-            }
-        } catch (error) {
-            console.error('Error cerrando turno:', error);
-            msgDiv.className = 'mensaje error';
-            msgDiv.innerText = "❌ Error de conexión al cerrar turno.";
-        }
-    }
-
-    // Permitir validar con Enter
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('codigoInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                validarCodigo();
-            }
-        });
-    });
-
-    // Limpiar intervalo al cerrar página
-    window.addEventListener('beforeunload', function() {
-        if (intervalo) {
-            clearInterval(intervalo);
-        }
-    });
-</script>
-</body>
-</html>
+        const callbackName = 'cocinaCallback_' + Date.now();
+        window[
