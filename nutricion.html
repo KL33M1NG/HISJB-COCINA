@@ -2,84 +2,253 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>NUTRICIÓN - HISJB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA NUTRICIÓN - HISJB</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #e8ecef; padding: 20px; text-transform: uppercase; }
-        .card { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input, select, button, textarea { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { background: #0056b3; color: white; font-weight: bold; cursor: pointer; border: none; }
-        button:hover { background: #004094; }
-        h3 { color: #0056b3; }
-        .dieta-group { background: #f9f9f9; padding: 10px; border-radius: 8px; margin: 15px 0; }
-        label { font-weight: bold; display: block; margin-top: 10px; }
+        :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; --red: #dc3545; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--gray); 
+            margin: 0; 
+            text-transform: uppercase; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { 
+            background: var(--blue); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        header h1 { margin: 0; font-size: 1.5rem; }
+        header p { margin: 5px 0 0; font-size: 0.8rem; opacity: 0.9; }
+        .container { max-width: 550px; margin: 20px auto; padding: 15px; flex: 1; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; }
+        .status { padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
+        .disponible { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .agotado { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .cargando { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; text-transform: uppercase; font-size: 1rem; }
+        input:focus, select:focus { outline: none; border-color: var(--blue); }
+        label { display: block; text-align: left; margin-top: 15px; font-weight: bold; color: #333; font-size: 0.9rem; }
+        .btn-enviar { width: 100%; padding: 16px; background: var(--green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.2rem; margin-top: 20px; text-transform: uppercase; }
+        .btn-enviar:hover { background: #218838; }
+        .btn-enviar:disabled { background: #6c757d; cursor: not-allowed; }
+        #resultado { display: none; margin-top: 20px; border: 3px dashed var(--green); padding: 30px 20px; border-radius: 10px; background: white; }
+        #codigoDisplay { font-size: 5rem; color: var(--green); margin: 15px 0; font-weight: bold; letter-spacing: 5px; }
+        .menu-info-detalle { background: #e7f3ff; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left; border-left: 5px solid var(--blue); }
+        .error-mensaje { color: var(--red); margin-top: 10px; font-size: 0.9rem; }
+        .hora-actual { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 0.75rem; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h3>📋 PUBLICAR MENÚ DEL DÍA</h3>
-        <label>TURNO</label>
-        <select id="turno">
-            <option value="MAÑANA">ALMUERZO</option>
-            <option value="NOCHE">CENA</option>
-        </select>
 
-        <label>PLATO PRINCIPAL (nombre genérico)</label>
-        <input type="text" id="platoPrincipal" placeholder="Ej: GUISO DE LENTEJAS" required>
+<header>
+    <h1>🏥 HOSPITAL SAN JUAN BAUTISTA</h1>
+    <p>GESTIÓN DIGITAL DE ALIMENTACIÓN - SISTEMA NUTRICIÓN</p>
+</header>
 
-        <div class="dieta-group">
-            <p><strong>ESPECIFICACIONES POR DIETA (opcional)</strong></p>
-            <label>GENERAL:</label>
-            <input type="text" id="dietaGeneral" placeholder="Descripción para dieta general">
-            <label>HIPOSÓDICA:</label>
-            <input type="text" id="dietaHipo" placeholder="Ej: sin sal agregada">
-            <label>DIABÉTICA:</label>
-            <input type="text" id="dietaDiabetica" placeholder="Ej: sin azúcar, legumbres controladas">
-            <label>CELIACA:</label>
-            <input type="text" id="dietaCeliaca" placeholder="Ej: sin TACC">
-            <label>GÁSTRICA:</label>
-            <input type="text" id="dietaGastrica" placeholder="Ej: sin condimentos picantes">
+<div class="container">
+    <div class="card" id="formCard">
+        <h2 id="txtTurno">⏰ VERIFICANDO TURNO...</h2>
+        <div id="statusBox" class="status cargando">🔄 CONSULTANDO DISPONIBILIDAD...</div>
+        <div id="menuInfo" style="margin-bottom: 20px; color: #555; font-size: 0.95rem;"></div>
+
+        <div id="camposPersonal" style="display: none; text-align: left;">
+            <label>👤 APELLIDO Y NOMBRE</label>
+            <input type="text" id="nombre" placeholder="COMO FIGURA EN DNI" autocomplete="off">
+            
+            <label>🆔 DNI (SIN PUNTOS)</label>
+            <input type="number" id="dni" placeholder="EJ: 12345678" autocomplete="off">
+
+            <label>🍽️ TIPO DE DIETA</label>
+            <select id="dieta">
+                <option value="GENERAL">GENERAL</option>
+                <option value="HIPOSÓDICA">HIPOSÓDICA (BAJA EN SODIO)</option>
+                <option value="DIABÉTICA">DIABÉTICA</option>
+                <option value="CELIACA">CELIACA (SIN TACC)</option>
+                <option value="GÁSTRICA">GÁSTRICA (LIVIANA)</option>
+            </select>
+
+            <div class="menu-info-detalle">
+                <strong>📝 DETALLE DEL MENÚ:</strong><br>
+                <span id="descripcionDieta">Seleccione una dieta para ver detalles</span>
+            </div>
+            
+            <button class="btn-enviar" id="btnAccion" onclick="solicitarComida()">🍴 SOLICITAR VIANDA</button>
+            <div id="errorMensaje" class="error-mensaje"></div>
         </div>
-
-        <button onclick="publicarMenu()">✅ HABILITAR PEDIDOS</button>
-        <div id="mensaje" style="margin-top: 15px; color: green; font-weight: bold;"></div>
+        
+        <div class="hora-actual" id="horaActual"></div>
     </div>
 
-    <script>
-        const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+    <div id="resultado" class="card">
+        <p style="font-size: 1.1rem;">✅ REGISTRO EXITOSO</p>
+        <p>TU CÓDIGO DE RETIRO ES:</p>
+        <h1 id="codigoDisplay">----</h1>
+        <p style="font-size: 0.85rem; color: #666;">MUESTRE ESTE CÓDIGO EN COCINA PARA RETIRAR SU VIANDA</p>
+        <p style="font-size: 0.75rem; margin-top: 20px;">⚠️ Este código es personal e intransferible</p>
+        <button class="btn-enviar" onclick="location.reload()" style="background: var(--blue); margin-top: 20px;">🔙 REALIZAR OTRA SOLICITUD</button>
+    </div>
+</div>
 
-        async function publicarMenu() {
-            const turno = document.getElementById('turno').value;
-            const platoPrincipal = document.getElementById('platoPrincipal').value.trim();
-            if (!platoPrincipal) {
-                alert('Debe ingresar un plato principal');
-                return;
+<div class="footer">
+    © HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN<br>
+    Sistema desarrollado para uso interno del personal
+</div>
+
+<script>
+    const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+    
+    const fecha = new Date();
+    const hora = fecha.getHours();
+    const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
+    
+    let menuDataGlobal = null;
+
+    function actualizarHora() {
+        const ahora = new Date();
+        const horaStr = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('horaActual').innerText = `🕐 Hora actual: ${horaStr} | Turno: ${turnoActual === "MAÑANA" ? "Almuerzo" : "Cena"}`;
+    }
+
+    function validarMenu() {
+        const box = document.getElementById('statusBox');
+        const menuInfo = document.getElementById('menuInfo');
+        
+        box.innerText = "🔄 CONSULTANDO DISPONIBILIDAD...";
+        box.className = "status cargando";
+        
+        const callbackName = 'menuCallback_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            
+            if (data.disponible && data.datos && data.datos.length > 0) {
+                box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
+                box.className = "status disponible";
+                menuDataGlobal = data.datos[0];
+                const platoPrincipal = menuDataGlobal.platoPrincipal || 'Menú del día';
+                menuInfo.innerHTML = `🍲 HOY: <strong>${platoPrincipal}</strong>`;
+                document.getElementById('camposPersonal').style.display = 'block';
+                actualizarDescripcionDieta();
+            } else {
+                box.innerText = "⛔ MENÚ NO DISPONIBLE";
+                box.className = "status agotado";
+                menuInfo.innerHTML = "❌ EL EQUIPO DE NUTRICIÓN AÚN NO HA HABILITADO LOS PEDIDOS.";
+                document.getElementById('camposPersonal').style.display = 'none';
             }
+        };
+        
+        const script = document.createElement('script');
+        script.src = API + '?action=obtener_menu&callback=' + callbackName;
+        script.onerror = function() {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            box.innerText = "⚠️ ERROR DE CONEXIÓN";
+            box.className = "status agotado";
+        };
+        document.body.appendChild(script);
+    }
 
-            const dietas = {
-                GENERAL: document.getElementById('dietaGeneral').value.trim() || platoPrincipal,
-                HIPOSÓDICA: document.getElementById('dietaHipo').value.trim() || platoPrincipal + " (adaptado)",
-                DIABÉTICA: document.getElementById('dietaDiabetica').value.trim() || platoPrincipal + " (adaptado)",
-                CELIACA: document.getElementById('dietaCeliaca').value.trim() || platoPrincipal + " (adaptado)",
-                GÁSTRICA: document.getElementById('dietaGastrica').value.trim() || platoPrincipal + " (adaptado)"
-            };
-
-            try {
-                const response = await fetch(API, {
-                    method: 'POST',
-                    mode: 'cors',
-                    body: JSON.stringify({
-                        action: "cargar_menu",
-                        turno: turno,
-                        platoPrincipal: platoPrincipal,
-                        dietas: dietas
-                    })
-                });
-                const result = await response.json();
-                document.getElementById('mensaje').innerText = result.message || "Menú publicado. El personal ya puede anotarse.";
-            } catch (error) {
-                alert("Error al publicar: " + error);
+    function actualizarDescripcionDieta() {
+        const descripcionSpan = document.getElementById('descripcionDieta');
+        if (!menuDataGlobal) return;
+        
+        try {
+            let dietasObj = {};
+            if (menuDataGlobal.dietas && typeof menuDataGlobal.dietas === 'string') {
+                dietasObj = JSON.parse(menuDataGlobal.dietas);
             }
+            const dietaSeleccionada = document.getElementById('dieta').value;
+            let descripcion = dietasObj[dietaSeleccionada] || menuDataGlobal.platoPrincipal || 'Menú del día';
+            descripcionSpan.innerHTML = `<strong>${menuDataGlobal.platoPrincipal}</strong><br>`;
+            if (dietaSeleccionada !== 'GENERAL') {
+                descripcionSpan.innerHTML += `↳ Adaptación ${dietaSeleccionada}: ${descripcion}`;
+            } else {
+                descripcionSpan.innerHTML += descripcion;
+            }
+        } catch (e) {
+            descripcionSpan.innerText = menuDataGlobal.platoPrincipal || 'Menú del día';
         }
-    </script>
+    }
+
+    function solicitarComida() {
+        const nombreInput = document.getElementById('nombre');
+        const dniInput = document.getElementById('dni');
+        const errorDiv = document.getElementById('errorMensaje');
+        const nombre = nombreInput.value.trim().toUpperCase();
+        const dni = dniInput.value.trim();
+        
+        errorDiv.innerText = '';
+        if (!nombre) { errorDiv.innerText = '❌ Debe ingresar su nombre y apellido'; return; }
+        if (!dni) { errorDiv.innerText = '❌ Debe ingresar su DNI'; return; }
+        if (dni.length < 7 || dni.length > 9) { errorDiv.innerText = '❌ El DNI debe tener entre 7 y 9 dígitos'; return; }
+        
+        const btn = document.getElementById('btnAccion');
+        btn.disabled = true;
+        btn.innerText = "⏳ PROCESANDO SOLICITUD...";
+        
+        const miCodigo = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const dietaSeleccionada = document.getElementById('dieta').value;
+        const callbackName = 'solicitudCallback_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            if (data.status === "success") {
+                document.getElementById('formCard').style.display = 'none';
+                document.getElementById('codigoDisplay').innerText = miCodigo;
+                document.getElementById('resultado').style.display = 'block';
+            } else {
+                errorDiv.innerText = '❌ Error al registrar: ' + (data.message || 'Intente nuevamente');
+                btn.disabled = false;
+                btn.innerText = "🍴 SOLICITAR VIANDA";
+            }
+        };
+        
+        const script = document.createElement('script');
+        const params = new URLSearchParams({
+            action: 'generar_codigo',
+            nombre: nombre, dni: dni, dieta: dietaSeleccionada,
+            turno: turnoActual, codigo: miCodigo, callback: callbackName
+        });
+        script.src = API + '?' + params.toString();
+        script.onerror = function() {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            errorDiv.innerText = '❌ Error de conexión. Intente nuevamente.';
+            btn.disabled = false;
+            btn.innerText = "🍴 SOLICITAR VIANDA";
+        };
+        document.body.appendChild(script);
+        
+        setTimeout(() => {
+            if (window[callbackName]) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                errorDiv.innerText = '❌ Tiempo de espera agotado.';
+                btn.disabled = false;
+                btn.innerText = "🍴 SOLICITAR VIANDA";
+            }
+        }, 15000);
+    }
+
+    function inicializar() {
+        document.getElementById('txtTurno').innerText = (turnoActual === "MAÑANA") ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
+        actualizarHora();
+        setInterval(actualizarHora, 1000);
+        document.getElementById('dieta').addEventListener('change', actualizarDescripcionDieta);
+        validarMenu();
+    }
+
+    document.addEventListener('DOMContentLoaded', inicializar);
+    window.solicitarComida = solicitarComida;
+</script>
 </body>
 </html>
