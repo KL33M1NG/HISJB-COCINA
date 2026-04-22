@@ -2,145 +2,673 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>COCINA - HISJB</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COCINA - HISJB</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; text-transform: uppercase; }
-        .container { max-width: 900px; margin: auto; }
-        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        h2, h3 { color: #0056b3; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0; }
-        .stat-card { background: #e9ecef; padding: 15px; border-radius: 10px; text-align: center; }
-        .stat-number { font-size: 2.5rem; font-weight: bold; color: #0056b3; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; margin: 5px; }
-        .btn-primary { background: #0056b3; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        input { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border: 2px solid #ccc; border-radius: 8px; text-transform: uppercase; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
-        .mensaje { margin-top: 10px; font-weight: bold; padding: 10px; border-radius: 5px; }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
-        .turno-activo { font-size: 1.2rem; margin-bottom: 10px; }
+        :root {
+            --primary: #1a5276;
+            --primary-light: #2980b9;
+            --success: #27ae60;
+            --success-light: #d5f5e3;
+            --danger: #e74c3c;
+            --danger-light: #fadbd8;
+            --warning: #f39c12;
+            --warning-light: #fdebd0;
+            --dark: #2c3e50;
+            --gray: #ecf0f1;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --shadow-hover: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            text-transform: uppercase;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+            pointer-events: none;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: var(--white);
+            font-size: 2.5rem;
+            margin: 0;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+            letter-spacing: 2px;
+        }
+        
+        .header p {
+            color: rgba(255,255,255,0.9);
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .card-header h2, .card-header h3 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .turno-badge {
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(26,82,118,0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            padding: 20px 10px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 15px rgba(26,82,118,0.3);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .dieta-nombre {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: bold;
+            line-height: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .total-badge {
+            background: var(--warning);
+            color: var(--dark);
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+        
+        .validacion-section {
+            background: var(--gray);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 18px;
+            font-size: 1.8rem;
+            text-align: center;
+            border: 3px solid var(--primary);
+            border-radius: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 8px;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--success);
+            box-shadow: 0 0 0 4px rgba(39,174,96,0.2);
+        }
+        
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-light);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #219a52;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: var(--dark);
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: var(--gray);
+            border-radius: 10px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            position: sticky;
+            top: 0;
+            background: var(--primary);
+            color: white;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--gray);
+            background: white;
+        }
+        
+        tr:hover td {
+            background: var(--gray);
+        }
+        
+        .mensaje {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success {
+            background: var(--success-light);
+            color: var(--success);
+            border-left: 5px solid var(--success);
+        }
+        
+        .error {
+            background: var(--danger-light);
+            color: var(--danger);
+            border-left: 5px solid var(--danger);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.1rem;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .footer-note {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.8;
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .card {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="card">
-        <h2>🍽️ PANEL DE COCINA</h2>
-        <div class="turno-activo" id="turnoInfo"></div>
+    <div class="header">
+        <h1>👨‍🍳 PANEL DE COCINA</h1>
+        <p>HOSPITAL SAN JUAN BAUTISTA - SISTEMA DE GESTIÓN DE VIANDAS</p>
+    </div>
+    
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- COLUMNA IZQUIERDA: Estadísticas y validación -->
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📊 PEDIDOS PENDIENTES</h2>
+                        <span class="turno-badge" id="turnoInfo"></span>
+                    </div>
+                    
+                    <div class="stats-grid" id="resumenDietas">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <span class="total-badge">
+                            🍽️ TOTAL PENDIENTES: <span id="totalPendientes">0</span>
+                        </span>
+                    </div>
+                    
+                    <div class="validacion-section">
+                        <h3 style="margin-top: 0; color: var(--dark);">🔍 VALIDAR ENTREGA</h3>
+                        
+                        <div class="input-group">
+                            <input type="text" id="codigoInput" placeholder="CÓDIGO" maxlength="4" autocomplete="off">
+                            <button class="btn btn-primary" onclick="validarCodigo()">
+                                ✅ VALIDAR
+                            </button>
+                        </div>
+                        
+                        <div id="mensajeValidacion" class="mensaje" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- COLUMNA DERECHA: Lista de pendientes -->
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📋 LISTA DE ENTREGAS PENDIENTES</h3>
+                        <button class="btn btn-warning" onclick="cargarPendientes()">
+                            🔄 ACTUALIZAR
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table id="tablaPendientes">
+                            <thead>
+                                <tr>
+                                    <th>🔢 CÓDIGO</th>
+                                    <th>👤 PERSONAL</th>
+                                    <th>🍽️ DIETA</th>
+                                    <th>✅ ACCIÓN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4">
+                                        <div class="empty-state">
+                                            <div style="font-size: 3rem; margin-bottom: 15px;">🍳</div>
+                                            Cargando pedidos pendientes...
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        <h3>📊 PEDIDOS PENDIENTES</h3>
-        <div class="stats-grid" id="resumenDietas"></div>
-        <div><strong>Total pendientes:</strong> <span id="totalPendientes">0</span></div>
-
-        <h3>🔍 VALIDAR ENTREGA</h3>
-        <input type="text" id="codigoInput" placeholder="CÓDIGO 4 CARACTERES" maxlength="4">
-        <button class="btn btn-primary" onclick="validarCodigo()">✅ VALIDAR ENTREGA</button>
-        <div id="mensajeValidacion" class="mensaje"></div>
-
-        <h3>📋 LISTA DE PENDIENTES</h3>
-        <table id="tablaPendientes">
-            <thead><tr><th>Código</th><th>Nombre</th><th>Dieta</th><th>Acción</th></tr></thead>
-            <tbody></tbody>
-        </table>
-        <button class="btn btn-primary" onclick="cargarPendientes()">🔄 ACTUALIZAR</button>
+        <!-- CARD DE CIERRE DE TURNO -->
+        <div class="card">
+            <div class="card-header">
+                <h3>🔒 CERRAR TURNO</h3>
+                <span style="color: var(--danger); font-size: 0.9rem;">⚠️ Acción irreversible</span>
+            </div>
+            
+            <p style="color: #666; margin-bottom: 20px;">
+                Al cerrar el turno se generará el reporte estadístico del día y se guardará en la hoja de cálculo.
+                Asegúrese de que todos los pedidos estén entregados.
+            </p>
+            
+            <button class="btn btn-danger btn-block" onclick="cerrarTurno()">
+                🚫 CERRAR TURNO Y GENERAR ESTADÍSTICAS
+            </button>
+            
+            <div id="mensajeCierre" class="mensaje" style="display: none;"></div>
+        </div>
+        
+        <div class="footer-note">
+            © HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE COCINA<br>
+            Panel actualizado en tiempo real | Turno actual: <span id="turnoFooter"></span>
+        </div>
     </div>
 
-    <div class="card">
-        <h3>🔒 CERRAR TURNO</h3>
-        <button class="btn btn-danger" onclick="cerrarTurno()">🚫 CERRAR TURNO</button>
-        <div id="mensajeCierre" class="mensaje"></div>
-    </div>
-</div>
+    <script>
+        const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+        const hora = new Date().getHours();
+        const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
+        const turnoTexto = turnoActual === "MAÑANA" ? "🌅 ALMUERZO" : "🌙 CENA";
+        
+        document.getElementById('turnoInfo').innerHTML = `🍽️ ${turnoTexto}`;
+        document.getElementById('turnoFooter').innerText = turnoTexto;
 
-<script>
-    const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
-    const hora = new Date().getHours();
-    const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
-    document.getElementById('turnoInfo').innerText = `TURNO: ${turnoActual === "MAÑANA" ? "ALMUERZO" : "CENA"}`;
+        let intervalo = setInterval(cargarPendientes, 15000);
+        cargarPendientes();
 
-    let intervalo = setInterval(cargarPendientes, 15000);
-    cargarPendientes();
-
-    function cargarPendientes() {
-        const callbackName = 'cocinaCallback_' + Date.now();
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
+        function mostrarMensaje(elementId, tipo, texto) {
+            const el = document.getElementById(elementId);
+            el.innerHTML = texto;
+            el.className = `mensaje ${tipo}`;
+            el.style.display = 'flex';
             
-            if (data.error) return;
-            
-            const conteo = data.conteoDietas || {};
-            const resumenDiv = document.getElementById('resumenDietas');
-            resumenDiv.innerHTML = '';
-            ['GENERAL', 'HIPOSÓDICA', 'DIABÉTICA', 'CELIACA', 'GÁSTRICA'].forEach(d => {
-                resumenDiv.innerHTML += `<div class="stat-card"><div>${d}</div><div class="stat-number">${conteo[d] || 0}</div></div>`;
-            });
-            document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, 5000);
+        }
 
-            const tbody = document.querySelector('#tablaPendientes tbody');
-            tbody.innerHTML = '';
-            if (!data.listaPendientes || data.listaPendientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4">✅ No hay pedidos pendientes</td></tr>';
+        function cargarPendientes() {
+            const callbackName = 'cocinaCallback_' + Date.now();
+            
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                
+                if (data.error) return;
+                
+                const conteo = data.conteoDietas || {};
+                const resumenDiv = document.getElementById('resumenDietas');
+                resumenDiv.innerHTML = '';
+                
+                const dietas = ['GENERAL', 'HIPOSÓDICA', 'DIABÉTICA', 'CELIACA', 'GÁSTRICA'];
+                const iconos = { 'GENERAL': '🍲', 'HIPOSÓDICA': '🧂', 'DIABÉTICA': '🍬', 'CELIACA': '🌾', 'GÁSTRICA': '🥗' };
+                
+                dietas.forEach(d => {
+                    resumenDiv.innerHTML += `
+                        <div class="stat-card">
+                            <div class="dieta-nombre">${iconos[d]} ${d}</div>
+                            <div class="stat-number">${conteo[d] || 0}</div>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
+
+                const tbody = document.querySelector('#tablaPendientes tbody');
+                tbody.innerHTML = '';
+                
+                if (!data.listaPendientes || data.listaPendientes.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <div style="font-size: 3rem;">✅</div>
+                                    ¡No hay pedidos pendientes!<br>
+                                    <span style="font-size: 0.9rem; opacity: 0.7;">Todos los pedidos han sido entregados</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                data.listaPendientes.forEach(p => {
+                    const fila = document.createElement('tr');
+                    fila.innerHTML = `
+                        <td><strong style="font-size: 1.2rem; color: var(--primary);">${p.codigo}</strong></td>
+                        <td>${p.nombre}</td>
+                        <td><span style="background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">${p.dieta}</span></td>
+                        <td>
+                            <button class="btn btn-success" onclick="entregarRapido('${p.codigo}')" style="padding: 8px 16px;">
+                                ✔ ENTREGAR
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(fila);
+                });
+            };
+            
+            const script = document.createElement('script');
+            script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
+            script.onerror = () => {
+                const tbody = document.querySelector('#tablaPendientes tbody');
+                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">❌ Error al cargar. Intente actualizar.</div></td></tr>';
+            };
+            document.body.appendChild(script);
+        }
+
+        function validarCodigo() {
+            const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
+            
+            if (codigo.length !== 4) {
+                mostrarMensaje('mensajeValidacion', 'error', '❌ El código debe tener 4 caracteres');
                 return;
             }
-            data.listaPendientes.forEach(p => {
-                tbody.innerHTML += `<tr><td><strong>${p.codigo}</strong></td><td>${p.nombre}</td><td>${p.dieta}</td><td><button class="btn btn-success" onclick="entregarRapido('${p.codigo}')">✔ Entregar</button></td></tr>`;
-            });
-        };
-        
-        const script = document.createElement('script');
-        script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
-        document.body.appendChild(script);
-    }
 
-    function validarCodigo() {
-        const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
-        const msgDiv = document.getElementById('mensajeValidacion');
-        if (codigo.length !== 4) { msgDiv.innerHTML = "❌ Código debe tener 4 caracteres"; msgDiv.className = "mensaje error"; return; }
+            const callbackName = 'validarCallback_' + Date.now();
+            
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                
+                if (data.status === "success") {
+                    mostrarMensaje('mensajeValidacion', 'success', 
+                        `✅ ¡ENTREGADO! ${data.nombre} - Dieta: ${data.dieta}`);
+                    document.getElementById('codigoInput').value = '';
+                    cargarPendientes();
+                } else {
+                    mostrarMensaje('mensajeValidacion', 'error', `❌ ${data.message}`);
+                }
+            };
+            
+            const script = document.createElement('script');
+            script.src = API + '?action=validar_codigo&codigo=' + codigo + '&callback=' + callbackName;
+            document.body.appendChild(script);
+        }
 
-        const callbackName = 'validarCallback_' + Date.now();
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            if (data.status === "success") {
-                msgDiv.innerHTML = `✅ ENTREGADO a ${data.nombre} (${data.dieta})`;
-                msgDiv.className = "mensaje success";
-                document.getElementById('codigoInput').value = '';
-                cargarPendientes();
-            } else {
-                msgDiv.innerHTML = `❌ ${data.message}`;
-                msgDiv.className = "mensaje error";
-            }
-        };
-        
-        const script = document.createElement('script');
-        script.src = API + '?action=validar_codigo&codigo=' + codigo + '&callback=' + callbackName;
-        document.body.appendChild(script);
-    }
+        function entregarRapido(codigo) {
+            document.getElementById('codigoInput').value = codigo;
+            validarCodigo();
+        }
 
-    function entregarRapido(codigo) { document.getElementById('codigoInput').value = codigo; validarCodigo(); }
+        function cerrarTurno() {
+            if (!confirm("⚠️ ¿Está seguro de cerrar el turno?\n\nSe generará el reporte estadístico y NO se podrá revertir.")) return;
+            
+            const callbackName = 'cierreCallback_' + Date.now();
+            
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                
+                if (data.status === "success") {
+                    mostrarMensaje('mensajeCierre', 'success', `✅ ${data.message}`);
+                } else {
+                    mostrarMensaje('mensajeCierre', 'error', `❌ ${data.message}`);
+                }
+            };
+            
+            const script = document.createElement('script');
+            script.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + callbackName;
+            document.body.appendChild(script);
+        }
 
-    function cerrarTurno() {
-        if (!confirm("¿Cerrar turno? Se generará el reporte.")) return;
-        const msgDiv = document.getElementById('mensajeCierre');
-        const callbackName = 'cierreCallback_' + Date.now();
-        
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            msgDiv.innerHTML = data.status === "success" ? `✅ ${data.message}` : `❌ ${data.message}`;
-            msgDiv.className = data.status === "success" ? "mensaje success" : "mensaje error";
-        };
-        
-        const script = document.createElement('script');
-        script.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + callbackName;
-        document.body.appendChild(script);
-    }
+        // Permitir Enter en el campo de código
+        document.getElementById('codigoInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validarCodigo();
+        });
 
-    window.addEventListener('beforeunload', () => clearInterval(intervalo));
-</script>
+        window.addEventListener('beforeunload', () => clearInterval(intervalo));
+    </script>
 </body>
 </html>
