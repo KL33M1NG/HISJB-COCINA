@@ -5,480 +5,436 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COCINA - HISJB</title>
     <style>
-        :root {
-            --primary: #1a5276;
-            --primary-light: #2980b9;
-            --success: #27ae60;
-            --success-light: #d5f5e3;
-            --danger: #e74c3c;
-            --danger-light: #fadbd8;
-            --warning: #f39c12;
-            --warning-light: #fdebd0;
-            --dark: #2c3e50;
-            --gray: #ecf0f1;
+        :root { 
+            --blue: #0056b3; 
+            --blue-dark: #003d7a; 
+            --green: #28a745; 
+            --green-dark: #1e7e34;
+            --red: #dc3545; 
+            --red-dark: #b02a37;
+            --orange: #e67e22;
+            --gray: #f4f7f6; 
             --white: #ffffff;
-            --shadow: 0 10px 30px rgba(0,0,0,0.1);
-            --shadow-hover: 0 15px 40px rgba(0,0,0,0.15);
+            --dark: #2c3e50;
+            --border: #dee2e6;
+            --shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
         
-        * {
-            box-sizing: border-box;
-            margin: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
-        body {
-            font-family: 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-            text-transform: uppercase;
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--gray); 
+            margin: 0; 
+            text-transform: uppercase; 
             min-height: 100vh;
-            position: relative;
         }
         
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
-            pointer-events: none;
+        /* ========== HEADER ========== */
+        header { 
+            background: var(--blue); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+        header p { margin: 5px 0 0; font-size: 0.8rem; opacity: 0.9; }
+        
+        /* ========== CONTAINER ========== */
+        .container { 
+            max-width: 1300px; 
+            margin: 20px auto; 
+            padding: 0 15px 30px;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
+        /* ========== TURNO BADGE ========== */
+        .turno-bar {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
+        .turno-badge {
+            background: var(--blue);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
         }
-        
-        .header h1 {
-            color: var(--white);
-            font-size: 2.5rem;
-            margin: 0;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
-            letter-spacing: 2px;
-        }
-        
-        .header p {
-            color: rgba(255,255,255,0.9);
-            margin: 5px 0 0;
+        .turno-info {
+            color: var(--dark);
             font-size: 0.9rem;
         }
+        .turno-info strong {
+            color: var(--blue);
+            font-size: 1.2rem;
+        }
         
+        /* ========== GRID PRINCIPAL ========== */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 25px;
-            margin-bottom: 25px;
+            grid-template-columns: 1fr 1.8fr;
+            gap: 20px;
+            margin-bottom: 20px;
         }
         
-        .card {
-            background: var(--white);
-            border-radius: 20px;
-            padding: 25px;
+        /* ========== CARDS ========== */
+        .card { 
+            background: var(--white); 
+            padding: 25px; 
+            border-radius: 15px; 
             box-shadow: var(--shadow);
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
         }
-        
-        .card:hover {
-            box-shadow: var(--shadow-hover);
-            transform: translateY(-3px);
-        }
-        
         .card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 3px solid var(--primary);
-        }
-        
-        .card-header h2, .card-header h3 {
-            color: var(--primary);
-            margin: 0;
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
+            border-bottom: 3px solid var(--blue);
+            flex-wrap: wrap;
             gap: 10px;
         }
-        
-        .turno-badge {
-            background: var(--primary);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(26,82,118,0.3);
-            animation: pulse 2s infinite;
+        .card-header h2, .card-header h3 {
+            color: var(--blue);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-        
+        /* ========== ESTADÍSTICAS ========== */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
             margin: 20px 0;
         }
-        
         .stat-card {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            padding: 20px 10px;
-            border-radius: 15px;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+            padding: 18px 10px;
+            border-radius: 12px;
             text-align: center;
             color: white;
-            box-shadow: 0 4px 15px rgba(26,82,118,0.3);
             transition: transform 0.2s;
         }
-        
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
         }
-        
         .stat-card .dieta-nombre {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             opacity: 0.9;
             margin-bottom: 8px;
+            font-weight: bold;
         }
-        
-        .stat-number {
-            font-size: 2.8rem;
+        .stat-card .stat-number {
+            font-size: 2.2rem;
             font-weight: bold;
             line-height: 1;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         
+        /* Total badge */
+        .total-section {
+            text-align: center;
+            margin: 15px 0;
+        }
         .total-badge {
-            background: var(--warning);
-            color: var(--dark);
-            padding: 10px 20px;
+            background: var(--blue);
+            color: white;
+            padding: 12px 25px;
             border-radius: 50px;
             display: inline-block;
             font-weight: bold;
             font-size: 1.1rem;
-            margin-top: 10px;
+            box-shadow: 0 3px 10px rgba(0,86,179,0.3);
+        }
+        .total-badge span {
+            font-size: 1.4rem;
         }
         
+        /* ========== VALIDACIÓN ========== */
         .validacion-section {
-            background: var(--gray);
+            background: #f8f9fa;
             padding: 20px;
-            border-radius: 15px;
+            border-radius: 12px;
             margin: 20px 0;
+            border: 2px dashed var(--blue);
         }
-        
+        .validacion-section h3 {
+            color: var(--dark);
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
         .input-group {
             display: flex;
             gap: 10px;
             margin-top: 15px;
         }
-        
         .input-group input {
             flex: 1;
-            padding: 18px;
-            font-size: 1.8rem;
+            padding: 16px;
+            font-size: 1.6rem;
             text-align: center;
-            border: 3px solid var(--primary);
-            border-radius: 12px;
-            text-transform: uppercase;
+            border: 3px solid var(--blue);
+            border-radius: 10px;
             font-weight: bold;
             letter-spacing: 8px;
-            transition: all 0.3s;
-            background: white;
+            text-transform: uppercase;
         }
-        
         .input-group input:focus {
             outline: none;
-            border-color: var(--success);
-            box-shadow: 0 0 0 4px rgba(39,174,96,0.2);
+            border-color: var(--green);
+            box-shadow: 0 0 0 4px rgba(40,167,69,0.15);
         }
         
+        /* ========== BOTONES ========== */
         .btn {
-            padding: 14px 24px;
+            padding: 12px 22px;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             text-transform: uppercase;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            white-space: nowrap;
         }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: var(--blue); color: white; }
+        .btn-success { background: var(--green); color: white; }
+        .btn-danger { background: var(--red); color: white; }
+        .btn-outline { background: white; color: var(--blue); border: 2px solid var(--blue); }
+        .btn-outline:hover { background: var(--blue); color: white; }
+        .btn-block { width: 100%; }
+        .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
         
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: var(--primary-light);
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #219a52;
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .btn-warning {
-            background: var(--warning);
-            color: var(--dark);
-        }
-        
-        .btn-block {
-            width: 100%;
-        }
-        
-        .table-container {
-            max-height: 400px;
-            overflow-y: auto;
+        /* ========== TABLA (Optimizada para 100+ personas) ========== */
+        .table-wrapper {
             border-radius: 12px;
-            margin-top: 15px;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
-        
-        .table-container::-webkit-scrollbar {
+        .table-scroll {
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+        .table-scroll::-webkit-scrollbar {
             width: 8px;
         }
-        
-        .table-container::-webkit-scrollbar-track {
-            background: var(--gray);
-            border-radius: 10px;
+        .table-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
         }
-        
-        .table-container::-webkit-scrollbar-thumb {
-            background: var(--primary);
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: var(--blue);
             border-radius: 10px;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 0.9rem;
         }
-        
         thead {
             position: sticky;
             top: 0;
-            background: var(--primary);
-            color: white;
             z-index: 10;
         }
-        
-        th {
-            padding: 15px;
+        thead th {
+            background: var(--blue);
+            color: white;
+            padding: 14px 12px;
             text-align: left;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            white-space: nowrap;
         }
-        
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--gray);
+        tbody td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
             background: white;
         }
-        
-        tr:hover td {
-            background: var(--gray);
+        tbody tr:hover td {
+            background: #e8f0fe;
+        }
+        tbody tr:nth-child(even) td {
+            background: #fafbfc;
+        }
+        tbody tr:nth-child(even):hover td {
+            background: #e8f0fe;
         }
         
+        /* Badges para dieta y guardia */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .badge-dieta { background: var(--blue); color: white; }
+        .badge-guardia { background: var(--orange); color: white; }
+        .badge-servicio { background: #6c757d; color: white; }
+        .badge-comida { background: var(--green); color: white; }
+        
+        .codigo-cell {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--blue);
+            letter-spacing: 2px;
+        }
+        
+        /* Estados vacíos */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Mensajes */
         .mensaje {
             margin-top: 15px;
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
             animation: slideIn 0.3s;
         }
-        
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        .mensaje.success { background: #d4edda; color: #155724; border-left: 5px solid var(--green); }
+        .mensaje.error { background: #f8d7da; color: #721c24; border-left: 5px solid var(--red); }
         
-        .success {
-            background: var(--success-light);
-            color: var(--success);
-            border-left: 5px solid var(--success);
-        }
-        
-        .error {
-            background: var(--danger-light);
-            color: var(--danger);
-            border-left: 5px solid var(--danger);
-        }
-        
-        .empty-state {
+        /* Footer */
+        .footer {
             text-align: center;
-            padding: 40px;
-            color: #999;
-            font-size: 1.1rem;
+            padding: 20px;
+            color: #666;
+            font-size: 0.75rem;
         }
         
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .footer-note {
-            text-align: center;
-            color: white;
-            margin-top: 30px;
-            opacity: 0.8;
-            font-size: 0.85rem;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            body {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 1.8rem;
-            }
-            
-            .input-group {
-                flex-direction: column;
-            }
-            
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) {
             .stats-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
-        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            header h1 { font-size: 1.3rem; }
+            .input-group {
+                flex-direction: column;
+            }
+            table { font-size: 0.8rem; }
+            thead th, tbody td { padding: 8px 6px; }
+        }
         @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
-            .card {
-                padding: 15px;
-            }
+            .card { padding: 15px; }
+            .turno-bar { padding: 10px 15px; }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>👨‍🍳 PANEL DE COCINA</h1>
-        <p>HOSPITAL SAN JUAN BAUTISTA - SISTEMA DE GESTIÓN DE VIANDAS</p>
+
+<header>
+    <h1>👨‍🍳 PANEL DE COCINA</h1>
+    <p>HOSPITAL SAN JUAN BAUTISTA - SISTEMA DE GESTIÓN DE VIANDAS</p>
+</header>
+
+<div class="container">
+    <!-- BARRA DE TURNO -->
+    <div class="turno-bar">
+        <span class="turno-badge" id="turnoBadge">🍽️ CARGANDO...</span>
+        <span class="turno-info">
+            📅 <span id="fechaActual"></span> | 
+            🕐 Actualizado: <strong id="horaActualizacion"></strong>
+        </span>
+        <button class="btn btn-outline btn-sm" onclick="cargarPendientes()">
+            🔄 ACTUALIZAR AHORA
+        </button>
     </div>
-    
-    <div class="container">
-        <div class="dashboard-grid">
-            <!-- COLUMNA IZQUIERDA: Estadísticas y validación -->
-            <div>
-                <div class="card">
-                    <div class="card-header">
-                        <h2>📊 PEDIDOS PENDIENTES</h2>
-                        <span class="turno-badge" id="turnoInfo"></span>
-                    </div>
-                    
-                    <div class="stats-grid" id="resumenDietas">
-                        <!-- Se llena dinámicamente -->
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <span class="total-badge">
-                            🍽️ TOTAL PENDIENTES: <span id="totalPendientes">0</span>
-                        </span>
-                    </div>
-                    
-                    <div class="validacion-section">
-                        <h3 style="margin-top: 0; color: var(--dark);">🔍 VALIDAR ENTREGA</h3>
-                        
-                        <div class="input-group">
-                            <input type="text" id="codigoInput" placeholder="CÓDIGO" maxlength="4" autocomplete="off">
-                            <button class="btn btn-primary" onclick="validarCodigo()">
-                                ✅ VALIDAR
-                            </button>
-                        </div>
-                        
-                        <div id="mensajeValidacion" class="mensaje" style="display: none;"></div>
-                    </div>
+
+    <div class="dashboard-grid">
+        <!-- COLUMNA IZQUIERDA: Estadísticas y validación -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h2>📊 PEDIDOS PENDIENTES</h2>
                 </div>
-            </div>
-            
-            <!-- COLUMNA DERECHA: Lista de pendientes -->
-            <div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3>📋 LISTA DE ENTREGAS PENDIENTES</h3>
-                        <button class="btn btn-warning" onclick="cargarPendientes()">
-                            🔄 ACTUALIZAR
+                
+                <div class="stats-grid" id="resumenDietas">
+                    <!-- Se llena dinámicamente -->
+                </div>
+                
+                <div class="total-section">
+                    <span class="total-badge">
+                        🍽️ TOTAL PENDIENTES: <span id="totalPendientes">0</span>
+                    </span>
+                </div>
+                
+                <div class="validacion-section">
+                    <h3>🔍 VALIDAR ENTREGA</h3>
+                    <div class="input-group">
+                        <input type="text" id="codigoInput" placeholder="CÓDIGO" maxlength="4" autocomplete="off">
+                        <button class="btn btn-primary" onclick="validarCodigo()">
+                            ✅ VALIDAR
                         </button>
                     </div>
-                    
-                    <div class="table-container">
+                    <div id="mensajeValidacion" class="mensaje" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- COLUMNA DERECHA: Lista de pendientes -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>📋 LISTA DE ENTREGAS PENDIENTES</h3>
+                    <span style="font-size: 0.85rem; color: #666;" id="contadorPendientes">0 personas</span>
+                </div>
+                
+                <div class="table-wrapper">
+                    <div class="table-scroll">
                         <table id="tablaPendientes">
                             <thead>
                                 <tr>
                                     <th>🔢 CÓDIGO</th>
                                     <th>👤 PERSONAL</th>
-                                    <th>🍽️ DIETA</th>
+                                    <th>🏥 SERVICIO</th>
+                                    <th>⏱️ GUARDIA</th>
+                                    <th>🍽️ COMIDA</th>
+                                    <th>📋 DIETA</th>
                                     <th>✅ ACCIÓN</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="4">
+                                    <td colspan="7">
                                         <div class="empty-state">
-                                            <div style="font-size: 3rem; margin-bottom: 15px;">🍳</div>
+                                            <div class="icon">🍳</div>
                                             Cargando pedidos pendientes...
                                         </div>
                                     </td>
@@ -489,186 +445,219 @@
                 </div>
             </div>
         </div>
-        
-        <!-- CARD DE CIERRE DE TURNO -->
-        <div class="card">
-            <div class="card-header">
-                <h3>🔒 CERRAR TURNO</h3>
-                <span style="color: var(--danger); font-size: 0.9rem;">⚠️ Acción irreversible</span>
-            </div>
-            
-            <p style="color: #666; margin-bottom: 20px;">
-                Al cerrar el turno se generará el reporte estadístico del día y se guardará en la hoja de cálculo.
-                Asegúrese de que todos los pedidos estén entregados.
-            </p>
-            
-            <button class="btn btn-danger btn-block" onclick="cerrarTurno()">
-                🚫 CERRAR TURNO Y GENERAR ESTADÍSTICAS
-            </button>
-            
-            <div id="mensajeCierre" class="mensaje" style="display: none;"></div>
-        </div>
-        
-        <div class="footer-note">
-            © HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE COCINA<br>
-            Panel actualizado en tiempo real | Turno actual: <span id="turnoFooter"></span>
-        </div>
     </div>
-
-    <script>
-        const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
-        const hora = new Date().getHours();
-        const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
-        const turnoTexto = turnoActual === "MAÑANA" ? "🌅 ALMUERZO" : "🌙 CENA";
+    
+    <!-- CARD DE CIERRE DE TURNO -->
+    <div class="card">
+        <div class="card-header">
+            <h3>🔒 CERRAR TURNO</h3>
+            <span style="color: var(--red); font-size: 0.85rem;">⚠️ Acción irreversible</span>
+        </div>
         
-        document.getElementById('turnoInfo').innerHTML = `🍽️ ${turnoTexto}`;
-        document.getElementById('turnoFooter').innerText = turnoTexto;
+        <p style="color: #666; margin-bottom: 20px;">
+            Al cerrar el turno se generará el reporte estadístico del día con todos los datos 
+            (por dieta, por guardia y por servicio) y se guardará en la hoja de cálculo.
+            <strong>Asegúrese de que todos los pedidos estén entregados.</strong>
+        </p>
+        
+        <button class="btn btn-danger btn-block" onclick="cerrarTurno()">
+            🚫 CERRAR TURNO Y GENERAR ESTADÍSTICAS
+        </button>
+        
+        <div id="mensajeCierre" class="mensaje" style="display: none;"></div>
+    </div>
+    
+    <div class="footer">
+        © HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN<br>
+        Panel actualizado en tiempo real | Sistema desarrollado para uso interno
+    </div>
+</div>
 
-        let intervalo = setInterval(cargarPendientes, 15000);
-        cargarPendientes();
+<script>
+    const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+    const hora = new Date().getHours();
+    const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
+    const turnoTexto = turnoActual === "MAÑANA" ? "🌅 ALMUERZO" : "🌙 CENA";
+    
+    document.getElementById('turnoBadge').innerHTML = `🍽️ TURNO: ${turnoTexto}`;
+    actualizarFecha();
 
-        function mostrarMensaje(elementId, tipo, texto) {
-            const el = document.getElementById(elementId);
-            el.innerHTML = texto;
-            el.className = `mensaje ${tipo}`;
-            el.style.display = 'flex';
+    let intervalo = setInterval(cargarPendientes, 20000); // 20 segundos para mejor rendimiento
+    cargarPendientes();
+
+    function actualizarFecha() {
+        const ahora = new Date();
+        document.getElementById('fechaActual').innerText = ahora.toLocaleDateString('es-AR');
+        document.getElementById('horaActualizacion').innerText = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function mostrarMensaje(elementId, tipo, texto) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = texto;
+        el.className = `mensaje ${tipo}`;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 6000);
+    }
+
+    function cargarPendientes() {
+        const callbackName = 'cocinaCallback_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            actualizarFecha();
             
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 5000);
-        }
-
-        function cargarPendientes() {
-            const callbackName = 'cocinaCallback_' + Date.now();
+            if (data.error) return;
             
-            window[callbackName] = function(data) {
-                delete window[callbackName];
-                document.body.removeChild(script);
-                
-                if (data.error) return;
-                
-                const conteo = data.conteoDietas || {};
-                const resumenDiv = document.getElementById('resumenDietas');
-                resumenDiv.innerHTML = '';
-                
-                const dietas = ['GENERAL', 'HIPOSÓDICA', 'DIABÉTICA', 'CELIACA', 'GÁSTRICA'];
-                const iconos = { 'GENERAL': '🍲', 'HIPOSÓDICA': '🧂', 'DIABÉTICA': '🍬', 'CELIACA': '🌾', 'GÁSTRICA': '🥗' };
-                
-                dietas.forEach(d => {
-                    resumenDiv.innerHTML += `
-                        <div class="stat-card">
-                            <div class="dieta-nombre">${iconos[d]} ${d}</div>
-                            <div class="stat-number">${conteo[d] || 0}</div>
-                        </div>    
-                    `;
-                });
-                
-                document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
+            // Actualizar estadísticas de dietas
+            const conteo = data.conteoDietas || {};
+            const resumenDiv = document.getElementById('resumenDietas');
+            resumenDiv.innerHTML = '';
+            
+            const dietas = ['GENERAL', 'HIPOSÓDICA', 'DIABÉTICA', 'CELIACA', 'GÁSTRICA'];
+            const iconos = { 
+                'GENERAL': '🍲', 'HIPOSÓDICA': '🧂', 'DIABÉTICA': '🍬', 
+                'CELIACA': '🌾', 'GÁSTRICA': '🥗' 
+            };
+            
+            dietas.forEach(d => {
+                resumenDiv.innerHTML += `
+                    <div class="stat-card">
+                        <div class="dieta-nombre">${iconos[d]} ${d}</div>
+                        <div class="stat-number">${conteo[d] || 0}</div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
 
-                const tbody = document.querySelector('#tablaPendientes tbody');
-                tbody.innerHTML = '';
-                
-                if (!data.listaPendientes || data.listaPendientes.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="4">
-                                <div class="empty-state">
-                                    <div style="font-size: 3rem;">✅</div>
-                                    ¡No hay pedidos pendientes!<br>
-                                    <span style="font-size: 0.9rem; opacity: 0.7;">Todos los pedidos han sido entregados</span>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-                
-                data.listaPendientes.forEach(p => {
-                    const fila = document.createElement('tr');
-                    fila.innerHTML = `
-                        <td><strong style="font-size: 1.2rem; color: var(--primary);">${p.codigo}</strong></td>
-                        <td>${p.nombre}</td>
-                        <td><span style="background: var(--primary-light); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem;">${p.dieta}</span></td>
-                        <td>
-                            <button class="btn btn-success" onclick="entregarRapido('${p.codigo}')" style="padding: 8px 16px;">
-                                ✔ ENTREGAR
-                            </button>
+            // Actualizar tabla
+            const tbody = document.querySelector('#tablaPendientes tbody');
+            tbody.innerHTML = '';
+            
+            const pendientes = data.listaPendientes || [];
+            document.getElementById('contadorPendientes').innerText = `${pendientes.length} personas`;
+            
+            if (pendientes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <div class="icon">✅</div>
+                                ¡No hay pedidos pendientes!<br>
+                                <span style="font-size: 0.9rem;">Todos los pedidos han sido entregados</span>
+                            </div>
                         </td>
-                    `;
-                    tbody.appendChild(fila);
-                });
-            };
-            
-            const script = document.createElement('script');
-            script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
-            script.onerror = () => {
-                const tbody = document.querySelector('#tablaPendientes tbody');
-                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">❌ Error al cargar. Intente actualizar.</div></td></tr>';
-            };
-            document.body.appendChild(script);
-        }
-
-        function validarCodigo() {
-            const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
-            
-            if (codigo.length !== 4) {
-                mostrarMensaje('mensajeValidacion', 'error', '❌ El código debe tener 4 caracteres');
+                    </tr>
+                `;
                 return;
             }
-
-            const callbackName = 'validarCallback_' + Date.now();
             
-            window[callbackName] = function(data) {
-                delete window[callbackName];
-                document.body.removeChild(script);
+            // Ordenar por servicio para mejor visualización
+            pendientes.sort((a, b) => (a.servicio || '').localeCompare(b.servicio || ''));
+            
+            pendientes.forEach(p => {
+                const guardiaTexto = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
+                const comidaTexto = p.tipoComida === 'AMBAS' ? 'ALMUERZO + CENA' : 
+                                   p.tipoComida === 'ALMUERZO' ? '🌅 Almuerzo' : 
+                                   p.tipoComida === 'CENA' ? '🌙 Cena' : 
+                                   p.turno === 'MAÑANA' ? '🌅 Almuerzo' : '🌙 Cena';
                 
-                if (data.status === "success") {
-                    mostrarMensaje('mensajeValidacion', 'success', 
-                        `✅ ¡ENTREGADO! ${data.nombre} - Dieta: ${data.dieta}`);
-                    document.getElementById('codigoInput').value = '';
-                    cargarPendientes();
-                } else {
-                    mostrarMensaje('mensajeValidacion', 'error', `❌ ${data.message}`);
-                }
-            };
-            
-            const script = document.createElement('script');
-            script.src = API + '?action=validar_codigo&codigo=' + codigo + '&callback=' + callbackName;
-            document.body.appendChild(script);
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td><span class="codigo-cell">${p.codigo}</span></td>
+                    <td>${p.nombre}</td>
+                    <td><span class="badge badge-servicio">${p.servicio || 'N/E'}</span></td>
+                    <td><span class="badge badge-guardia">${guardiaTexto}</span></td>
+                    <td><span class="badge badge-comida">${comidaTexto}</span></td>
+                    <td><span class="badge badge-dieta">${p.dieta}</span></td>
+                    <td>
+                        <button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">
+                            ✔ ENTREGAR
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(fila);
+            });
+        };
+        
+        const script = document.createElement('script');
+        script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
+        script.onerror = () => {
+            const tbody = document.querySelector('#tablaPendientes tbody');
+            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">❌</div>Error al cargar. Intente actualizar.</div></td></tr>';
+        };
+        document.body.appendChild(script);
+    }
+
+    function validarCodigo() {
+        const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
+        
+        if (codigo.length !== 4) {
+            mostrarMensaje('mensajeValidacion', 'error', '❌ El código debe tener 4 caracteres');
+            return;
         }
 
-        function entregarRapido(codigo) {
-            document.getElementById('codigoInput').value = codigo;
-            validarCodigo();
-        }
-
-        function cerrarTurno() {
-            if (!confirm("⚠️ ¿Está seguro de cerrar el turno?\n\nSe generará el reporte estadístico y NO se podrá revertir.")) return;
+        const callbackName = 'validarCallback_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
             
-            const callbackName = 'cierreCallback_' + Date.now();
-            
-            window[callbackName] = function(data) {
-                delete window[callbackName];
-                document.body.removeChild(script);
-                
-                if (data.status === "success") {
-                    mostrarMensaje('mensajeCierre', 'success', `✅ ${data.message}`);
-                } else {
-                    mostrarMensaje('mensajeCierre', 'error', `❌ ${data.message}`);
-                }
-            };
-            
-            const script = document.createElement('script');
-            script.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + callbackName;
-            document.body.appendChild(script);
-        }
+            if (data.status === "success") {
+                mostrarMensaje('mensajeValidacion', 'success', 
+                    `✅ ¡ENTREGADO! ${data.nombre} | Servicio: ${data.servicio || 'N/E'} | Dieta: ${data.dieta}`);
+                document.getElementById('codigoInput').value = '';
+                cargarPendientes();
+            } else {
+                mostrarMensaje('mensajeValidacion', 'error', `❌ ${data.message}`);
+            }
+        };
+        
+        const script = document.createElement('script');
+        script.src = API + '?action=validar_codigo&codigo=' + codigo + '&callback=' + callbackName;
+        document.body.appendChild(script);
+    }
 
-        // Permitir Enter en el campo de código
-        document.getElementById('codigoInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') validarCodigo();
-        });
+    function entregarRapido(codigo) {
+        document.getElementById('codigoInput').value = codigo;
+        document.getElementById('codigoInput').focus();
+        validarCodigo();
+        // Scroll hacia el input
+        document.getElementById('codigoInput').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
-        window.addEventListener('beforeunload', () => clearInterval(intervalo));
-    </script>
+    function cerrarTurno() {
+        if (!confirm("⚠️ ¿Está seguro de cerrar el turno?\n\nSe generará el reporte estadístico con todos los datos (dietas, guardias, servicios) y NO se podrá revertir.\n\nVerifique que todos los pedidos estén entregados.")) return;
+        
+        const callbackName = 'cierreCallback_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            
+            if (data.status === "success") {
+                mostrarMensaje('mensajeCierre', 'success', 
+                    `✅ ${data.message}<br>📊 Total: ${data.resumen?.total || 0} | Entregados: ${data.resumen?.entregados || 0} | Pendientes: ${data.resumen?.pendientes || 0}`);
+            } else {
+                mostrarMensaje('mensajeCierre', 'error', `❌ ${data.message}`);
+            }
+        };
+        
+        const script = document.createElement('script');
+        script.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + callbackName;
+        document.body.appendChild(script);
+    }
+
+    // Permitir Enter en el campo de código
+    document.getElementById('codigoInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') validarCodigo();
+    });
+
+    // Enfocar el input al cargar
+    document.getElementById('codigoInput').focus();
+
+    window.addEventListener('beforeunload', () => clearInterval(intervalo));
+</script>
 </body>
 </html>
