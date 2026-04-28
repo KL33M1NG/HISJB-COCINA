@@ -7,7 +7,7 @@
     
     <!-- ========== CSS PRINCIPAL ========== -->
     <style>
-        :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; --red: #dc3545; }
+        :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; --red: #dc3545; --orange: #e67e22; }
         * { box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -27,7 +27,7 @@
         }
         header h1 { margin: 0; font-size: 1.5rem; }
         header p { margin: 5px 0 0; font-size: 0.8rem; opacity: 0.9; }
-        .container { max-width: 550px; margin: 20px auto; padding: 15px; flex: 1; }
+        .container { max-width: 600px; margin: 20px auto; padding: 15px; flex: 1; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; }
         .status { padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
         .disponible { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -35,16 +35,78 @@
         .cargando { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         input, select { width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; text-transform: uppercase; font-size: 1rem; }
         input:focus, select:focus { outline: none; border-color: var(--blue); }
+        select:invalid { color: #999; }
         label { display: block; text-align: left; margin-top: 15px; font-weight: bold; color: #333; font-size: 0.9rem; }
+        .required-star { color: var(--red); }
         .btn-enviar { width: 100%; padding: 16px; background: var(--green); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.2rem; margin-top: 20px; text-transform: uppercase; }
         .btn-enviar:hover { background: #218838; }
         .btn-enviar:disabled { background: #6c757d; cursor: not-allowed; }
         #resultado { display: none; margin-top: 20px; border: 3px dashed var(--green); padding: 30px 20px; border-radius: 10px; background: white; }
+        #resultado.guardia-24 { border-color: var(--orange); }
         #codigoDisplay { font-size: 5rem; color: var(--green); margin: 15px 0; font-weight: bold; letter-spacing: 5px; }
+        .codigo-doble { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .codigo-item { text-align: center; }
+        .codigo-item h2 { font-size: 1rem; color: #666; margin: 0 0 10px 0; }
+        .codigo-item .codigo { font-size: 3rem; color: var(--green); font-weight: bold; letter-spacing: 3px; }
         .menu-info-detalle { background: #e7f3ff; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left; border-left: 5px solid var(--blue); }
         .error-mensaje { color: var(--red); margin-top: 10px; font-size: 0.9rem; }
         .hora-actual { font-size: 0.85rem; color: #666; margin-top: 5px; }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 0.75rem; }
+        
+        /* Estilos para selección de comida en guardia de 16hs */
+        .comida-seleccion {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px dashed var(--orange);
+        }
+        .comida-seleccion label {
+            color: var(--orange);
+            font-size: 0.85rem;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .radio-option:hover {
+            border-color: var(--orange);
+            background: #fff9e6;
+        }
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+        }
+        .radio-option.selected {
+            border-color: var(--orange);
+            background: #fff9e6;
+            font-weight: bold;
+        }
+        
+        /* Info guardia 24hs */
+        .info-guardia-24 {
+            background: #e8f8f5;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            color: #0e6655;
+            font-size: 0.9rem;
+            border-left: 4px solid #0e6655;
+        }
+        
         @media (max-width: 480px) {
             .container { padding: 10px; }
             .card { padding: 20px 15px; }
@@ -71,13 +133,59 @@
         <div id="menuInfo" style="margin-bottom: 20px; color: #555; font-size: 0.95rem;"></div>
 
         <div id="camposPersonal" style="display: none; text-align: left;">
-            <label>👤 APELLIDO Y NOMBRE</label>
-            <input type="text" id="nombre" placeholder="COMO FIGURA EN DNI" autocomplete="off">
             
-            <label>🆔 DNI (SIN PUNTOS)</label>
+            <!-- DATOS PERSONALES -->
+            <label>👤 APELLIDO Y NOMBRE <span class="required-star">*</span></label>
+            <input type="text" id="nombre" placeholder="COMO FIGURA EN DNI" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+            
+            <label>🆔 DNI (SIN PUNTOS) <span class="required-star">*</span></label>
             <input type="number" id="dni" placeholder="EJ: 12345678" autocomplete="off">
 
-            <label>🍽️ TIPO DE DIETA</label>
+            <!-- SERVICIO -->
+            <label>🏥 SERVICIO <span class="required-star">*</span></label>
+            <select id="servicio" required>
+                <option value="" disabled selected>SELECCIONE SU SERVICIO</option>
+                <option value="CIRUGIA">CIRUGÍA</option>
+                <option value="CLINICA MEDICA">CLÍNICA MÉDICA</option>
+                <option value="EMERGENCIAS">EMERGENCIAS</option>
+                <option value="LIMPIEZA">LIMPIEZA</option>
+                <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+                <option value="TELEFONIA">TELEFONÍA</option>
+                <option value="TRAUMATOLOGIA">TRAUMATOLOGÍA</option>
+                <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
+                <option value="UTI I">UTI I</option>
+                <option value="UTI II">UTI II</option>
+            </select>
+
+            <!-- HORARIO DE GUARDIA -->
+            <label>⏱️ HORARIO DE GUARDIA <span class="required-star">*</span></label>
+            <select id="guardia" required onchange="cambioGuardia()">
+                <option value="" disabled selected>SELECCIONE SU GUARDIA</option>
+                <option value="12">12 HORAS</option>
+                <option value="16">16 HORAS</option>
+                <option value="24">24 HORAS</option>
+            </select>
+
+            <!-- SELECCIÓN DE COMIDA PARA GUARDIA 16HS -->
+            <div id="comida16" class="comida-seleccion" style="display: none;">
+                <label>🍽️ ¿QUÉ COMIDA DESEA RECIBIR? <span class="required-star">*</span></label>
+                <div class="radio-group">
+                    <label class="radio-option" id="radioAlmuerzo">
+                        <input type="radio" name="comida16" value="ALMUERZO" onchange="seleccionarComida('ALMUERZO')"> 🌅 ALMUERZO
+                    </label>
+                    <label class="radio-option" id="radioCena">
+                        <input type="radio" name="comida16" value="CENA" onchange="seleccionarComida('CENA')"> 🌙 CENA
+                    </label>
+                </div>
+            </div>
+
+            <!-- INFO GUARDIA 24HS -->
+            <div id="info24" class="info-guardia-24" style="display: none;">
+                ✅ Por ser guardia de <strong>24 HORAS</strong>, le corresponden <strong>AMBAS COMIDAS</strong> (Almuerzo y Cena).
+            </div>
+
+            <!-- DIETA -->
+            <label>🍽️ TIPO DE DIETA <span class="required-star">*</span></label>
             <select id="dieta">
                 <option value="GENERAL">GENERAL</option>
                 <option value="HIPOSÓDICA">HIPOSÓDICA (BAJA EN SODIO)</option>
@@ -102,9 +210,12 @@
     <div id="resultado" class="card">
         <p style="font-size: 1.1rem;">✅ REGISTRO EXITOSO</p>
         <p>TU CÓDIGO DE RETIRO ES:</p>
-        <h1 id="codigoDisplay">----</h1>
+        <div id="codigoContainer">
+            <h1 id="codigoDisplay">----</h1>
+        </div>
         <p style="font-size: 0.85rem; color: #666;">MUESTRE ESTE CÓDIGO EN COCINA PARA RETIRAR SU VIANDA</p>
         <p style="font-size: 0.75rem; margin-top: 20px;">⚠️ Este código es personal e intransferible</p>
+        <div id="infoAdicional" style="margin-top: 15px; font-size: 0.85rem; color: #666;"></div>
         <button class="btn-enviar" onclick="location.reload()" style="background: var(--blue); margin-top: 20px;">🔙 REALIZAR OTRA SOLICITUD</button>
     </div>
 </div>
@@ -123,6 +234,7 @@
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     
     let menuDataGlobal = null;
+    let comidaSeleccionada = null; // Para guardia de 16hs
 
     // ==================== FUNCIONES ====================
     
@@ -130,6 +242,38 @@
         const ahora = new Date();
         const horaStr = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         document.getElementById('horaActual').innerText = `🕐 Hora actual: ${horaStr} | Turno: ${turnoActual === "MAÑANA" ? "Almuerzo" : "Cena"}`;
+    }
+
+    // Manejar cambio de guardia
+    function cambioGuardia() {
+        const guardia = document.getElementById('guardia').value;
+        const comida16 = document.getElementById('comida16');
+        const info24 = document.getElementById('info24');
+        
+        // Ocultar ambos
+        comida16.style.display = 'none';
+        info24.style.display = 'none';
+        comidaSeleccionada = null;
+        
+        if (guardia === '16') {
+            comida16.style.display = 'block';
+            // Desmarcar radios
+            document.querySelectorAll('input[name="comida16"]').forEach(r => r.checked = false);
+            document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+        } else if (guardia === '24') {
+            info24.style.display = 'block';
+            comidaSeleccionada = 'AMBAS';
+        }
+    }
+    
+    function seleccionarComida(comida) {
+        comidaSeleccionada = comida;
+        document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+        if (comida === 'ALMUERZO') {
+            document.getElementById('radioAlmuerzo').classList.add('selected');
+        } else {
+            document.getElementById('radioCena').classList.add('selected');
+        }
     }
 
     // ==================== VALIDAR MENÚ DISPONIBLE ====================
@@ -147,7 +291,6 @@
             delete window[callbackName];
             
             if (data.disponible && data.datos && data.datos.length > 0) {
-                // ========== MENÚ DISPONIBLE ==========
                 box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
                 box.className = "status disponible";
                 menuDataGlobal = data.datos[0];
@@ -156,7 +299,6 @@
                 document.getElementById('camposPersonal').style.display = 'block';
                 actualizarDescripcionDieta();
             } else {
-                // ========== MENÚ NO DISPONIBLE - ANIMACIÓN CON GIFS ==========
                 box.innerText = "👨‍🍳 MENÚ EN PREPARACIÓN";
                 box.className = "status cargando";
                 menuInfo.innerHTML = `
@@ -235,7 +377,10 @@
         const errorDiv = document.getElementById('errorMensaje');
         const nombre = nombreInput.value.trim().toUpperCase();
         const dni = dniInput.value.trim();
+        const servicio = document.getElementById('servicio').value;
+        const guardia = document.getElementById('guardia').value;
         
+        // Validaciones
         errorDiv.innerText = '';
         
         if (!nombre) {
@@ -256,12 +401,49 @@
             return;
         }
         
+        if (!servicio) {
+            errorDiv.innerText = '❌ Debe seleccionar su servicio';
+            document.getElementById('servicio').focus();
+            return;
+        }
+        
+        if (!guardia) {
+            errorDiv.innerText = '❌ Debe seleccionar su horario de guardia';
+            document.getElementById('guardia').focus();
+            return;
+        }
+        
+        if (guardia === '16' && !comidaSeleccionada) {
+            errorDiv.innerText = '❌ Con guardia de 16hs debe elegir entre Almuerzo o Cena';
+            return;
+        }
+        
         const btn = document.getElementById('btnAccion');
         btn.disabled = true;
         btn.innerText = "⏳ PROCESANDO SOLICITUD...";
         
-        const miCodigo = Math.random().toString(36).substring(2, 6).toUpperCase();
         const dietaSeleccionada = document.getElementById('dieta').value;
+        
+        // Generar códigos según tipo de guardia
+        const codigoAlmuerzo = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const codigoCena = Math.random().toString(36).substring(2, 6).toUpperCase();
+        
+        if (guardia === '24') {
+            // Guardia 24hs: solicitar ambas comidas
+            solicitarComidaUnica(nombre, dni, servicio, guardia, dietaSeleccionada, 'AMBAS', codigoAlmuerzo, codigoCena);
+        } else if (guardia === '16') {
+            // Guardia 16hs: solicitar solo la comida seleccionada
+            const turnoParaEnviar = (comidaSeleccionada === 'ALMUERZO') ? 'MAÑANA' : 'NOCHE';
+            solicitarComidaUnica(nombre, dni, servicio, guardia, dietaSeleccionada, comidaSeleccionada, codigoAlmuerzo, null, turnoParaEnviar);
+        } else {
+            // Guardia 12hs: turno actual
+            solicitarComidaUnica(nombre, dni, servicio, guardia, dietaSeleccionada, 'TURNO_ACTUAL', codigoAlmuerzo, null, turnoActual);
+        }
+    }
+    
+    function solicitarComidaUnica(nombre, dni, servicio, guardia, dieta, tipoComida, codigo1, codigo2, turnoOverride) {
+        const errorDiv = document.getElementById('errorMensaje');
+        const btn = document.getElementById('btnAccion');
         const callbackName = 'solicitudCallback_' + Date.now();
         
         window[callbackName] = function(data) {
@@ -269,10 +451,7 @@
             delete window[callbackName];
             
             if (data && data.status === "success") {
-                document.getElementById('formCard').style.display = 'none';
-                document.getElementById('codigoDisplay').innerText = miCodigo;
-                document.getElementById('resultado').style.display = 'block';
-                document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                mostrarResultado(nombre, servicio, guardia, tipoComida, codigo1, codigo2);
             } else {
                 errorDiv.innerText = '❌ Error al registrar: ' + (data?.message || 'Intente nuevamente');
                 btn.disabled = false;
@@ -280,13 +459,19 @@
             }
         };
         
+        const turnoUsar = turnoOverride || turnoActual;
+        
         const params = new URLSearchParams({
             action: 'generar_codigo',
             nombre: nombre,
             dni: dni,
-            dieta: dietaSeleccionada,
-            turno: turnoActual,
-            codigo: miCodigo,
+            servicio: servicio,
+            guardia: guardia,
+            dieta: dieta,
+            turno: turnoUsar,
+            tipoComida: tipoComida,
+            codigo: codigo1,
+            codigo2: codigo2 || '',
             callback: callbackName
         });
         
@@ -295,10 +480,6 @@
         
         const script = document.createElement('script');
         script.src = scriptUrl;
-        
-        script.onload = function() {
-            console.log('Script cargado exitosamente');
-        };
         
         script.onerror = function() {
             console.error('Error cargando script');
@@ -312,13 +493,63 @@
         
         setTimeout(() => {
             if (window[callbackName]) {
-                console.error('Timeout - callback no llamado');
                 delete window[callbackName];
-                errorDiv.innerText = '❌ Tiempo de espera agotado. Intente nuevamente.';
+                errorDiv.innerText = '❌ Tiempo de espera agotado.';
                 btn.disabled = false;
                 btn.innerText = "🍴 SOLICITAR VIANDA";
             }
         }, 15000);
+    }
+    
+    function mostrarResultado(nombre, servicio, guardia, tipoComida, codigo1, codigo2) {
+        document.getElementById('formCard').style.display = 'none';
+        
+        const resultado = document.getElementById('resultado');
+        const codigoContainer = document.getElementById('codigoContainer');
+        const infoAdicional = document.getElementById('infoAdicional');
+        
+        if (guardia === '24') {
+            // Mostrar dos códigos
+            resultado.className = 'card guardia-24';
+            codigoContainer.innerHTML = `
+                <div class="codigo-doble">
+                    <div class="codigo-item">
+                        <h2>🌅 ALMUERZO</h2>
+                        <div class="codigo">${codigo1}</div>
+                    </div>
+                    <div class="codigo-item">
+                        <h2>🌙 CENA</h2>
+                        <div class="codigo">${codigo2}</div>
+                    </div>
+                </div>
+            `;
+            infoAdicional.innerHTML = `
+                🏥 Servicio: ${servicio}<br>
+                ⏱️ Guardia: ${guardia} horas<br>
+                🍽️ Comidas: AMBAS (Almuerzo y Cena)<br>
+                ⚠️ Debe retirar ambas viandas con sus respectivos códigos
+            `;
+        } else {
+            // Mostrar un código
+            resultado.className = 'card';
+            codigoContainer.innerHTML = `<h1 id="codigoDisplay">${codigo1}</h1>`;
+            
+            let comidaTexto = '';
+            if (guardia === '16') {
+                comidaTexto = tipoComida === 'ALMUERZO' ? '🌅 Almuerzo' : '🌙 Cena';
+            } else {
+                comidaTexto = turnoActual === 'MAÑANA' ? '🌅 Almuerzo' : '🌙 Cena';
+            }
+            
+            infoAdicional.innerHTML = `
+                🏥 Servicio: ${servicio}<br>
+                ⏱️ Guardia: ${guardia} horas<br>
+                🍽️ Comida: ${comidaTexto}
+            `;
+        }
+        
+        resultado.style.display = 'block';
+        resultado.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // ==================== INICIALIZACIÓN ====================
@@ -348,6 +579,8 @@
 
     document.addEventListener('DOMContentLoaded', inicializar);
     window.solicitarComida = solicitarComida;
+    window.cambioGuardia = cambioGuardia;
+    window.seleccionarComida = seleccionarComida;
 </script>
 </body>
 </html>
