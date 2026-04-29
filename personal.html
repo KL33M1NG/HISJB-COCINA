@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SISTEMA NUTRICIÓN - HISJB</title>
     
-    <!-- ========== CSS PRINCIPAL ========== -->
     <style>
         :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; --red: #dc3545; --orange: #e67e22; }
         * { box-sizing: border-box; }
@@ -53,7 +52,6 @@
         .hora-actual { font-size: 0.85rem; color: #666; margin-top: 5px; }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 0.75rem; }
         
-        /* Estilos para selección de comida en guardia de 16hs */
         .comida-seleccion {
             background: #fff9e6;
             padding: 15px;
@@ -96,7 +94,6 @@
             font-weight: bold;
         }
         
-        /* Info guardia 24hs */
         .info-guardia-24 {
             background: #e8f8f5;
             padding: 12px;
@@ -114,7 +111,6 @@
         }
     </style>
     
-    <!-- ========== CSS DE ANIMACIONES (EXTERNO) ========== -->
     <link rel="stylesheet" href="assets/css/animaciones.css">
 </head>
 <body>
@@ -134,14 +130,12 @@
 
         <div id="camposPersonal" style="display: none; text-align: left;">
             
-            <!-- DATOS PERSONALES -->
             <label>👤 APELLIDO Y NOMBRE <span class="required-star">*</span></label>
             <input type="text" id="nombre" placeholder="COMO FIGURA EN DNI" autocomplete="off" oninput="this.value = this.value.toUpperCase()">
             
             <label>🆔 DNI (SIN PUNTOS) <span class="required-star">*</span></label>
             <input type="number" id="dni" placeholder="EJ: 12345678" autocomplete="off">
 
-            <!-- SERVICIO -->
             <label>🏥 SERVICIO <span class="required-star">*</span></label>
             <select id="servicio" required>
                 <option value="" disabled selected>SELECCIONE SU SERVICIO</option>
@@ -157,7 +151,6 @@
                 <option value="UTI II">UTI II</option>
             </select>
 
-            <!-- HORARIO DE GUARDIA -->
             <label>⏱️ HORARIO DE GUARDIA <span class="required-star">*</span></label>
             <select id="guardia" required onchange="cambioGuardia()">
                 <option value="" disabled selected>SELECCIONE SU GUARDIA</option>
@@ -166,7 +159,6 @@
                 <option value="24">24 HORAS</option>
             </select>
 
-            <!-- SELECCIÓN DE COMIDA PARA GUARDIA 16HS -->
             <div id="comida16" class="comida-seleccion" style="display: none;">
                 <label>🍽️ ¿QUÉ COMIDA DESEA RECIBIR? <span class="required-star">*</span></label>
                 <div class="radio-group">
@@ -179,12 +171,10 @@
                 </div>
             </div>
 
-            <!-- INFO GUARDIA 24HS -->
             <div id="info24" class="info-guardia-24" style="display: none;">
                 ✅ Por ser guardia de <strong>24 HORAS</strong>, le corresponden <strong>AMBAS COMIDAS</strong> (Almuerzo y Cena).
             </div>
 
-            <!-- DIETA -->
             <label>🍽️ TIPO DE DIETA <span class="required-star">*</span></label>
             <select id="dieta">
                 <option value="GENERAL">GENERAL</option>
@@ -206,7 +196,7 @@
         <div class="hora-actual" id="horaActual"></div>
     </div>
 
-    <!-- RESULTADO (CÓDIGO GENERADO) -->
+    <!-- RESULTADO -->
     <div id="resultado" class="card">
         <p style="font-size: 1.1rem;">✅ REGISTRO EXITOSO</p>
         <p>TU CÓDIGO DE RETIRO ES:</p>
@@ -226,7 +216,6 @@
 </div>
 
 <script>
-    // ==================== CONFIGURACIÓN ====================
     const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
     
     const fecha = new Date();
@@ -234,30 +223,25 @@
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     
     let menuDataGlobal = null;
-    let comidaSeleccionada = null; // Para guardia de 16hs
+    let comidaSeleccionada = null;
 
-    // ==================== FUNCIONES ====================
-    
     function actualizarHora() {
         const ahora = new Date();
         const horaStr = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         document.getElementById('horaActual').innerText = `🕐 Hora actual: ${horaStr} | Turno: ${turnoActual === "MAÑANA" ? "Almuerzo" : "Cena"}`;
     }
 
-    // Manejar cambio de guardia
     function cambioGuardia() {
         const guardia = document.getElementById('guardia').value;
         const comida16 = document.getElementById('comida16');
         const info24 = document.getElementById('info24');
         
-        // Ocultar ambos
         comida16.style.display = 'none';
         info24.style.display = 'none';
         comidaSeleccionada = null;
         
         if (guardia === '16') {
             comida16.style.display = 'block';
-            // Desmarcar radios
             document.querySelectorAll('input[name="comida16"]').forEach(r => r.checked = false);
             document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
         } else if (guardia === '24') {
@@ -291,16 +275,22 @@
             delete window[callbackName];
             
             if (data.disponible && data.datos && data.datos.length > 0) {
-                var turnoTextoMenu = menuDataGlobal.turno === "MAÑANA" ? "ALMUERZO" : "CENA";
+                // Menú disponible
+                menuDataGlobal = data.datos[0];
+                var turnoMenu = menuDataGlobal.turno || "";
+                var turnoTextoMenu = turnoMenu === "MAÑANA" ? "ALMUERZO" : turnoMenu === "NOCHE" ? "CENA" : turnoMenu;
+                
                 box.innerText = "✅ MENÚ " + turnoTextoMenu + " PUBLICADO - PEDIDOS HABILITADOS";
                 box.className = "status disponible";
-                menuDataGlobal = data.datos[0];
+                
                 const platoPrincipal = menuDataGlobal.platoPrincipal || 'Menú del día';
-                menuInfo.innerHTML = `🍲 HOY: <strong>${platoPrincipal}</strong>`;
+                menuInfo.innerHTML = `🍲 HOY (${turnoTextoMenu}): <strong>${platoPrincipal}</strong>`;
                 document.getElementById('camposPersonal').style.display = 'block';
                 actualizarDescripcionDieta();
             } else {
-                box.innerText = "👨‍🍳 MENÚ EN PREPARACIÓN";
+                // Menú no disponible
+                var turnoTexto = turnoActual === "MAÑANA" ? "ALMUERZO" : "CENA";
+                box.innerText = "⏳ MENÚ DE " + turnoTexto + " EN PREPARACIÓN";
                 box.className = "status cargando";
                 menuInfo.innerHTML = `
                     <div class="cocinando-container">
@@ -309,16 +299,14 @@
                             NUESTROS CHEFS ESTÁN COCINANDO 
                             <span class="emoji-chef">👩‍🍳</span>
                         </div>
-                        
                         <div class="gifs-container">
                             <img src="assets/gifs/chef1.gif" alt="Chef cocinando" class="gif-chef">
                             <img src="assets/gifs/chef2.gif" alt="Chef preparando" class="gif-chef">
                             <img src="assets/gifs/chef3.gif" alt="Chef chef" class="gif-chef">
                             <img src="assets/gifs/chef4.gif" alt="Cocinando" class="gif-chef">
                         </div>
-                        
                         <div class="cocinando-mensaje">
-                            🍳 El equipo de nutrición está preparando el menú del día<br>
+                            🍳 El equipo de nutrición está preparando el menú de <strong>${turnoTexto}</strong><br>
                             <span>⏳ Por favor, vuelva en unos minutos</span>
                         </div>
                     </div>
@@ -328,7 +316,7 @@
         };
         
         const script = document.createElement('script');
-       script.src = API + '?action=obtener_menu&turno=' + turnoActual + '&callback=' + callbackName;
+        script.src = API + '?action=obtener_menu&turno=' + turnoActual + '&callback=' + callbackName;
         script.onerror = function() {
             delete window[callbackName];
             box.innerText = "⚠️ ERROR DE CONEXIÓN";
@@ -338,7 +326,6 @@
         document.body.appendChild(script);
     }
 
-    // ==================== ACTUALIZAR DESCRIPCIÓN DE DIETA ====================
     function actualizarDescripcionDieta() {
         const descripcionSpan = document.getElementById('descripcionDieta');
         
@@ -366,12 +353,10 @@
             }
             
         } catch (e) {
-            console.error('Error parseando dietas:', e);
             descripcionSpan.innerText = menuDataGlobal.platoPrincipal || 'Menú del día';
         }
     }
 
-    // ==================== SOLICITAR COMIDA ====================
     function solicitarComida() {
         const nombreInput = document.getElementById('nombre');
         const dniInput = document.getElementById('dni');
@@ -381,63 +366,29 @@
         const servicio = document.getElementById('servicio').value;
         const guardia = document.getElementById('guardia').value;
         
-        // Validaciones
         errorDiv.innerText = '';
         
-        if (!nombre) {
-            errorDiv.innerText = '❌ Debe ingresar su nombre y apellido';
-            nombreInput.focus();
-            return;
-        }
-        
-        if (!dni) {
-            errorDiv.innerText = '❌ Debe ingresar su DNI';
-            dniInput.focus();
-            return;
-        }
-        
-        if (dni.length < 7 || dni.length > 9) {
-            errorDiv.innerText = '❌ El DNI debe tener entre 7 y 9 dígitos';
-            dniInput.focus();
-            return;
-        }
-        
-        if (!servicio) {
-            errorDiv.innerText = '❌ Debe seleccionar su servicio';
-            document.getElementById('servicio').focus();
-            return;
-        }
-        
-        if (!guardia) {
-            errorDiv.innerText = '❌ Debe seleccionar su horario de guardia';
-            document.getElementById('guardia').focus();
-            return;
-        }
-        
-        if (guardia === '16' && !comidaSeleccionada) {
-            errorDiv.innerText = '❌ Con guardia de 16hs debe elegir entre Almuerzo o Cena';
-            return;
-        }
+        if (!nombre) { errorDiv.innerText = '❌ Debe ingresar su nombre y apellido'; nombreInput.focus(); return; }
+        if (!dni) { errorDiv.innerText = '❌ Debe ingresar su DNI'; dniInput.focus(); return; }
+        if (dni.length < 7 || dni.length > 9) { errorDiv.innerText = '❌ El DNI debe tener entre 7 y 9 dígitos'; dniInput.focus(); return; }
+        if (!servicio) { errorDiv.innerText = '❌ Debe seleccionar su servicio'; document.getElementById('servicio').focus(); return; }
+        if (!guardia) { errorDiv.innerText = '❌ Debe seleccionar su horario de guardia'; document.getElementById('guardia').focus(); return; }
+        if (guardia === '16' && !comidaSeleccionada) { errorDiv.innerText = '❌ Con guardia de 16hs debe elegir entre Almuerzo o Cena'; return; }
         
         const btn = document.getElementById('btnAccion');
         btn.disabled = true;
         btn.innerText = "⏳ PROCESANDO SOLICITUD...";
         
         const dietaSeleccionada = document.getElementById('dieta').value;
-        
-        // Generar códigos según tipo de guardia
         const codigoAlmuerzo = Math.random().toString(36).substring(2, 6).toUpperCase();
         const codigoCena = Math.random().toString(36).substring(2, 6).toUpperCase();
         
         if (guardia === '24') {
-            // Guardia 24hs: solicitar ambas comidas
             solicitarComidaUnica(nombre, dni, servicio, guardia, dietaSeleccionada, 'AMBAS', codigoAlmuerzo, codigoCena);
         } else if (guardia === '16') {
-            // Guardia 16hs: solicitar solo la comida seleccionada
             const turnoParaEnviar = (comidaSeleccionada === 'ALMUERZO') ? 'MAÑANA' : 'NOCHE';
             solicitarComidaUnica(nombre, dni, servicio, guardia, dietaSeleccionada, comidaSeleccionada, codigoAlmuerzo, null, turnoParaEnviar);
         } else {
-            // Guardia 12hs: turno actual
             solicitarComidaUnica(nombre, dni, servicio, guardia, dietaSeleccionada, 'TURNO_ACTUAL', codigoAlmuerzo, null, turnoActual);
         }
     }
@@ -483,7 +434,6 @@
         script.src = scriptUrl;
         
         script.onerror = function() {
-            console.error('Error cargando script');
             delete window[callbackName];
             errorDiv.innerText = '❌ Error de conexión. Intente nuevamente.';
             btn.disabled = false;
@@ -510,7 +460,6 @@
         const infoAdicional = document.getElementById('infoAdicional');
         
         if (guardia === '24') {
-            // Mostrar dos códigos
             resultado.className = 'card guardia-24';
             codigoContainer.innerHTML = `
                 <div class="codigo-doble">
@@ -531,7 +480,6 @@
                 ⚠️ Debe retirar ambas viandas con sus respectivos códigos
             `;
         } else {
-            // Mostrar un código
             resultado.className = 'card';
             codigoContainer.innerHTML = `<h1 id="codigoDisplay">${codigo1}</h1>`;
             
@@ -553,7 +501,6 @@
         resultado.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    // ==================== INICIALIZACIÓN ====================
     function inicializar() {
         const turnoTexto = (turnoActual === "MAÑANA") ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
         document.getElementById('txtTurno').innerText = turnoTexto;
