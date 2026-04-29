@@ -291,7 +291,8 @@
             delete window[callbackName];
             
             if (data.disponible && data.datos && data.datos.length > 0) {
-                box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
+                var turnoTextoMenu = menuDataGlobal.turno === "MAÑANA" ? "ALMUERZO" : "CENA";
+                box.innerText = "✅ MENÚ " + turnoTextoMenu + " PUBLICADO - PEDIDOS HABILITADOS";
                 box.className = "status disponible";
                 menuDataGlobal = data.datos[0];
                 const platoPrincipal = menuDataGlobal.platoPrincipal || 'Menú del día';
@@ -327,7 +328,7 @@
         };
         
         const script = document.createElement('script');
-        script.src = API + '?action=obtener_menu&callback=' + callbackName;
+       script.src = API + '?action=obtener_menu&turno=' + turnoActual + '&callback=' + callbackName;
         script.onerror = function() {
             delete window[callbackName];
             box.innerText = "⚠️ ERROR DE CONEXIÓN";
