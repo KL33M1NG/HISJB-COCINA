@@ -32,7 +32,6 @@
             flex-direction: column;
         }
         
-        /* ========== HEADER ========== */
         header { 
             background: var(--blue); 
             color: white; 
@@ -44,7 +43,6 @@
         header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
         header p { margin: 5px 0 0; font-size: 0.8rem; opacity: 0.9; }
         
-        /* ========== CONTENIDO PRINCIPAL ========== */
         .main-content {
             flex: 1;
             display: flex;
@@ -71,6 +69,7 @@
             box-shadow: var(--shadow);
             flex-wrap: wrap;
             gap: 10px;
+            width: 100%;
         }
         .turno-badge {
             background: var(--blue);
@@ -164,7 +163,6 @@
             line-height: 1;
         }
         
-        /* Total badge */
         .total-section {
             text-align: center;
             margin: 15px 0;
@@ -346,7 +344,64 @@
         .mensaje.success { background: #d4edda; color: #155724; border-left: 5px solid var(--green); }
         .mensaje.error { background: #f8d7da; color: #721c24; border-left: 5px solid var(--red); }
         
-        /* ========== FOOTER (OCUPA TODO EL ANCHO) ========== */
+        /* ========== MODAL PARA CARGA MANUAL ========== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .modal h2 {
+            color: var(--blue);
+            margin-top: 0;
+            text-align: center;
+        }
+        .modal input, .modal select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            text-transform: uppercase;
+            font-size: 0.95rem;
+        }
+        .modal input:focus, .modal select:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+        .modal label {
+            display: block;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--dark);
+        }
+        .modal .btn-close {
+            background: var(--red);
+            color: white;
+            margin-top: 10px;
+        }
+        
+        /* ========== FOOTER ========== */
         .footer {
             background: var(--blue);
             color: white;
@@ -400,7 +455,7 @@
 
 <div class="main-content">
     <div class="container">
-        <!-- BARRA DE TURNO -->
+        <!-- BARRA DE TURNO (MISMO ANCHO QUE LA LISTA) -->
         <div class="turno-bar">
             <span class="turno-badge" id="turnoBadge">🍽️ CARGANDO...</span>
             <span class="turno-info">
@@ -420,9 +475,7 @@
                         <h2>📊 PEDIDOS PENDIENTES</h2>
                     </div>
                     
-                    <div class="stats-grid" id="resumenDietas">
-                        <!-- Se llena dinámicamente -->
-                    </div>
+                    <div class="stats-grid" id="resumenDietas"></div>
                     
                     <div class="total-section">
                         <span class="total-badge">
@@ -440,6 +493,11 @@
                         </div>
                         <div id="mensajeValidacion" class="mensaje" style="display: none;"></div>
                     </div>
+                    
+                    <!-- BOTÓN PARA CARGA MANUAL -->
+                    <button class="btn btn-outline btn-block" onclick="abrirModalCarga()" style="margin-top: 10px;">
+                        ➕ CARGAR PERSONAL MANUALMENTE
+                    </button>
                 </div>
             </div>
             
@@ -484,7 +542,7 @@
             </div>
         </div>
         
-        <!-- CARD DE CIERRE DE TURNO -->
+        <!-- CARD DE CIERRE DE TURNO (MISMO ANCHO) -->
         <div class="card">
             <div class="card-header">
                 <h3>🔒 CERRAR TURNO</h3>
@@ -493,8 +551,9 @@
             
             <p style="color: #666; margin-bottom: 20px;">
                 Al cerrar el turno se generará el reporte estadístico del día con todos los datos 
-                (por dieta, por guardia y por servicio) y se guardará en la hoja de cálculo.
-                <strong>Asegúrese de que todos los pedidos estén entregados.</strong>
+                (por dieta, por guardia y por servicio).<br>
+                <strong style="color: var(--red);">⚠️ Los pedidos PENDIENTES se marcarán como NO ENTREGADOS.</strong><br>
+                Asegúrese de que todos los pedidos estén entregados antes de cerrar.
             </p>
             
             <button class="btn btn-danger btn-block" onclick="cerrarTurno()">
@@ -506,7 +565,64 @@
     </div>
 </div>
 
-<!-- FOOTER QUE OCUPA TODO EL ANCHO -->
+<!-- MODAL PARA CARGA MANUAL -->
+<div class="modal-overlay" id="modalCarga">
+    <div class="modal">
+        <h2>➕ CARGAR PERSONAL MANUALMENTE</h2>
+        <p style="text-align: center; color: #666; font-size: 0.85rem; margin-bottom: 20px;">
+            Complete los datos para registrar a una persona que no esté en el listado
+        </p>
+        
+        <label>👤 APELLIDO Y NOMBRE *</label>
+        <input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
+        
+        <label>🆔 DNI *</label>
+        <input type="number" id="modalDni" placeholder="SIN PUNTOS">
+        
+        <label>🏥 SERVICIO *</label>
+        <select id="modalServicio">
+            <option value="" disabled selected>SELECCIONE SERVICIO</option>
+            <option value="CIRUGIA">CIRUGÍA</option>
+            <option value="CLINICA MEDICA">CLÍNICA MÉDICA</option>
+            <option value="EMERGENCIAS">EMERGENCIAS</option>
+            <option value="LIMPIEZA">LIMPIEZA</option>
+            <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+            <option value="TELEFONIA">TELEFONÍA</option>
+            <option value="TRAUMATOLOGIA">TRAUMATOLOGÍA</option>
+            <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
+            <option value="UTI I">UTI I</option>
+            <option value="UTI II">UTI II</option>
+        </select>
+        
+        <label>⏱️ GUARDIA *</label>
+        <select id="modalGuardia">
+            <option value="" disabled selected>SELECCIONE GUARDIA</option>
+            <option value="12">12 HORAS</option>
+            <option value="16">16 HORAS</option>
+            <option value="24">24 HORAS</option>
+        </select>
+        
+        <label>🍽️ DIETA *</label>
+        <select id="modalDieta">
+            <option value="GENERAL">GENERAL</option>
+            <option value="HIPOSÓDICA">HIPOSÓDICA</option>
+            <option value="DIABÉTICA">DIABÉTICA</option>
+            <option value="CELIACA">CELIACA</option>
+            <option value="GÁSTRICA">GÁSTRICA</option>
+        </select>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-primary btn-block" onclick="cargarManual()">
+                ✅ REGISTRAR Y GENERAR CÓDIGO
+            </button>
+            <button class="btn btn-close btn-block" onclick="cerrarModalCarga()">
+                ❌ CANCELAR
+            </button>
+        </div>
+        <div id="mensajeModal" class="mensaje" style="display: none; margin-top: 15px;"></div>
+    </div>
+</div>
+
 <div class="footer">
     © HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN<br>
     <span>Panel actualizado en tiempo real | Sistema desarrollado para uso interno</span>
@@ -553,18 +669,10 @@
             resumenDiv.innerHTML = '';
             
             const dietas = ['GENERAL', 'HIPOSÓDICA', 'DIABÉTICA', 'CELIACA', 'GÁSTRICA'];
-            const iconos = { 
-                'GENERAL': '🍲', 'HIPOSÓDICA': '🧂', 'DIABÉTICA': '🍬', 
-                'CELIACA': '🌾', 'GÁSTRICA': '🥗' 
-            };
+            const iconos = { 'GENERAL': '🍲', 'HIPOSÓDICA': '🧂', 'DIABÉTICA': '🍬', 'CELIACA': '🌾', 'GÁSTRICA': '🥗' };
             
             dietas.forEach(d => {
-                resumenDiv.innerHTML += `
-                    <div class="stat-card">
-                        <div class="dieta-nombre">${iconos[d]} ${d}</div>
-                        <div class="stat-number">${conteo[d] || 0}</div>
-                    </div>
-                `;
+                resumenDiv.innerHTML += `<div class="stat-card"><div class="dieta-nombre">${iconos[d]} ${d}</div><div class="stat-number">${conteo[d] || 0}</div></div>`;
             });
             
             document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
@@ -576,17 +684,7 @@
             document.getElementById('contadorPendientes').innerText = `${pendientes.length} personas`;
             
             if (pendientes.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7">
-                            <div class="empty-state">
-                                <div class="icon">✅</div>
-                                ¡No hay pedidos pendientes!<br>
-                                <span style="font-size: 0.9rem;">Todos los pedidos han sido entregados</span>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!<br><span style="font-size: 0.9rem;">Todos los pedidos han sido entregados</span></div></td></tr>`;
                 return;
             }
             
@@ -594,10 +692,7 @@
             
             pendientes.forEach(p => {
                 const guardiaTexto = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
-                const comidaTexto = p.tipoComida === 'AMBAS' ? 'ALMUERZO + CENA' : 
-                                   p.tipoComida === 'ALMUERZO' ? '🌅 Almuerzo' : 
-                                   p.tipoComida === 'CENA' ? '🌙 Cena' : 
-                                   p.turno === 'MAÑANA' ? '🌅 Almuerzo' : '🌙 Cena';
+                const comidaTexto = p.tipoComida === 'AMBAS' ? 'ALMUERZO + CENA' : p.tipoComida === 'ALMUERZO' ? '🌅 Almuerzo' : p.tipoComida === 'CENA' ? '🌙 Cena' : p.turno === 'MAÑANA' ? '🌅 Almuerzo' : '🌙 Cena';
                 
                 const fila = document.createElement('tr');
                 fila.innerHTML = `
@@ -607,11 +702,7 @@
                     <td><span class="badge badge-guardia">${guardiaTexto}</span></td>
                     <td><span class="badge badge-comida">${comidaTexto}</span></td>
                     <td><span class="badge badge-dieta">${p.dieta}</span></td>
-                    <td>
-                        <button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">
-                            ✔ ENTREGAR
-                        </button>
-                    </td>
+                    <td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔ ENTREGAR</button></td>
                 `;
                 tbody.appendChild(fila);
             });
@@ -620,36 +711,27 @@
         const script = document.createElement('script');
         script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
         script.onerror = () => {
-            const tbody = document.querySelector('#tablaPendientes tbody');
-            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">❌</div>Error al cargar. Intente actualizar.</div></td></tr>';
+            document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">❌</div>Error al cargar.</div></td></tr>';
         };
         document.body.appendChild(script);
     }
 
     function validarCodigo() {
         const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
-        
-        if (codigo.length !== 4) {
-            mostrarMensaje('mensajeValidacion', 'error', '❌ El código debe tener 4 caracteres');
-            return;
-        }
+        if (codigo.length !== 4) { mostrarMensaje('mensajeValidacion', 'error', '❌ El código debe tener 4 caracteres'); return; }
 
         const callbackName = 'validarCallback_' + Date.now();
-        
         window[callbackName] = function(data) {
             delete window[callbackName];
             document.body.removeChild(script);
-            
             if (data.status === "success") {
-                mostrarMensaje('mensajeValidacion', 'success', 
-                    `✅ ¡ENTREGADO! ${data.nombre} | Servicio: ${data.servicio || 'N/E'} | Dieta: ${data.dieta}`);
+                mostrarMensaje('mensajeValidacion', 'success', `✅ ¡ENTREGADO! ${data.nombre} | ${data.servicio || ''} | ${data.dieta}`);
                 document.getElementById('codigoInput').value = '';
                 cargarPendientes();
             } else {
                 mostrarMensaje('mensajeValidacion', 'error', `❌ ${data.message}`);
             }
         };
-        
         const script = document.createElement('script');
         script.src = API + '?action=validar_codigo&codigo=' + codigo + '&callback=' + callbackName;
         document.body.appendChild(script);
@@ -659,37 +741,88 @@
         document.getElementById('codigoInput').value = codigo;
         document.getElementById('codigoInput').focus();
         validarCodigo();
-        document.getElementById('codigoInput').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function cerrarTurno() {
-        if (!confirm("⚠️ ¿Está seguro de cerrar el turno?\n\nSe generará el reporte estadístico y NO se podrá revertir.")) return;
+        if (!confirm("⚠️ ¿CERRAR TURNO?\n\n✅ Los pedidos ENTREGADOS se guardarán en estadísticas.\n❌ Los pedidos PENDIENTES se marcarán como NO ENTREGADOS.\n\nEsta acción NO se puede revertir.")) return;
         
         const callbackName = 'cierreCallback_' + Date.now();
-        
         window[callbackName] = function(data) {
             delete window[callbackName];
             document.body.removeChild(script);
-            
             if (data.status === "success") {
-                mostrarMensaje('mensajeCierre', 'success', 
-                    `✅ ${data.message}<br>📊 Total: ${data.resumen?.total || 0} | Entregados: ${data.resumen?.entregados || 0} | Pendientes: ${data.resumen?.pendientes || 0}`);
+                mostrarMensaje('mensajeCierre', 'success', `✅ ${data.message}<br>📊 Total: ${data.resumen?.total || 0} | ✅ Entregados: ${data.resumen?.entregados || 0} | ❌ No entregados: ${data.resumen?.pendientes || 0}`);
+                setTimeout(() => cargarPendientes(), 2000);
             } else {
                 mostrarMensaje('mensajeCierre', 'error', `❌ ${data.message}`);
             }
         };
-        
         const script = document.createElement('script');
         script.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + callbackName;
+        document.body.appendChild(script);
+    }
+
+    // ========== MODAL DE CARGA MANUAL ==========
+    function abrirModalCarga() {
+        document.getElementById('modalCarga').classList.add('active');
+    }
+    
+    function cerrarModalCarga() {
+        document.getElementById('modalCarga').classList.remove('active');
+        document.getElementById('mensajeModal').style.display = 'none';
+    }
+    
+    function cargarManual() {
+        const nombre = document.getElementById('modalNombre').value.trim().toUpperCase();
+        const dni = document.getElementById('modalDni').value.trim();
+        const servicio = document.getElementById('modalServicio').value;
+        const guardia = document.getElementById('modalGuardia').value;
+        const dieta = document.getElementById('modalDieta').value;
+        
+        if (!nombre) { mostrarMensaje('mensajeModal', 'error', '❌ Ingrese nombre y apellido'); return; }
+        if (!dni || dni.length < 7) { mostrarMensaje('mensajeModal', 'error', '❌ Ingrese DNI válido'); return; }
+        if (!servicio) { mostrarMensaje('mensajeModal', 'error', '❌ Seleccione servicio'); return; }
+        if (!guardia) { mostrarMensaje('mensajeModal', 'error', '❌ Seleccione guardia'); return; }
+        
+        const codigo = Math.random().toString(36).substring(2, 6).toUpperCase();
+        const callbackName = 'cargaManual_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            if (data && data.status === "success") {
+                mostrarMensaje('mensajeModal', 'success', `✅ REGISTRADO<br>👤 ${nombre}<br>🔢 Código: <strong>${codigo}</strong><br>🍽️ ${dieta}`);
+                setTimeout(() => {
+                    cerrarModalCarga();
+                    cargarPendientes();
+                }, 3000);
+            } else {
+                mostrarMensaje('mensajeModal', 'error', '❌ Error al registrar');
+            }
+        };
+        
+        const params = new URLSearchParams({
+            action: 'generar_codigo',
+            nombre: nombre,
+            dni: dni,
+            servicio: servicio,
+            guardia: guardia,
+            dieta: dieta,
+            turno: turnoActual,
+            codigo: codigo,
+            tipoComida: 'TURNO_ACTUAL',
+            callback: callbackName
+        });
+        
+        const script = document.createElement('script');
+        script.src = API + '?' + params.toString();
         document.body.appendChild(script);
     }
 
     document.getElementById('codigoInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') validarCodigo();
     });
-
     document.getElementById('codigoInput').focus();
-
     window.addEventListener('beforeunload', () => clearInterval(intervalo));
 </script>
 </body>
