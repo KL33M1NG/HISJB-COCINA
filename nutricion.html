@@ -103,6 +103,18 @@
         .dieta-item input {
             margin-top: 3px;
         }
+        .postre-section {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #e67e22;
+        }
+        .postre-section p {
+            margin: 0 0 15px 0;
+            font-weight: bold;
+            color: #e67e22;
+        }
         .mensaje {
             margin-top: 20px;
             padding: 15px;
@@ -166,6 +178,14 @@
         <input type="text" id="platoPrincipal" placeholder="Ej: GUISO DE LENTEJAS" autocomplete="off">
         <div class="info-text">Este será el nombre base del menú</div>
 
+        <!-- NUEVO: SECCIÓN DE POSTRE -->
+        <div class="postre-section">
+            <p>🍰 POSTRE DEL DÍA</p>
+            <label>POSTRE:</label>
+            <input type="text" id="postre" placeholder="Ej: GELATINA DE FRUTILLA" autocomplete="off">
+            <div class="info-text">El postre se incluirá con todas las dietas</div>
+        </div>
+
         <div class="dieta-group">
             <p>📝 ESPECIFICACIONES POR DIETA (Opcional)</p>
             <div class="info-text" style="margin-bottom: 15px;">Si no completa algún campo, se usará el nombre genérico</div>
@@ -206,27 +226,21 @@
     </div>
 
     <script>
-        // ==================== CONFIGURACIÓN ====================
         const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
         
-        // Obtener fecha actual para mostrar
         const fecha = new Date();
         const fechaStr = fecha.toLocaleDateString('es-AR', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
         });
         console.log('📅 Fecha actual:', fechaStr);
 
-        // ==================== FUNCIÓN PRINCIPAL ====================
         function publicarMenu() {
             const turno = document.getElementById('turno').value;
             const platoPrincipal = document.getElementById('platoPrincipal').value.trim();
+            const postre = document.getElementById('postre').value.trim();
             const msgDiv = document.getElementById('mensaje');
             const btn = document.getElementById('btnPublicar');
             
-            // Validación
             if (!platoPrincipal) {
                 msgDiv.className = 'mensaje error';
                 msgDiv.innerHTML = '❌ Debe ingresar un plato principal';
@@ -234,7 +248,6 @@
                 return;
             }
             
-            // Obtener valores de dietas (si están vacíos, usar platoPrincipal)
             const dietas = {
                 GENERAL: document.getElementById('dietaGeneral').value.trim() || platoPrincipal,
                 HIPOSÓDICA: document.getElementById('dietaHipo').value.trim() || platoPrincipal + " (adaptado)",
@@ -243,19 +256,14 @@
                 GÁSTRICA: document.getElementById('dietaGastrica').value.trim() || platoPrincipal + " (adaptado)"
             };
             
-            // Mostrar estado de carga
             msgDiv.className = 'mensaje loading';
             msgDiv.innerHTML = '⏳ Publicando menú...';
             btn.disabled = true;
             
-            // Crear callback único
             const callbackName = 'nutricionCallback_' + Date.now();
             
-            // Definir callback
             window[callbackName] = function(data) {
                 console.log('📡 Respuesta del servidor:', data);
-                
-                // Limpiar
                 delete window[callbackName];
                 btn.disabled = false;
                 
@@ -263,11 +271,12 @@
                     msgDiv.className = 'mensaje success';
                     msgDiv.innerHTML = `✅ ¡MENÚ PUBLICADO EXITOSAMENTE!<br>
                                       🍽️ ${platoPrincipal}<br>
+                                      🍰 Postre: ${postre || 'No especificado'}<br>
                                       🕐 Turno: ${turno === 'MAÑANA' ? 'ALMUERZO' : 'CENA'}<br>
                                       👥 El personal ya puede solicitar su vianda.`;
                     
-                    // Limpiar campos (opcional)
                     document.getElementById('platoPrincipal').value = '';
+                    document.getElementById('postre').value = '';
                     document.getElementById('dietaGeneral').value = '';
                     document.getElementById('dietaHipo').value = '';
                     document.getElementById('dietaDiabetica').value = '';
@@ -282,11 +291,11 @@
                 }
             };
             
-            // Construir URL con parámetros
             const params = new URLSearchParams({
                 action: 'cargar_menu',
                 turno: turno,
                 platoPrincipal: platoPrincipal,
+                postre: postre,
                 general: dietas.GENERAL,
                 hiposodica: dietas.HIPOSÓDICA,
                 diabetica: dietas.DIABÉTICA,
@@ -298,7 +307,6 @@
             const scriptUrl = API + '?' + params.toString();
             console.log('🔗 URL de solicitud:', scriptUrl);
             
-            // Crear y agregar script
             const script = document.createElement('script');
             script.src = scriptUrl;
             
@@ -310,45 +318,36 @@
                 console.error('❌ Error cargando script');
                 delete window[callbackName];
                 msgDiv.className = 'mensaje error';
-                msgDiv.innerHTML = '❌ Error de conexión. Verifique su internet.';
+                msgDiv.innerHTML = '❌ Error de conexión.';
                 btn.disabled = false;
             };
             
             document.body.appendChild(script);
             
-            // Timeout de seguridad
             setTimeout(() => {
                 if (window[callbackName]) {
-                    console.error('⏰ Timeout - callback no llamado');
+                    console.error('⏰ Timeout');
                     delete window[callbackName];
                     msgDiv.className = 'mensaje error';
-                    msgDiv.innerHTML = '❌ Tiempo de espera agotado. Intente nuevamente.';
+                    msgDiv.innerHTML = '❌ Tiempo de espera agotado.';
                     btn.disabled = false;
                 }
             }, 15000);
         }
 
-        // ==================== PERMITIR ENTER PARA PUBLICAR ====================
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🍽️ Panel de Nutrición cargado -', fechaStr);
-            
-            // Permitir publicar con Enter desde el campo de plato principal
             document.getElementById('platoPrincipal').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     const btn = document.getElementById('btnPublicar');
-                    if (btn && !btn.disabled) {
-                        publicarMenu();
-                    }
+                    if (btn && !btn.disabled) publicarMenu();
                 }
             });
-            
-            // Mostrar fecha en consola
             const horaActual = new Date().toLocaleTimeString('es-AR');
             console.log('🕐 Hora actual:', horaActual);
         });
 
-        // ==================== EXPONER FUNCIÓN GLOBAL ====================
         window.publicarMenu = publicarMenu;
     </script>
 </body>
