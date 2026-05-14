@@ -33,7 +33,6 @@
             font-size: 14px;
         }
         
-        /* ========== HEADER ========== */
         header { 
             background: var(--blue); 
             color: white; 
@@ -45,7 +44,6 @@
         header h1 { margin: 0; font-size: 1.3rem; letter-spacing: 1px; }
         header p { margin: 3px 0 0; font-size: 0.7rem; opacity: 0.9; }
         
-        /* ========== CONTENEDOR PRINCIPAL ========== */
         .main-content {
             flex: 1;
             padding: 15px;
@@ -60,7 +58,6 @@
             gap: 15px;
         }
         
-        /* ========== TARJETAS ========== */
         .card { 
             background: var(--white); 
             padding: 20px; 
@@ -119,6 +116,60 @@
         .turno-info strong {
             color: var(--blue);
             font-size: 0.9rem;
+        }
+        
+        /* ========== PANEL DE MENÚ DEL DÍA ========== */
+        .menu-dia-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .menu-dia-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            text-align: center;
+        }
+        .menu-dia-card.activo {
+            border-color: var(--green);
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+        .menu-dia-card.inactivo {
+            border-color: var(--red);
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        }
+        .menu-dia-card .menu-turno {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--blue);
+            margin-bottom: 8px;
+        }
+        .menu-dia-card .menu-plato {
+            font-size: 0.9rem;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        .menu-dia-card .menu-postre {
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+        }
+        .menu-dia-card .menu-estado {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        .menu-estado.publicado {
+            background: var(--green);
+            color: white;
+        }
+        .menu-estado.pendiente {
+            background: var(--red);
+            color: white;
         }
         
         /* ========== ESTADÍSTICAS ========== */
@@ -289,7 +340,6 @@
             background: #e8f0fe;
         }
         
-        /* Badges */
         .badge {
             display: inline-block;
             padding: 3px 10px;
@@ -310,7 +360,6 @@
             letter-spacing: 1px;
         }
         
-        /* Estados vacíos */
         .empty-state {
             text-align: center;
             padding: 30px 15px;
@@ -321,7 +370,6 @@
             margin-bottom: 10px;
         }
         
-        /* Mensajes */
         .mensaje {
             margin-top: 10px;
             padding: 12px;
@@ -411,49 +459,39 @@
             font-size: 0.65rem;
         }
         
-        /* ========== RESPONSIVE - MÓVIL PRIMERO ========== */
-        
-        /* Teléfonos pequeños (default) - Todo en cascada */
+        /* ========== RESPONSIVE ========== */
         .stats-grid {
             grid-template-columns: repeat(3, 1fr);
         }
         
-        /* Tablets */
         @media (min-width: 600px) {
             body { font-size: 15px; }
-            .stats-grid {
-                grid-template-columns: repeat(5, 1fr);
-            }
+            .stats-grid { grid-template-columns: repeat(5, 1fr); }
             header h1 { font-size: 1.5rem; }
             .card { padding: 25px; }
             .turno-bar { padding: 15px 20px; }
         }
         
-        /* Escritorio - Layout de 2 columnas */
         @media (min-width: 900px) {
-            .main-content {
-                padding: 20px;
-            }
+            .main-content { padding: 20px; }
             .container {
                 display: grid;
                 grid-template-columns: 1fr 1.8fr;
                 gap: 20px;
             }
-            .turno-bar {
-                grid-column: 1 / -1;
-            }
-            .card-cierre {
-                grid-column: 1 / -1;
-            }
-            .table-scroll {
-                max-height: 55vh;
-            }
+            .turno-bar { grid-column: 1 / -1; }
+            .menu-dia-grid { grid-column: 1 / -1; }
+            .card-cierre { grid-column: 1 / -1; }
+            .table-scroll { max-height: 55vh; }
         }
         
-        /* Pantallas grandes */
         @media (min-width: 1200px) {
-            .container {
-                max-width: 1300px;
+            .container { max-width: 1300px; }
+        }
+        
+        @media (max-width: 500px) {
+            .menu-dia-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -474,9 +512,25 @@
                 📅 <span id="fechaActual"></span>
                 🕐 <strong id="horaActualizacion"></strong>
             </span>
-            <button class="btn btn-outline btn-sm" onclick="cargarPendientes()">
+            <button class="btn btn-outline btn-sm" onclick="cargarTodo()">
                 🔄 ACTUALIZAR
             </button>
+        </div>
+
+        <!-- ========== NUEVO: PANEL DE MENÚ DEL DÍA ========== -->
+        <div class="menu-dia-grid" id="menuDiaGrid">
+            <div class="menu-dia-card" id="menuAlmuerzo">
+                <div class="menu-turno">🌅 ALMUERZO</div>
+                <div class="menu-plato">Cargando...</div>
+                <div class="menu-postre"></div>
+                <span class="menu-estado pendiente">SIN PUBLICAR</span>
+            </div>
+            <div class="menu-dia-card" id="menuCena">
+                <div class="menu-turno">🌙 CENA</div>
+                <div class="menu-plato">Cargando...</div>
+                <div class="menu-postre"></div>
+                <span class="menu-estado pendiente">SIN PUBLICAR</span>
+            </div>
         </div>
 
         <!-- ESTADÍSTICAS Y VALIDACIÓN -->
@@ -636,8 +690,13 @@
     document.getElementById('turnoBadge').innerHTML = `🍽️ ${turnoTexto}`;
     actualizarFecha();
 
-    let intervalo = setInterval(cargarPendientes, 20000);
-    cargarPendientes();
+    let intervalo = setInterval(cargarTodo, 20000);
+    cargarTodo();
+
+    function cargarTodo() {
+        cargarMenuDelDia();
+        cargarPendientes();
+    }
 
     function actualizarFecha() {
         const ahora = new Date();
@@ -651,6 +710,57 @@
         el.className = `mensaje ${tipo}`;
         el.style.display = 'block';
         setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+
+    // ========== CARGAR MENÚ DEL DÍA ==========
+    function cargarMenuDelDia() {
+        // Cargar almuerzo
+        cargarMenuPorTurno('MAÑANA', 'menuAlmuerzo');
+        // Cargar cena
+        cargarMenuPorTurno('NOCHE', 'menuCena');
+    }
+
+    function cargarMenuPorTurno(turno, elementoId) {
+        const callbackName = 'menuCocina_' + turno + '_' + Date.now();
+        
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            
+            const card = document.getElementById(elementoId);
+            const platoEl = card.querySelector('.menu-plato');
+            const postreEl = card.querySelector('.menu-postre');
+            const estadoEl = card.querySelector('.menu-estado');
+            
+            if (data.disponible && data.datos && data.datos.length > 0) {
+                const menu = data.datos[0];
+                platoEl.innerHTML = `🍲 <strong>${menu.platoPrincipal || 'Sin nombre'}</strong>`;
+                
+                if (menu.postre) {
+                    postreEl.innerHTML = `🍰 <strong>Postre:</strong> ${menu.postre}`;
+                    postreEl.style.display = '';
+                } else {
+                    postreEl.style.display = 'none';
+                }
+                
+                estadoEl.textContent = '✅ PUBLICADO';
+                estadoEl.className = 'menu-estado publicado';
+                card.className = 'menu-dia-card activo';
+            } else {
+                platoEl.innerHTML = '🚫 Menú no publicado';
+                postreEl.style.display = 'none';
+                estadoEl.textContent = '⛔ SIN PUBLICAR';
+                estadoEl.className = 'menu-estado pendiente';
+                card.className = 'menu-dia-card inactivo';
+            }
+        };
+        
+        const script = document.createElement('script');
+        script.src = API + '?action=obtener_menu&turno=' + turno + '&callback=' + callbackName;
+        script.onerror = function() {
+            delete window[callbackName];
+        };
+        document.body.appendChild(script);
     }
 
     function cargarPendientes() {
@@ -726,7 +836,7 @@
             if (data.status === "success") {
                 mostrarMensaje('mensajeValidacion', 'success', `✅ ${data.nombre} | ${data.dieta}`);
                 document.getElementById('codigoInput').value = '';
-                cargarPendientes();
+                cargarTodo();
             } else {
                 mostrarMensaje('mensajeValidacion', 'error', `❌ ${data.message}`);
             }
@@ -751,7 +861,7 @@
             document.body.removeChild(script);
             if (data.status === "success") {
                 mostrarMensaje('mensajeCierre', 'success', `✅ ${data.message}<br>📊 Total: ${data.resumen?.total || 0} | ✅ Entregados: ${data.resumen?.entregados || 0} | ❌ No entregados: ${data.resumen?.pendientes || 0}`);
-                setTimeout(() => cargarPendientes(), 2000);
+                setTimeout(() => cargarTodo(), 2000);
             } else {
                 mostrarMensaje('mensajeCierre', 'error', `❌ ${data.message}`);
             }
@@ -790,7 +900,7 @@
             document.body.removeChild(script);
             if (data && data.status === "success") {
                 mostrarMensaje('mensajeModal', 'success', `✅ REGISTRADO<br>👤 ${nombre}<br>🔢 Código: <strong>${codigo}</strong>`);
-                setTimeout(() => { cerrarModalCarga(); cargarPendientes(); }, 2500);
+                setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2500);
             } else {
                 mostrarMensaje('mensajeModal', 'error', '❌ Error al registrar');
             }
