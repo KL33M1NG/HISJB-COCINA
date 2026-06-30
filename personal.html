@@ -267,12 +267,12 @@
             <label>🏥 SERVICIO <span class="required-star">*</span></label>
             <select id="servicio" required>
                 <option value="" disabled selected>SELECCIONE SU SERVICIO</option>
-                <option value="CIRUGIA">CIRUGÍA</option>
-                <option value="CLINICA MEDICA">CLÍNICA MÉDICA</option>
+                <option value="HEMOTERAPIA">CIRUGÍA</option>
+                <option value="SERVICIO SOCIAL">CLÍNICA MÉDICA</option>
                 <option value="EMERGENCIAS">EMERGENCIAS</option>
                 <option value="LIMPIEZA">LIMPIEZA</option>
                 <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-                <option value="TELEFONIA">TELEFONÍA</option>
+                <option value="SALUD DIGITAL">TELEFONÍA</option>
                 <option value="TRAUMATOLOGIA">TRAUMATOLOGÍA</option>
                 <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
                 <option value="UTI I">UTI I</option>
@@ -435,56 +435,134 @@
     let comidaSeleccionada = null;
     
     // ==================== BASE DE DATOS DEL PERSONAL ====================
-    const PERSONAL = [
-        { nombre: "CECENARRO MARIA JOSE", dni: "35387764", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "LEONARDO GUERRERO", dni: "29618423", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "GRANEROS MARIA NOE", dni: "32201781", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "MARCELO EDUARDO LOBO", dni: "28456108", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "VARELA LAURA MARISOL", dni: "30949698", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "RIVADENEIRA CINTHIA", dni: "37717837", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "PACHECO ABELLA ROMINA", dni: "34519327", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "HERRERO CARLA JESSICA", dni: "37204733", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "CORDERO MARIA EDITH", dni: "34129828", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "LUCAS BORDON", dni: "34716553", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "TIRONI ESTEFANIA REGINA", dni: "32809147", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "SEGURA LISE", dni: "31336807", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "LEDESMA YANINA", dni: "33758784", servicio: "UTI I", dieta: "GENERAL" },
-        { nombre: "SALAS ERIKA", dni: "29527104", servicio: "TELEFONIA", dieta: "CELIACA" },
-        { nombre: "ARCE LAURA", dni: "28076264", servicio: "TELEFONIA", dieta: "GENERAL" },
-        { nombre: "JALILE MAGALI", dni: "38628169", servicio: "TELEFONIA", dieta: "GENERAL" },
-        { nombre: "LINGUA SEBASTIAN", dni: "25302525", servicio: "TELEFONIA", dieta: "GENERAL" },
-        { nombre: "SORIA CLAUDIA", dni: "24065267", servicio: "TELEFONIA", dieta: "GENERAL" },
-        { nombre: "TAPIA MORENO MARIA DE LOS ANGELES", dni: "29786534", servicio: "TELEFONIA", dieta: "GENERAL" },
-        { nombre: "SOSA TOMADA MARIA VERONICA CELESTE", dni: "28172581", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "ARCURI LISANDRO JAVIER", dni: "21478732", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "ACIAR EMILCE ANABEL", dni: "35934606", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "MIRANDA MAYRA CELESTE", dni: "37165082", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "MARIA MACARENA MAIDANA", dni: "30207109", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "JOSE LUIS SANTILLAN", dni: "30676709", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "GIOVANA ANALIA CIPPITELLI", dni: "33925975", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "FERNANDEZ LEANDRO FABRICIO", dni: "35248802", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "BARBERIS LORENA", dni: "25858491", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
-        { nombre: "CORDOBA ROBERTO", dni: "26433475", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "YACANTE NATALIA", dni: "26187987", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "DELGADINO SILVIA", dni: "18572935", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "LEAL DANIELA", dni: "29110573", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "FADEL AGUSTINA", dni: "36447818", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "GODOY ANGELICA", dni: "21327136", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "LAURA FIGUEROA", dni: "30375608", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "CARLA DIAZ", dni: "25928568", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "GARRIBIA ROMINA", dni: "31037679", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "VARELA NATALIA", dni: "26685076", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "ENDRIZZI MARCELA", dni: "21325017", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "ALICIA GIMENS", dni: "23379500", servicio: "CIRUGIA", dieta: "GENERAL" },
-        { nombre: "LENCINA MARIA", dni: "30311758", servicio: "CIRUGIA", dieta: "GENERAL" },
-        { nombre: "MANSILLA MARIELA", dni: "22291199", servicio: "CIRUGIA", dieta: "GENERAL" },
-        { nombre: "BASTIANON YANINA", dni: "36348400", servicio: "CIRUGIA", dieta: "GENERAL" },
-        { nombre: "FIGUEROA PAULA", dni: "35604654", servicio: "CIRUGIA", dieta: "GENERAL" },
-        { nombre: "CUELLO CAROLINA", dni: "32308729", servicio: "CIRUGIA", dieta: "GENERAL" },
-        { nombre: "PEREZ ROBERTO", dni: "34777818", servicio: "CIRUGIA", dieta: "GENERAL" },
-        { nombre: "CARRIZO NANCY", dni: "21820663", servicio: "CIRUGIA", dieta: "GENERAL" }
-    ];
+ const PERSONAL = [
+            // MEDICOS DE UTI
+            { nombre: "CECENARRO MARIA JOSE", dni: "35387764", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "LEONARDO GUERRERO", dni: "29618423", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "GRANEROS MARIA NOE", dni: "32201781", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "MARCELO EDUARDO LOBO", dni: "28456108", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "VARELA LAURA MARISOL", dni: "30949698", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "RIVADENEIRA CINTHIA", dni: "37717837", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "PACHECO ABELLA ROMINA", dni: "34519327", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "HERRERO CARLA JESSICA", dni: "37204733", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "CORDERO MARIA EDITH", dni: "34129828", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "LUCAS BORDON", dni: "34716553", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "TIRONI ESTEFANIA REGINA", dni: "32809147", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "SEGURA LISE", dni: "31336807", servicio: "UTI I", dieta: "GENERAL" },
+            { nombre: "LEDESMA YANINA", dni: "33758784", servicio: "UTI I", dieta: "GENERAL" },
+            // SALUD DIGITAL
+            { nombre: "SALAS ERIKA", dni: "29527104", servicio: "SALUD DIGITAL", dieta: "CELIACA" },
+            { nombre: "ARCE LAURA", dni: "28076264", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+            { nombre: "JALILE MAGALI", dni: "38628169", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+            { nombre: "LINGUA SEBASTIAN", dni: "25302525", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+            { nombre: "SORIA CLAUDIA", dni: "24065267", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+            { nombre: "TAPIA MORENO MARIA DE LOS ANGELES", dni: "29786534", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+            // UNIDAD CORONARIA (UCO)
+            { nombre: "SOSA TOMADA MARIA VERONICA CELESTE", dni: "28172581", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            { nombre: "ARCURI LISANDRO JAVIER", dni: "21478732", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            { nombre: "ACIAR EMILCE ANABEL", dni: "35934606", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            { nombre: "MIRANDA MAYRA CELESTE", dni: "37165082", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            { nombre: "MARIA MACARENA MAIDANA", dni: "30207109", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            { nombre: "JOSE LUIS SANTILLAN", dni: "30676709", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            { nombre: "GIOVANA ANALIA CIPPITELLI", dni: "33925975", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            { nombre: "FERNANDEZ LEANDRO FABRICIO", dni: "35248802", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            { nombre: "BARBERIS LORENA", dni: "25858491", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+            // SERVICIO SOCIAL
+            { nombre: "CORDOBA ROBERTO", dni: "26433475", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "YACANTE NATALIA", dni: "26187987", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "DELGADINO SILVIA", dni: "18572935", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "LEAL DANIELA", dni: "29110573", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "FADEL AGUSTINA", dni: "36447818", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "GODOY ANGELICA", dni: "21327136", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "LAURA FIGUEROA", dni: "30375608", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "CARLA DIAZ", dni: "25928568", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "GARRIBIA ROMINA", dni: "31037679", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "VARELA NATALIA", dni: "26685076", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            { nombre: "ENDRIZZI MARCELA", dni: "21325017", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+            // HEMOTERAPIA
+            { nombre: "ALICIA GIMENS", dni: "23379500", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+            { nombre: "LENCINA MARIA", dni: "30311758", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+            { nombre: "MANSILLA MARIELA", dni: "22291199", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+            { nombre: "BASTIANON YANINA", dni: "36348400", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+            { nombre: "FIGUEROA PAULA", dni: "35604654", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+            { nombre: "CUELLO CAROLINA", dni: "32308729", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+            { nombre: "PEREZ ROBERTO", dni: "34777818", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+            { nombre: "CARRIZO NANCY", dni: "21820663", servicio: "HEMOTERAPIA", dieta: "GENERAL" }
+            // SALUD MENTAL
+            { nombre: "AGUERO LORENA", dni: "24065155", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "ARCE MAURICIO", dni: "28020741", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "BELMONTE FABIANA", dni: "24605895", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "CORDOBA DARIO", dni: "30676398", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "CORONEL VIRGINIA", dni: "34187268", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "CUELLO ANA", dni: "36504767", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "LOBO MOLINA JULIETA", dni: "35087031", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "MOLAS ROMINA", dni: "31814237", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "NOBLEGA LAURA", dni: "32628702", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "PINTOS JULIETA", dni: "34777707", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "VERA CORDOBA PAULA", dni: "34029850", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "ROMERO MARIA ELENA", dni: "18399356", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "SEGURA IANNA SILVIA", dni: "32282340", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "SIERRALTA DAIANA", dni: "31401601", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "SILVA EVA", dni: "31813919", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "SILVA VIRGINIA", dni: "35934042", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "VALVERDE MELINA", dni: "35387778", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            { nombre: "ZULIANI SOFIA", dni: "34915231", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+            // RADIOLOGIA
+            { nombre: "AGUERO BRUNO", dni: "28885747", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "CARRIZO OLGA", dni: "21326806", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "SANCHEZ NATALIA", dni: "25746609", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "TULA ISMAEL", dni: "16934429", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "NUÑEZ RENZO", dni: "32628612", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "CAVIEDES PATRICIA", dni: "27496274", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "NAVARRO ANTONIETA", dni: "23854817", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "CORDERO CARLOS", dni: "36504920", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "MAZZOLINI EMILIA", dni: "28172697", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "LOBO JOHANA", dni: "34129096", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "CASUSE CLAUDIA", dni: "25746618", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            { nombre: "SANCHEZ PATRICIA", dni: "22219259", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+            // RISAMCyA
+            { nombre: "MOLAS ERIKA ROMINA", dni: "31814237", servicio: "RISAMCyA", dieta: "GENERAL" },
+            { nombre: "VALVERDE MELINA", dni: "38485630", servicio: "RISAMCyA", dieta: "GENERAL" },
+            { nombre: "CARRIZO ARIEL", dni: "38762461", servicio: "RISAMCyA", dieta: "GENERAL" },
+            { nombre: "CORDOBA DARIO", dni: "30676398", servicio: "RISAMCyA", dieta: "GENERAL" },
+            { nombre: "JUAREZ FIAMA", dni: "38485630", servicio: "RISAMCyA", dieta: "GENERAL" },
+            { nombre: "GIL ORELLANA IRIS", dni: "36504513", servicio: "RISAMCyA", dieta: "GENERAL" },
+            { nombre: "ZALAZAR MARIA ANGELES", dni: "37089290", servicio: "RISAMCyA", dieta: "GENERAL" },
+            // RESIDENTES - CLINICA MEDICA
+            { nombre: "ALVAREZ CAVILLA LUIS", dni: "39013934", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+            { nombre: "CARDOSO MARA DANIELA", dni: "39015492", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+            { nombre: "VILLEGAS CHAVES EMILCE", dni: "94953080", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+            { nombre: "TORRES MOYANO JOSE", dni: "94905020", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+            { nombre: "ACOSTA MARIBEL", dni: "35389117", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+            { nombre: "PALACIOS LORENA", dni: "38202348", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+            { nombre: "GIL ORELLANA CAMILA", dni: "37642274", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+            // RESIDENTES - MEDICINA FAMILIAR
+            { nombre: "CHAILE DOMINGUEZ DAYANA", dni: "35500377", servicio: "RESIDENTE - MEDICINA FAMILIAR", dieta: "GENERAL" },
+            // RESIDENTES - TERAPIA INTENSIVA
+            { nombre: "HERRERO CARLA", dni: "37204733", servicio: "RESIDENTE - TERAPIA INTENSIVA", dieta: "GENERAL" },
+            { nombre: "VILLAFAÑEZ WALTHER", dni: "39012860", servicio: "RESIDENTE - TERAPIA INTENSIVA", dieta: "GENERAL" },
+            // RESIDENTES - CIRUGIA GENERAL
+            { nombre: "ZURITA AGÜERO DAIANA", dni: "37168081", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+            { nombre: "SARMIENTO LAUTARO", dni: "41618811", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+            { nombre: "LENCINA LUCIANA", dni: "37167407", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+            { nombre: "TOLOZA BLANCO MICAELA", dni: "40749285", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+            { nombre: "AVELLANEDA CARLOS", dni: "37307056", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+            // RESIDENTES - RISAM
+            { nombre: "ZALAZAR MARIA ANGELES", dni: "37089290", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+            { nombre: "CARRIZO GUILLERMO", dni: "38762461", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+            { nombre: "GIL ORELLANA IRIS", dni: "36504513", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+            { nombre: "JUAREZ FIAMA", dni: "38485630", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+            { nombre: "CORDOBA DARIO", dni: "30676398", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+            { nombre: "ALAMO JIMENA NAHIR", dni: "36854034", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+            { nombre: "RODRIGUEZ ABRIL", dni: "42696141", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+            { nombre: "CARMONA MICHELLE", dni: "38626990", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+            // RESIDENTES - HEMATOLOGIA
+            { nombre: "FERREYRA REYES GUADALUPE", dni: "35388246", servicio: "RESIDENTE - HEMATOLOGIA", dieta: "GENERAL" },
+            // RESIDENTES - CIRUGIA VASCULAR
+            { nombre: "DIAMANTE ANABELLA", dni: "35390810", servicio: "RESIDENTE - CIRUGIA VASCULAR", dieta: "GENERAL" },
+
     
+        ];
     let listaSuperSeleccionados = [];
 
     // ==================== FUNCIONES DEL PERSONAL (EXISTENTES) ====================
