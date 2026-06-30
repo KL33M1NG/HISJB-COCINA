@@ -6,7 +6,7 @@
     <title>SISTEMA NUTRICIÓN - HISJB</title>
     
     <style>
-        :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; --red: #dc3545; --orange: #e67e22; }
+        :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; --red: #dc3545; --orange: #e67e22; --dark: #2c3e50; }
         * { box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -23,9 +23,33 @@
             padding: 20px; 
             text-align: center; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+            position: relative;
         }
         header h1 { margin: 0; font-size: 1.5rem; }
         header p { margin: 5px 0 0; font-size: 0.8rem; opacity: 0.9; }
+        
+        /* Botón Supervisor en header */
+        .btn-supervisor {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--dark);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.5);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .btn-supervisor:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: white;
+        }
+        
         .container { max-width: 600px; margin: 20px auto; padding: 15px; flex: 1; }
         .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; margin-bottom: 20px; }
         .status { padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; }
@@ -54,14 +78,10 @@
         .footer { text-align: center; padding: 20px; color: #666; font-size: 0.75rem; }
         
         .comida-seleccion {
-            background: #fff9e6;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            border: 2px dashed var(--orange);
+            background: #fff9e6; padding: 15px; border-radius: 10px; margin: 15px 0; border: 2px dashed var(--orange);
         }
         .comida-seleccion label { color: var(--orange); font-size: 0.85rem; }
-        .radio-group { display: flex; gap: 20px; justify-content: center; margin-top: 10px; }
+        .radio-group { display: flex; gap: 20px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
         .radio-option {
             display: flex; align-items: center; gap: 8px; cursor: pointer;
             padding: 12px 20px; border: 2px solid #ddd; border-radius: 10px; transition: all 0.3s;
@@ -75,10 +95,146 @@
             color: #0e6655; font-size: 0.9rem; border-left: 4px solid #0e6655;
         }
         
-        @media (max-width: 480px) {
+        /* ========== MODAL SUPERVISOR ========== */
+        .modal-supervisor {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal-supervisor.active { display: flex; }
+        .modal-supervisor-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-supervisor-content h2 {
+            color: var(--blue);
+            text-align: center;
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+        .modal-supervisor-content label {
+            display: block;
+            font-weight: bold;
+            margin-top: 12px;
+            color: var(--dark);
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        .modal-supervisor-content input,
+        .modal-supervisor-content select {
+            width: 100%;
+            padding: 12px;
+            margin: 6px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+        }
+        .modal-supervisor-content input:focus,
+        .modal-supervisor-content select:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+        
+        /* Autocompletado */
+        .autocomplete-wrapper { position: relative; }
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0; right: 0;
+            background: white;
+            border: 2px solid var(--blue);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        .autocomplete-list.show { display: block; }
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            text-align: left;
+        }
+        .autocomplete-item:hover { background: #e8f0fe; }
+        
+        .selected-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            min-height: 40px;
+            text-align: left;
+        }
+        .selected-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--blue);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin: 2px;
+            font-size: 0.75rem;
+        }
+        .selected-item .remove {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .selected-item .remove:hover { color: var(--red); }
+        
+        .servicio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .servicio-card {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .servicio-card:hover { border-color: var(--blue); background: #e8f0fe; }
+        .servicio-card .count { font-size: 1.8rem; font-weight: bold; color: var(--blue); }
+        .servicio-card .nombre { font-size: 0.7rem; color: #666; margin-top: 3px; }
+        
+        .btn-xs { padding: 6px 10px; font-size: 0.7rem; }
+        
+        @media (max-width: 600px) {
             .container { padding: 10px; }
             .card { padding: 20px 15px; }
             header h1 { font-size: 1.2rem; }
+            .btn-supervisor {
+                position: static;
+                transform: none;
+                margin-top: 10px;
+                display: block;
+                width: 100%;
+            }
+            header { padding-bottom: 10px; }
+            .modal-supervisor-content { padding: 15px; }
+            .servicio-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
     
@@ -89,9 +245,11 @@
 <header>
     <h1>🏥 HOSPITAL SAN JUAN BAUTISTA</h1>
     <p>GESTIÓN DIGITAL DE ALIMENTACIÓN - SISTEMA NUTRICIÓN</p>
+    <button class="btn-supervisor" onclick="abrirModalSupervisor()">🔐 SUPERVISORES</button>
 </header>
 
 <div class="container">
+    <!-- FORMULARIO PRINCIPAL -->
     <div class="card" id="formCard">
         <h2 id="txtTurno">⏰ VERIFICANDO TURNO...</h2>
         <div id="statusBox" class="status cargando">🔄 CONSULTANDO DISPONIBILIDAD...</div>
@@ -111,14 +269,12 @@
                 <option value="" disabled selected>SELECCIONE SU SERVICIO</option>
                 <option value="CIRUGIA">CIRUGÍA</option>
                 <option value="CLINICA MEDICA">CLÍNICA MÉDICA</option>
-                <option value="CONSIGNA POLICIAL">CONSIGNA POLICIAL</option
                 <option value="EMERGENCIAS">EMERGENCIAS</option>
                 <option value="LIMPIEZA">LIMPIEZA</option>
                 <option value="MANTENIMIENTO">MANTENIMIENTO</option>
                 <option value="TELEFONIA">TELEFONÍA</option>
                 <option value="TRAUMATOLOGIA">TRAUMATOLOGÍA</option>
                 <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
-                <option value="SEGURIDAD">SEGURIDAD</option>
                 <option value="UTI I">UTI I</option>
                 <option value="UTI II">UTI II</option>
             </select>
@@ -161,7 +317,6 @@
                 <span id="descripcionDieta">Seleccione una dieta para ver detalles</span>
             </div>
             
-            <!-- NUEVO: Sección de postre -->
             <div class="postre-info" id="postreInfo" style="display: none;">
                 <strong>🍰 POSTRE DEL DÍA:</strong><br>
                 <span id="postreTexto"></span>
@@ -187,13 +342,90 @@
     </div>
 </div>
 
+<!-- ========== MODAL SUPERVISOR ========== -->
+<div class="modal-supervisor" id="modalSupervisor">
+    <div class="modal-supervisor-content">
+        <!-- PANTALLA DE LOGIN -->
+        <div id="supervisorLogin">
+            <h2>🔐 ACCESO SUPERVISOR</h2>
+            <p style="text-align: center; color: #666; font-size: 0.85rem;">Ingrese la contraseña para acceder</p>
+            <input type="password" id="superPass" placeholder="CONTRASEÑA" maxlength="20" autocomplete="off" style="text-align: center; font-size: 1.2rem;">
+            <button class="btn-enviar" onclick="verificarPassSupervisor()" style="background: var(--blue);">INGRESAR</button>
+            <button class="btn-enviar" onclick="cerrarModalSupervisor()" style="background: #6c757d;">CANCELAR</button>
+            <div id="mensajeSuperLogin" class="error-mensaje"></div>
+        </div>
+        
+        <!-- PANTALLA DE CARGA MASIVA -->
+        <div id="supervisorPanel" style="display: none;">
+            <h2>📋 CARGA MASIVA DE VIANDAS</h2>
+            <p style="text-align: center; color: #666; font-size: 0.8rem;">Complete los datos y seleccione el personal</p>
+            
+            <label>🔍 BUSCAR PERSONAL (Nombre o DNI)</label>
+            <div class="autocomplete-wrapper">
+                <input type="text" id="superBuscar" placeholder="ESCRIBA PARA BUSCAR..." autocomplete="off" oninput="buscarPersonalSuper()">
+                <div class="autocomplete-list" id="superAutocomplete"></div>
+            </div>
+            
+            <div class="selected-list" id="superSelected">
+                <span style="color: #999;">👆 Busque y seleccione personal</span>
+            </div>
+            
+            <div style="display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap;">
+                <button class="btn-enviar btn-xs" onclick="cargarServicioCompletoSuper()" style="flex: 1; background: var(--blue); font-size: 0.8rem; padding: 10px;">
+                    📦 CARGAR SERVICIO
+                </button>
+                <button class="btn-enviar btn-xs" onclick="limpiarListaSuper()" style="flex: 1; background: #6c757d; font-size: 0.8rem; padding: 10px;">
+                    🗑️ LIMPIAR LISTA
+                </button>
+            </div>
+            
+            <label>⚡ SERVICIOS RÁPIDOS</label>
+            <div class="servicio-grid" id="superServicios"></div>
+            
+            <label>🍽️ TURNO</label>
+            <select id="superTurno">
+                <option value="MAÑANA">🌅 ALMUERZO</option>
+                <option value="NOCHE">🌙 CENA</option>
+            </select>
+            
+            <label>📋 DIETA POR DEFECTO</label>
+            <select id="superDieta">
+                <option value="GENERAL">GENERAL</option>
+                <option value="HIPOSÓDICA">HIPOSÓDICA</option>
+                <option value="DIABÉTICA">DIABÉTICA</option>
+                <option value="CELIACA">CELIACA</option>
+                <option value="GÁSTRICA">GÁSTRICA</option>
+            </select>
+            
+            <label>⏱️ GUARDIA</label>
+            <select id="superGuardia">
+                <option value="12">12 HORAS</option>
+                <option value="16">16 HORAS</option>
+                <option value="24">24 HORAS</option>
+            </select>
+            
+            <button class="btn-enviar" onclick="procesarCargaSuper()" style="background: var(--green); margin-top: 15px;">
+                ✅ PROCESAR CARGA (<span id="superContador">0</span> PERSONAS)
+            </button>
+            
+            <button class="btn-enviar" onclick="cerrarModalSupervisor()" style="background: var(--red); margin-top: 8px;">
+                🚪 SALIR
+            </button>
+            
+            <div id="mensajeSuperCarga" class="error-mensaje" style="margin-top: 10px;"></div>
+        </div>
+    </div>
+</div>
+
 <div class="footer">
     © HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN<br>
     Sistema desarrollado para uso interno del personal
 </div>
 
 <script>
+    // ==================== CONFIGURACIÓN ====================
     const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
+    const SUPERVISOR_PASS = "HISJB2024";
     
     const fecha = new Date();
     const hora = fecha.getHours();
@@ -201,7 +433,61 @@
     
     let menuDataGlobal = null;
     let comidaSeleccionada = null;
+    
+    // ==================== BASE DE DATOS DEL PERSONAL ====================
+    const PERSONAL = [
+        { nombre: "CECENARRO MARIA JOSE", dni: "35387764", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "LEONARDO GUERRERO", dni: "29618423", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "GRANEROS MARIA NOE", dni: "32201781", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "MARCELO EDUARDO LOBO", dni: "28456108", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "VARELA LAURA MARISOL", dni: "30949698", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "RIVADENEIRA CINTHIA", dni: "37717837", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "PACHECO ABELLA ROMINA", dni: "34519327", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "HERRERO CARLA JESSICA", dni: "37204733", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "CORDERO MARIA EDITH", dni: "34129828", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "LUCAS BORDON", dni: "34716553", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "TIRONI ESTEFANIA REGINA", dni: "32809147", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "SEGURA LISE", dni: "31336807", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "LEDESMA YANINA", dni: "33758784", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "SALAS ERIKA", dni: "29527104", servicio: "TELEFONIA", dieta: "CELIACA" },
+        { nombre: "ARCE LAURA", dni: "28076264", servicio: "TELEFONIA", dieta: "GENERAL" },
+        { nombre: "JALILE MAGALI", dni: "38628169", servicio: "TELEFONIA", dieta: "GENERAL" },
+        { nombre: "LINGUA SEBASTIAN", dni: "25302525", servicio: "TELEFONIA", dieta: "GENERAL" },
+        { nombre: "SORIA CLAUDIA", dni: "24065267", servicio: "TELEFONIA", dieta: "GENERAL" },
+        { nombre: "TAPIA MORENO MARIA DE LOS ANGELES", dni: "29786534", servicio: "TELEFONIA", dieta: "GENERAL" },
+        { nombre: "SOSA TOMADA MARIA VERONICA CELESTE", dni: "28172581", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "ARCURI LISANDRO JAVIER", dni: "21478732", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "ACIAR EMILCE ANABEL", dni: "35934606", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "MIRANDA MAYRA CELESTE", dni: "37165082", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "MARIA MACARENA MAIDANA", dni: "30207109", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "JOSE LUIS SANTILLAN", dni: "30676709", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "GIOVANA ANALIA CIPPITELLI", dni: "33925975", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "FERNANDEZ LEANDRO FABRICIO", dni: "35248802", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "BARBERIS LORENA", dni: "25858491", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "CORDOBA ROBERTO", dni: "26433475", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "YACANTE NATALIA", dni: "26187987", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "DELGADINO SILVIA", dni: "18572935", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "LEAL DANIELA", dni: "29110573", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "FADEL AGUSTINA", dni: "36447818", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "GODOY ANGELICA", dni: "21327136", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "LAURA FIGUEROA", dni: "30375608", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "CARLA DIAZ", dni: "25928568", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "GARRIBIA ROMINA", dni: "31037679", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "VARELA NATALIA", dni: "26685076", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "ENDRIZZI MARCELA", dni: "21325017", servicio: "CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "ALICIA GIMENS", dni: "23379500", servicio: "CIRUGIA", dieta: "GENERAL" },
+        { nombre: "LENCINA MARIA", dni: "30311758", servicio: "CIRUGIA", dieta: "GENERAL" },
+        { nombre: "MANSILLA MARIELA", dni: "22291199", servicio: "CIRUGIA", dieta: "GENERAL" },
+        { nombre: "BASTIANON YANINA", dni: "36348400", servicio: "CIRUGIA", dieta: "GENERAL" },
+        { nombre: "FIGUEROA PAULA", dni: "35604654", servicio: "CIRUGIA", dieta: "GENERAL" },
+        { nombre: "CUELLO CAROLINA", dni: "32308729", servicio: "CIRUGIA", dieta: "GENERAL" },
+        { nombre: "PEREZ ROBERTO", dni: "34777818", servicio: "CIRUGIA", dieta: "GENERAL" },
+        { nombre: "CARRIZO NANCY", dni: "21820663", servicio: "CIRUGIA", dieta: "GENERAL" }
+    ];
+    
+    let listaSuperSeleccionados = [];
 
+    // ==================== FUNCIONES DEL PERSONAL (EXISTENTES) ====================
     function actualizarHora() {
         const ahora = new Date();
         const horaStr = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
@@ -258,7 +544,6 @@
                 const platoPrincipal = menuDataGlobal.platoPrincipal || 'Menú del día';
                 menuInfo.innerHTML = `🍲 HOY (${turnoTextoMenu}): <strong>${platoPrincipal}</strong>`;
                 
-                // Mostrar postre si existe
                 if (menuDataGlobal.postre) {
                     document.getElementById('postreTexto').innerText = menuDataGlobal.postre;
                     document.getElementById('postreInfo').style.display = 'block';
@@ -275,22 +560,19 @@
                 menuInfo.innerHTML = `
                     <div class="cocinando-container">
                         <div class="cocinando-titulo">
-                            <span class="emoji-chef">👨‍🍳</span> 
-                            NUESTROS CHEFS ESTÁN COCINANDO 
-                            <span class="emoji-chef">👩‍🍳</span>
+                            <span class="emoji-chef">👨‍🍳</span> NUESTROS CHEFS ESTÁN COCINANDO <span class="emoji-chef">👩‍🍳</span>
                         </div>
                         <div class="gifs-container">
-                            <img src="assets/gifs/chef1.gif" alt="Chef cocinando" class="gif-chef">
-                            <img src="assets/gifs/chef2.gif" alt="Chef preparando" class="gif-chef">
-                            <img src="assets/gifs/chef3.gif" alt="Chef chef" class="gif-chef">
-                            <img src="assets/gifs/chef4.gif" alt="Cocinando" class="gif-chef">
+                            <img src="assets/gifs/chef1.gif" alt="Chef" class="gif-chef">
+                            <img src="assets/gifs/chef2.gif" alt="Chef" class="gif-chef">
+                            <img src="assets/gifs/chef3.gif" alt="Chef" class="gif-chef">
+                            <img src="assets/gifs/chef4.gif" alt="Chef" class="gif-chef">
                         </div>
                         <div class="cocinando-mensaje">
-                            🍳 El equipo de nutrición está preparando el menú de <strong>${turnoTexto}</strong><br>
-                            <span>⏳ Por favor, vuelva en unos minutos</span>
+                            🍳 Preparando el menú de <strong>${turnoTexto}</strong><br>
+                            <span>⏳ Vuelva en unos minutos</span>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 document.getElementById('camposPersonal').style.display = 'none';
                 document.getElementById('postreInfo').style.display = 'none';
             }
@@ -302,7 +584,6 @@
             delete window[callbackName];
             box.innerText = "⚠️ ERROR DE CONEXIÓN";
             box.className = "status agotado";
-            menuInfo.innerHTML = "No se pudo conectar con el servidor.";
         };
         document.body.appendChild(script);
     }
@@ -371,7 +652,6 @@
         const callbackName = 'solicitudCallback_' + Date.now();
         
         window[callbackName] = function(data) {
-            console.log('Callback ejecutado:', data);
             delete window[callbackName];
             
             if (data && data.status === "success") {
@@ -386,26 +666,20 @@
         const turnoUsar = turnoOverride || turnoActual;
         
         const params = new URLSearchParams({
-            action: 'generar_codigo',
-            nombre: nombre, dni: dni, servicio: servicio,
+            action: 'generar_codigo', nombre: nombre, dni: dni, servicio: servicio,
             guardia: guardia, dieta: dieta, turno: turnoUsar,
             tipoComida: tipoComida, codigo: codigo1,
             codigo2: codigo2 || '', callback: callbackName
         });
         
-        const scriptUrl = API + '?' + params.toString();
-        console.log('URL de solicitud:', scriptUrl);
-        
         const script = document.createElement('script');
-        script.src = scriptUrl;
-        
+        script.src = API + '?' + params.toString();
         script.onerror = function() {
             delete window[callbackName];
             errorDiv.innerText = '❌ Error de conexión.';
             btn.disabled = false;
             btn.innerText = "🍴 SOLICITAR VIANDA";
         };
-        
         document.body.appendChild(script);
         
         setTimeout(() => {
@@ -432,7 +706,7 @@
                     <div class="codigo-item"><h2>🌅 ALMUERZO</h2><div class="codigo">${codigo1}</div></div>
                     <div class="codigo-item"><h2>🌙 CENA</h2><div class="codigo">${codigo2}</div></div>
                 </div>`;
-            infoAdicional.innerHTML = `🏥 Servicio: ${servicio}<br>⏱️ Guardia: ${guardia} horas<br>🍽️ Comidas: AMBAS<br>⚠️ Retirar ambas viandas`;
+            infoAdicional.innerHTML = `🏥 Servicio: ${servicio}<br>⏱️ Guardia: ${guardia} horas<br>🍽️ Comidas: AMBAS`;
         } else {
             resultado.className = 'card';
             codigoContainer.innerHTML = `<h1 id="codigoDisplay">${codigo1}</h1>`;
@@ -444,6 +718,225 @@
         resultado.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
+    // ==================== MODAL SUPERVISOR ====================
+    function abrirModalSupervisor() {
+        document.getElementById('modalSupervisor').classList.add('active');
+        document.getElementById('supervisorLogin').style.display = 'block';
+        document.getElementById('supervisorPanel').style.display = 'none';
+        document.getElementById('superPass').value = '';
+        document.getElementById('mensajeSuperLogin').innerText = '';
+        listaSuperSeleccionados = [];
+    }
+    
+    function cerrarModalSupervisor() {
+        document.getElementById('modalSupervisor').classList.remove('active');
+        listaSuperSeleccionados = [];
+    }
+    
+    function verificarPassSupervisor() {
+        const pass = document.getElementById('superPass').value.trim();
+        if (pass === SUPERVISOR_PASS) {
+            document.getElementById('supervisorLogin').style.display = 'none';
+            document.getElementById('supervisorPanel').style.display = 'block';
+            document.getElementById('mensajeSuperLogin').innerText = '';
+            inicializarSuperPanel();
+        } else {
+            document.getElementById('mensajeSuperLogin').innerText = '❌ Contraseña incorrecta';
+            document.getElementById('superPass').value = '';
+        }
+    }
+    
+    document.getElementById('superPass').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') verificarPassSupervisor();
+    });
+    
+    function inicializarSuperPanel() {
+        listaSuperSeleccionados = [];
+        actualizarListaSuper();
+        cargarServiciosRapidosSuper();
+        document.getElementById('superBuscar').value = '';
+        document.getElementById('superAutocomplete').classList.remove('show');
+    }
+    
+    function buscarPersonalSuper() {
+        const input = document.getElementById('superBuscar');
+        const lista = document.getElementById('superAutocomplete');
+        const query = input.value.trim().toUpperCase();
+        
+        if (query.length < 2) { lista.classList.remove('show'); return; }
+        
+        const resultados = PERSONAL.filter(p => {
+            if (listaSuperSeleccionados.some(s => s.dni === p.dni)) return false;
+            return p.nombre.includes(query) || p.dni.includes(query);
+        });
+        
+        if (resultados.length === 0) { lista.classList.remove('show'); return; }
+        
+        lista.innerHTML = resultados.slice(0, 8).map(p => `
+            <div class="autocomplete-item" onclick="seleccionarPersonaSuper('${p.dni}')">
+                <strong>${p.nombre}</strong> | DNI: ${p.dni} | 🏥 ${p.servicio} | 🍽️ ${p.dieta}
+            </div>
+        `).join('');
+        lista.classList.add('show');
+    }
+    
+    function seleccionarPersonaSuper(dni) {
+        const persona = PERSONAL.find(p => p.dni === dni);
+        if (!persona || listaSuperSeleccionados.some(s => s.dni === dni)) return;
+        listaSuperSeleccionados.push({...persona});
+        actualizarListaSuper();
+        document.getElementById('superBuscar').value = '';
+        document.getElementById('superAutocomplete').classList.remove('show');
+        document.getElementById('superBuscar').focus();
+    }
+    
+    function removerPersonaSuper(dni) {
+        listaSuperSeleccionados = listaSuperSeleccionados.filter(p => p.dni !== dni);
+        actualizarListaSuper();
+    }
+    
+    function actualizarListaSuper() {
+        const container = document.getElementById('superSelected');
+        document.getElementById('superContador').textContent = listaSuperSeleccionados.length;
+        
+        if (listaSuperSeleccionados.length === 0) {
+            container.innerHTML = '<span style="color: #999;">👆 Busque y seleccione personal</span>';
+            return;
+        }
+        
+        container.innerHTML = listaSuperSeleccionados.map(p => `
+            <span class="selected-item">
+                ${p.nombre} (${p.dieta === 'CELIACA' ? '⚠️ CELIACA' : ''})
+                <span class="remove" onclick="removerPersonaSuper('${p.dni}')">✕</span>
+            </span>
+        `).join('');
+    }
+    
+    function limpiarListaSuper() {
+        if (listaSuperSeleccionados.length === 0) return;
+        if (!confirm('¿Eliminar todas las personas de la lista?')) return;
+        listaSuperSeleccionados = [];
+        actualizarListaSuper();
+    }
+    
+    function cargarServiciosRapidosSuper() {
+        const grid = document.getElementById('superServicios');
+        const servicios = {};
+        PERSONAL.forEach(p => {
+            if (!servicios[p.servicio]) servicios[p.servicio] = [];
+            servicios[p.servicio].push(p);
+        });
+        
+        grid.innerHTML = Object.keys(servicios).sort().map(s => `
+            <div class="servicio-card" onclick="cargarServicioSuper('${s}')">
+                <div class="count">${servicios[s].length}</div>
+                <div class="nombre">🏥 ${s}</div>
+            </div>
+        `).join('');
+    }
+    
+    function cargarServicioSuper(servicio) {
+        const personas = PERSONAL.filter(p => p.servicio === servicio);
+        personas.forEach(p => {
+            if (!listaSuperSeleccionados.some(s => s.dni === p.dni)) {
+                listaSuperSeleccionados.push({...p});
+            }
+        });
+        actualizarListaSuper();
+    }
+    
+    function cargarServicioCompletoSuper() {
+        const servicio = prompt('Ingrese el nombre del servicio:\n\n' + [...new Set(PERSONAL.map(p => p.servicio))].sort().join('\n'));
+        if (!servicio) return;
+        const personas = PERSONAL.filter(p => p.servicio.toUpperCase().includes(servicio.toUpperCase().trim()));
+        if (personas.length === 0) { alert('Servicio no encontrado'); return; }
+        personas.forEach(p => {
+            if (!listaSuperSeleccionados.some(s => s.dni === p.dni)) {
+                listaSuperSeleccionados.push({...p});
+            }
+        });
+        actualizarListaSuper();
+    }
+    
+    async function procesarCargaSuper() {
+        const msg = document.getElementById('mensajeSuperCarga');
+        
+        if (listaSuperSeleccionados.length === 0) {
+            msg.innerHTML = '❌ No hay personas en la lista';
+            return;
+        }
+        
+        const turno = document.getElementById('superTurno').value;
+        const dietaDefault = document.getElementById('superDieta').value;
+        const guardia = document.getElementById('superGuardia').value;
+        
+        if (!confirm(`¿Procesar carga de ${listaSuperSeleccionados.length} personas?\n\nTurno: ${turno}\nGuardia: ${guardia}hs\nDieta: ${dietaDefault}`)) return;
+        
+        msg.innerHTML = '⏳ Procesando...';
+        
+        let exitos = 0;
+        let errores = 0;
+        
+        for (const persona of listaSuperSeleccionados) {
+            const codigo = Math.random().toString(36).substring(2, 6).toUpperCase();
+            const dieta = persona.dieta === 'CELIACA' ? 'CELIACA' : dietaDefault;
+            
+            try {
+                await cargarPersonaSuper(persona.nombre, persona.dni, persona.servicio, guardia, dieta, turno, codigo);
+                exitos++;
+            } catch (e) {
+                errores++;
+            }
+            await new Promise(r => setTimeout(r, 250));
+        }
+        
+        msg.innerHTML = `✅ Carga completada<br>✓ ${exitos} registrados${errores > 0 ? '<br>✗ ' + errores + ' errores' : ''}`;
+        msg.style.color = errores > 0 ? 'var(--orange)' : 'var(--green)';
+        
+        if (errores === 0) {
+            listaSuperSeleccionados = [];
+            actualizarListaSuper();
+        }
+    }
+    
+    function cargarPersonaSuper(nombre, dni, servicio, guardia, dieta, turno, codigo) {
+        return new Promise((resolve, reject) => {
+            const callbackName = 'superCarga_' + Date.now() + '_' + dni;
+            
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                if (data && data.status === "success") resolve();
+                else reject();
+            };
+            
+            const params = new URLSearchParams({
+                action: 'generar_codigo', nombre: nombre, dni: dni,
+                servicio: servicio, guardia: guardia, dieta: dieta,
+                turno: turno, codigo: codigo,
+                tipoComida: 'TURNO_ACTUAL', tipo: 'SUPERVISOR',
+                callback: callbackName
+            });
+            
+            const script = document.createElement('script');
+            script.src = API + '?' + params.toString();
+            script.onerror = () => reject();
+            document.body.appendChild(script);
+            
+            setTimeout(() => {
+                if (window[callbackName]) { delete window[callbackName]; reject(); }
+            }, 10000);
+        });
+    }
+    
+    // Cerrar autocompletado al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.autocomplete-wrapper')) {
+            document.getElementById('superAutocomplete').classList.remove('show');
+        }
+    });
+
+    // ==================== INICIALIZACIÓN ====================
     function inicializar() {
         document.getElementById('txtTurno').innerText = (turnoActual === "MAÑANA") ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
         actualizarHora();
