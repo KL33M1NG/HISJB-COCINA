@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA NUTRICIÓN - HISJB - 2026</title>
+    <title>SISTEMA NUTRICIÓN - HISJB</title>
     <style>
         :root { --blue: #0056b3; --green: #28a745; --gray: #f4f7f6; --red: #dc3545; --orange: #e67e22; --dark: #2c3e50; --purple: #6f42c1; }
         * { box-sizing: border-box; }
@@ -35,19 +35,14 @@
         .autocomplete-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.85rem; text-align: left; }
         .autocomplete-item:hover { background: #e8f0fe; }
         .badge { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: bold; margin: 2px; }
-        .badge-service { background: var(--blue); color: white; }
-        .badge-diet { background: var(--orange); color: white; }
         .selected-item { display: inline-flex; align-items: center; gap: 5px; background: var(--blue); color: white; padding: 4px 10px; border-radius: 20px; margin: 2px; font-size: 0.75rem; }
         .selected-item .remove { cursor: pointer; font-weight: bold; }
         .error-mensaje { color: var(--red); margin-top: 10px; font-size: 0.9rem; }
         .footer { text-align: center; padding: 20px; color: #666; font-size: 0.75rem; margin-top: auto; }
-        #resultado { display: none; }
         .user-bar { background: white; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; flex-wrap: wrap; gap: 8px; }
-        .user-bar strong { color: var(--blue); }
-        
-        /* Admin */
         .admin-section { background: #f8f0ff; border: 2px solid var(--purple); padding: 15px; border-radius: 10px; margin: 15px 0; }
-        .admin-section h3 { color: var(--purple); margin-top: 0; }
+        .menu-info-detalle { background: #e7f3ff; padding: 12px; border-radius: 8px; margin: 10px 0; text-align: left; border-left: 5px solid var(--blue); }
+        #resultado { display: none; }
         
         @media (max-width: 500px) {
             .container { padding: 10px; }
@@ -63,25 +58,22 @@
 </header>
 
 <div class="container">
-    <!-- ========== PANTALLA DE LOGIN ========== -->
+    <!-- PANTALLA DE LOGIN -->
     <div id="loginScreen" class="card">
         <h2>🔐 ACCESO AL SISTEMA</h2>
         <p style="color: #666; font-size: 0.9rem;">Ingrese la contraseña de su servicio</p>
         <input type="password" id="loginPass" placeholder="CONTRASEÑA" maxlength="30" autocomplete="off">
         <button class="btn btn-primary" onclick="login()">🔑 INGRESAR</button>
         <div id="loginError" class="error-mensaje"></div>
-        <p style="margin-top: 20px; font-size: 0.7rem; color: #aaa;">Servicios disponibles en la hoja "Servicios"</p>
     </div>
 
-    <!-- ========== PANTALLA PRINCIPAL ========== -->
+    <!-- PANTALLA PRINCIPAL -->
     <div id="mainScreen" class="hidden">
-        <!-- Barra de usuario -->
         <div class="user-bar">
             <span>🏥 <strong id="userServicio"></strong> | 🎫 <span id="userTipo"></span></span>
             <button class="btn btn-danger" style="width: auto; padding: 8px 15px; font-size: 0.8rem;" onclick="logout()">🚪 SALIR</button>
         </div>
 
-        <!-- Formulario -->
         <div class="card" id="formCard">
             <h2 id="txtTurno">⏰ VERIFICANDO TURNO...</h2>
             <div id="statusBox" class="status cargando">🔄 CONSULTANDO DISPONIBILIDAD...</div>
@@ -125,15 +117,14 @@
                     <option value="GÁSTRICA">GÁSTRICA</option>
                 </select>
 
-                <!-- Autocompletado -->
                 <div class="autocomplete-wrapper">
                     <label>🔍 BUSCAR EN LISTADO (Opcional)</label>
                     <input type="text" id="buscarInput" placeholder="ESCRIBA NOMBRE O DNI..." autocomplete="off" oninput="buscarPersonal()">
                     <div class="autocomplete-list" id="autocompleteList"></div>
                 </div>
 
-                <div class="menu-info-detalle" id="detalleDietaSeleccionada" style="background: #e7f3ff; padding: 12px; border-radius: 8px; margin: 10px 0; text-align: left; border-left: 5px solid var(--blue);">
-                    <strong>📝 DETALLE:</strong><br>
+                <div class="menu-info-detalle">
+                    <strong>📝 DETALLE DEL MENÚ:</strong><br>
                     <span id="descripcionDieta">Seleccione una dieta</span>
                 </div>
 
@@ -146,7 +137,6 @@
             </div>
         </div>
 
-        <!-- Resultado -->
         <div id="resultado" class="card">
             <p style="font-size: 1.1rem;">✅ REGISTRO EXITOSO</p>
             <p>TU CÓDIGO DE RETIRO ES:</p>
@@ -158,13 +148,12 @@
             <button class="btn btn-primary" onclick="location.reload()">🔙 NUEVA SOLICITUD</button>
         </div>
 
-        <!-- Botón Supervisor (visible solo para supervisores/admin) -->
         <div id="supervisorSection" class="hidden" style="text-align: center; margin-top: 15px;">
             <button class="btn btn-dark" onclick="abrirModalSupervisor()">📦 CARGA MASIVA (SUPERVISOR)</button>
         </div>
     </div>
 
-    <!-- ========== PANEL DE ADMINISTRACIÓN ========== -->
+    <!-- PANEL DE ADMINISTRACIÓN -->
     <div id="adminScreen" class="hidden">
         <div class="card">
             <div class="user-bar">
@@ -173,7 +162,6 @@
             </div>
         </div>
 
-        <!-- Gestión de Servicios -->
         <div class="card">
             <h3>📋 GESTIÓN DE SERVICIOS</h3>
             <div id="adminServiciosList" style="max-height: 300px; overflow-y: auto; margin: 15px 0; text-align: left;"></div>
@@ -194,7 +182,6 @@
             </div>
         </div>
 
-        <!-- Gestión de Personal -->
         <div class="card">
             <h3>👥 AGREGAR PERSONAL</h3>
             <label>APELLIDO Y NOMBRE</label>
@@ -219,7 +206,7 @@
     </div>
 </div>
 
-<!-- ========== MODAL SUPERVISOR ========== -->
+<!-- MODAL SUPERVISOR -->
 <div id="modalSupervisor" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
     <div style="background: white; border-radius: 15px; padding: 25px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto;">
         <h2 style="color: var(--blue);">📦 CARGA MASIVA - SUPERVISOR</h2>
@@ -239,7 +226,6 @@
             <button class="btn" style="flex: 1; padding: 10px; font-size: 0.85rem; background: #6c757d; color: white;" onclick="limpiarSuperLista()">🗑️ LIMPIAR</button>
         </div>
         
-        <!-- Agregar persona manual -->
         <div style="background: #f0f0f0; padding: 12px; border-radius: 8px; margin: 10px 0;">
             <h4 style="margin-top: 0;">➕ AGREGAR PERSONA MANUALMENTE</h4>
             <input type="text" id="superManualNombre" placeholder="APELLIDO Y NOMBRE" oninput="this.value = this.value.toUpperCase()">
@@ -281,10 +267,34 @@
 <div class="footer">© HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN</div>
 
 <script>
+    // ==================== CONFIGURACIÓN ====================
     const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
     const ADMIN_PASS = "HISJBadmin2024";
     
-    let currentUser = null; // { servicio, tipo }
+    // Contraseñas locales (respaldo si la API falla)
+    const PASSWORDS = {
+        "ADMIN": { pass: "HISJBadmin2024", tipo: "admin" },
+        "ENFERMERIA": { pass: "enfermeria2024", tipo: "supervisor" },
+        "CAMILLEROS": { pass: "camilleros2024", tipo: "supervisor" },
+        "UTI I": { pass: "uti2024", tipo: "normal" },
+        "SALUD DIGITAL": { pass: "saluddigital2024", tipo: "normal" },
+        "UNIDAD CORONARIA": { pass: "uco2024", tipo: "normal" },
+        "SERVICIO SOCIAL": { pass: "social2024", tipo: "normal" },
+        "HEMOTERAPIA": { pass: "hemo2024", tipo: "normal" },
+        "SALUD MENTAL": { pass: "saludmental2024", tipo: "normal" },
+        "RADIOLOGIA": { pass: "radio2024", tipo: "normal" },
+        "RISAMCyA": { pass: "risam2024", tipo: "normal" },
+        "KINESIOLOGIA": { pass: "kine2024", tipo: "normal" },
+        "RESIDENTE - CLINICA MEDICA": { pass: "resicm2024", tipo: "normal" },
+        "RESIDENTE - MEDICINA FAMILIAR": { pass: "resimf2024", tipo: "normal" },
+        "RESIDENTE - TERAPIA INTENSIVA": { pass: "resiti2024", tipo: "normal" },
+        "RESIDENTE - CIRUGIA GENERAL": { pass: "resicg2024", tipo: "normal" },
+        "RESIDENTE - RISAM": { pass: "resirisam2024", tipo: "normal" },
+        "RESIDENTE - HEMATOLOGIA": { pass: "resihema2024", tipo: "normal" },
+        "RESIDENTE - CIRUGIA VASCULAR": { pass: "resicv2024", tipo: "normal" }
+    };
+    
+    let currentUser = null;
     let personalServicio = [];
     let menuDataGlobal = null;
     let superLista = [];
@@ -293,6 +303,150 @@
     const fecha = new Date();
     const hora = fecha.getHours();
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
+
+    // ==================== BASE DE DATOS DEL PERSONAL ====================
+    const PERSONAL = [
+        // MEDICOS DE UTI
+        { nombre: "CECENARRO MARIA JOSE", dni: "35387764", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "LEONARDO GUERRERO", dni: "29618423", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "GRANEROS MARIA NOE", dni: "32201781", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "MARCELO EDUARDO LOBO", dni: "28456108", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "VARELA LAURA MARISOL", dni: "30949698", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "RIVADENEIRA CINTHIA", dni: "37717837", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "PACHECO ABELLA ROMINA", dni: "34519327", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "HERRERO CARLA JESSICA", dni: "37204733", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "CORDERO MARIA EDITH", dni: "34129828", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "LUCAS BORDON", dni: "34716553", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "TIRONI ESTEFANIA REGINA", dni: "32809147", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "SEGURA LISE", dni: "31336807", servicio: "UTI I", dieta: "GENERAL" },
+        { nombre: "LEDESMA YANINA", dni: "33758784", servicio: "UTI I", dieta: "GENERAL" },
+        // SALUD DIGITAL
+        { nombre: "SALAS ERIKA", dni: "29527104", servicio: "SALUD DIGITAL", dieta: "CELIACA" },
+        { nombre: "ARCE LAURA", dni: "28076264", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+        { nombre: "JALILE MAGALI", dni: "38628169", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+        { nombre: "LINGUA SEBASTIAN", dni: "25302525", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+        { nombre: "SORIA CLAUDIA", dni: "24065267", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+        { nombre: "TAPIA MORENO MARIA DE LOS ANGELES", dni: "29786534", servicio: "SALUD DIGITAL", dieta: "GENERAL" },
+        // UNIDAD CORONARIA
+        { nombre: "SOSA TOMADA MARIA VERONICA CELESTE", dni: "28172581", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "ARCURI LISANDRO JAVIER", dni: "21478732", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "ACIAR EMILCE ANABEL", dni: "35934606", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "MIRANDA MAYRA CELESTE", dni: "37165082", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "MARIA MACARENA MAIDANA", dni: "30207109", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "JOSE LUIS SANTILLAN", dni: "30676709", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "GIOVANA ANALIA CIPPITELLI", dni: "33925975", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "FERNANDEZ LEANDRO FABRICIO", dni: "35248802", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        { nombre: "BARBERIS LORENA", dni: "25858491", servicio: "UNIDAD CORONARIA", dieta: "GENERAL" },
+        // SERVICIO SOCIAL
+        { nombre: "CORDOBA ROBERTO", dni: "26433475", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "YACANTE NATALIA", dni: "26187987", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "DELGADINO SILVIA", dni: "18572935", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "LEAL DANIELA", dni: "29110573", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "FADEL AGUSTINA", dni: "36447818", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "GODOY ANGELICA", dni: "21327136", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "LAURA FIGUEROA", dni: "30375608", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "CARLA DIAZ", dni: "25928568", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "GARRIBIA ROMINA", dni: "31037679", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "VARELA NATALIA", dni: "26685076", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        { nombre: "ENDRIZZI MARCELA", dni: "21325017", servicio: "SERVICIO SOCIAL", dieta: "GENERAL" },
+        // HEMOTERAPIA
+        { nombre: "ALICIA GIMENS", dni: "23379500", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+        { nombre: "LENCINA MARIA", dni: "30311758", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+        { nombre: "MANSILLA MARIELA", dni: "22291199", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+        { nombre: "BASTIANON YANINA", dni: "36348400", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+        { nombre: "FIGUEROA PAULA", dni: "35604654", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+        { nombre: "CUELLO CAROLINA", dni: "32308729", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+        { nombre: "PEREZ ROBERTO", dni: "34777818", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+        { nombre: "CARRIZO NANCY", dni: "21820663", servicio: "HEMOTERAPIA", dieta: "GENERAL" },
+        // SALUD MENTAL
+        { nombre: "AGUERO LORENA", dni: "24065155", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "ARCE MAURICIO", dni: "28020741", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "BELMONTE FABIANA", dni: "24605895", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "CORDOBA DARIO", dni: "30676398", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "CORONEL VIRGINIA", dni: "34187268", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "CUELLO ANA", dni: "36504767", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "LOBO MOLINA JULIETA", dni: "35087031", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "MOLAS ROMINA", dni: "31814237", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "NOBLEGA LAURA", dni: "32628702", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "PINTOS JULIETA", dni: "34777707", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "VERA CORDOBA PAULA", dni: "34029850", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "ROMERO MARIA ELENA", dni: "18399356", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "SEGURA IANNA SILVIA", dni: "32282340", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "SIERRALTA DAIANA", dni: "31401601", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "SILVA EVA", dni: "31813919", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "SILVA VIRGINIA", dni: "35934042", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "VALVERDE MELINA", dni: "35387778", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        { nombre: "ZULIANI SOFIA", dni: "34915231", servicio: "SALUD MENTAL", dieta: "GENERAL" },
+        // RADIOLOGIA
+        { nombre: "AGUERO BRUNO", dni: "28885747", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "CARRIZO OLGA", dni: "21326806", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "SANCHEZ NATALIA", dni: "25746609", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "TULA ISMAEL", dni: "16934429", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "NUÑEZ RENZO", dni: "32628612", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "CAVIEDES PATRICIA", dni: "27496274", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "NAVARRO ANTONIETA", dni: "23854817", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "CORDERO CARLOS", dni: "36504920", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "MAZZOLINI EMILIA", dni: "28172697", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "LOBO JOHANA", dni: "34129096", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "CASUSE CLAUDIA", dni: "25746618", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        { nombre: "SANCHEZ PATRICIA", dni: "22219259", servicio: "RADIOLOGIA", dieta: "GENERAL" },
+        // RISAMCyA
+        { nombre: "MOLAS ERIKA ROMINA", dni: "31814237", servicio: "RISAMCyA", dieta: "GENERAL" },
+        { nombre: "VALVERDE MELINA", dni: "38485630", servicio: "RISAMCyA", dieta: "GENERAL" },
+        { nombre: "CARRIZO ARIEL", dni: "38762461", servicio: "RISAMCyA", dieta: "GENERAL" },
+        { nombre: "CORDOBA DARIO", dni: "30676398", servicio: "RISAMCyA", dieta: "GENERAL" },
+        { nombre: "JUAREZ FIAMA", dni: "38485630", servicio: "RISAMCyA", dieta: "GENERAL" },
+        { nombre: "GIL ORELLANA IRIS", dni: "36504513", servicio: "RISAMCyA", dieta: "GENERAL" },
+        { nombre: "ZALAZAR MARIA ANGELES", dni: "37089290", servicio: "RISAMCyA", dieta: "GENERAL" },
+        // RESIDENTES - CLINICA MEDICA
+        { nombre: "ALVAREZ CAVILLA LUIS", dni: "39013934", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "CARDOSO MARA DANIELA", dni: "39015492", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "VILLEGAS CHAVES EMILCE", dni: "94953080", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "TORRES MOYANO JOSE", dni: "94905020", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "ACOSTA MARIBEL", dni: "35389117", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "PALACIOS LORENA", dni: "38202348", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+        { nombre: "GIL ORELLANA CAMILA", dni: "37642274", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
+        // RESIDENTES - MEDICINA FAMILIAR
+        { nombre: "CHAILE DOMINGUEZ DAYANA", dni: "35500377", servicio: "RESIDENTE - MEDICINA FAMILIAR", dieta: "GENERAL" },
+        // RESIDENTES - TERAPIA INTENSIVA
+        { nombre: "HERRERO CARLA", dni: "37204733", servicio: "RESIDENTE - TERAPIA INTENSIVA", dieta: "GENERAL" },
+        { nombre: "VILLAFAÑEZ WALTHER", dni: "39012860", servicio: "RESIDENTE - TERAPIA INTENSIVA", dieta: "GENERAL" },
+        // RESIDENTES - CIRUGIA GENERAL
+        { nombre: "ZURITA AGÜERO DAIANA", dni: "37168081", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+        { nombre: "SARMIENTO LAUTARO", dni: "41618811", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+        { nombre: "LENCINA LUCIANA", dni: "37167407", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+        { nombre: "TOLOZA BLANCO MICAELA", dni: "40749285", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+        { nombre: "AVELLANEDA CARLOS", dni: "37307056", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
+        // RESIDENTES - RISAM
+        { nombre: "ZALAZAR MARIA ANGELES", dni: "37089290", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+        { nombre: "CARRIZO GUILLERMO", dni: "38762461", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+        { nombre: "GIL ORELLANA IRIS", dni: "36504513", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+        { nombre: "JUAREZ FIAMA", dni: "38485630", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+        { nombre: "CORDOBA DARIO", dni: "30676398", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+        { nombre: "ALAMO JIMENA NAHIR", dni: "36854034", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+        { nombre: "RODRIGUEZ ABRIL", dni: "42696141", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+        { nombre: "CARMONA MICHELLE", dni: "38626990", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
+        // RESIDENTES - HEMATOLOGIA
+        { nombre: "FERREYRA REYES GUADALUPE", dni: "35388246", servicio: "RESIDENTE - HEMATOLOGIA", dieta: "GENERAL" },
+        // RESIDENTES - CIRUGIA VASCULAR
+        { nombre: "DIAMANTE ANABELLA", dni: "35390810", servicio: "RESIDENTE - CIRUGIA VASCULAR", dieta: "GENERAL" },
+        // KINESIOLOGIA
+        { nombre: "ALMENDRA SOLEDAD", dni: "21944436", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "ALAVAREZ CONTRERAS", dni: "24830351", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "BARRIONUEVO MELISA", dni: "34187386", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "CORDERO JOSE", dni: "24830254", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "FALCON VANESA", dni: "28780919", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "GONZALEZ ERIKA", dni: "32418968", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "HERRERA MARINA", dni: "29786525", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "MAESTRI DIEGO", dni: "30805866", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "MILLAN ANA", dni: "21682432", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "REINOSO VALERIA", dni: "29527341", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "ROJAS VARELA", dni: "21944055", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "SANCHEZ REINOSO", dni: "28309793", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "VERA ROXANA", dni: "25117405", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "ZAMPIERI GABRIELA", dni: "29711035", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
+        { nombre: "ZARATE VIRGINIA", dni: "30304857", servicio: "KINESIOLOGIA", dieta: "GENERAL" }
+    ];
 
     // ==================== FUNCIÓN AUXILIAR JSONP ====================
     function fetchJsonp(action, params = {}) {
@@ -306,58 +460,58 @@
             const query = new URLSearchParams({ ...params, action, callback: callbackName }).toString();
             const script = document.createElement('script');
             script.src = API + '?' + query;
-            script.onerror = () => {
-                delete window[callbackName];
-                reject(new Error('Network error'));
-            };
+            script.onerror = () => { delete window[callbackName]; reject(new Error('Network error')); };
             document.body.appendChild(script);
-            setTimeout(() => {
-                if (window[callbackName]) { delete window[callbackName]; reject(new Error('Timeout')); }
-            }, 15000);
+            setTimeout(() => { if (window[callbackName]) { delete window[callbackName]; reject(new Error('Timeout')); } }, 15000);
         });
     }
 
     // ==================== LOGIN ====================
-    async function login() {
+    function login() {
         const pass = document.getElementById('loginPass').value.trim();
         if (!pass) return;
         
-        try {
-            const resp = await fetchJsonp('login_personal', { pass });
-            if (resp.status === 'success') {
-                currentUser = { servicio: resp.servicio, tipo: resp.tipo };
-                
-                if (resp.tipo === 'admin') {
-                    // Mostrar panel de administración
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('adminScreen').classList.remove('hidden');
-                    document.getElementById('mainScreen').classList.add('hidden');
-                    await cargarAdminPanel();
-                } else {
-                    // Mostrar panel normal/supervisor
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('mainScreen').classList.remove('hidden');
-                    document.getElementById('adminScreen').classList.add('hidden');
-                    document.getElementById('userServicio').innerText = resp.servicio;
-                    document.getElementById('userTipo').innerText = resp.tipo === 'supervisor' ? '🔓 SUPERVISOR' : '👤 USUARIO';
-                    document.getElementById('servicio').value = resp.servicio;
-                    
-                    if (resp.tipo === 'supervisor') {
-                        document.getElementById('supervisorSection').classList.remove('hidden');
-                        personalServicio = (await fetchJsonp('obtener_personal_servicio', {})).resultados || [];
-                    } else {
-                        document.getElementById('supervisorSection').classList.add('hidden');
-                        personalServicio = (await fetchJsonp('obtener_personal_servicio', { servicio: resp.servicio })).resultados || [];
-                    }
-                    
-                    inicializarPanel();
-                }
-            } else {
-                document.getElementById('loginError').innerText = '❌ Contraseña incorrecta';
+        // Buscar en contraseñas locales
+        let found = null;
+        for (const [servicio, data] of Object.entries(PASSWORDS)) {
+            if (data.pass === pass) {
+                found = { servicio, tipo: data.tipo };
+                break;
             }
-        } catch (e) {
-            document.getElementById('loginError').innerText = '❌ Error de conexión';
         }
+        
+        if (!found) {
+            document.getElementById('loginError').innerText = '❌ Contraseña incorrecta';
+            return;
+        }
+        
+        currentUser = found;
+        
+        if (found.tipo === 'admin') {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('adminScreen').classList.remove('hidden');
+            document.getElementById('mainScreen').classList.add('hidden');
+            cargarAdminPanelLocal();
+            return;
+        }
+        
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainScreen').classList.remove('hidden');
+        document.getElementById('adminScreen').classList.add('hidden');
+        document.getElementById('userServicio').innerText = found.servicio;
+        document.getElementById('userTipo').innerText = found.tipo === 'supervisor' ? '🔓 SUPERVISOR' : '👤 USUARIO';
+        document.getElementById('servicio').value = found.servicio;
+        
+        if (found.tipo === 'supervisor') {
+            personalServicio = [...PERSONAL];
+            document.getElementById('supervisorSection').classList.remove('hidden');
+        } else {
+            personalServicio = PERSONAL.filter(p => p.servicio.toUpperCase() === found.servicio.toUpperCase());
+            document.getElementById('supervisorSection').classList.add('hidden');
+        }
+        
+        console.log('✅ Personal cargado:', personalServicio.length, 'personas para', found.servicio);
+        inicializarPanel();
     }
 
     function logout() {
@@ -378,7 +532,6 @@
     function inicializarPanel() {
         document.getElementById('txtTurno').innerText = turnoActual === "MAÑANA" ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
         validarMenu();
-        document.getElementById('guardia').addEventListener('change', cambioGuardia);
     }
 
     function cambioGuardia() {
@@ -401,7 +554,6 @@
                 box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
                 box.className = "status disponible";
                 menuInfo.innerHTML = `🍲 HOY: <strong>${menuDataGlobal.platoPrincipal || 'Menú del día'}</strong>`;
-                
                 if (menuDataGlobal.postre) {
                     document.getElementById('postreTexto').innerText = menuDataGlobal.postre;
                     document.getElementById('postreInfo').style.display = 'block';
@@ -410,7 +562,7 @@
             } else {
                 box.innerText = "⏳ MENÚ EN PREPARACIÓN";
                 box.className = "status cargando";
-                menuInfo.innerHTML = "El equipo de nutrición está preparando el menú. Vuelva en unos minutos.";
+                menuInfo.innerHTML = "El equipo de nutrición está preparando el menú.";
                 document.getElementById('camposPersonal').style.display = 'none';
             }
         } catch (e) {
@@ -424,12 +576,14 @@
         const input = document.getElementById('buscarInput');
         const lista = document.getElementById('autocompleteList');
         const query = input.value.toUpperCase().trim();
+        
         if (query.length < 2) { lista.classList.remove('show'); return; }
         
         const filtrados = personalServicio.filter(p => p.nombre.includes(query) || p.dni.includes(query));
+        
         if (filtrados.length === 0) { lista.classList.remove('show'); return; }
         
-        lista.innerHTML = filtrados.slice(0, 8).map(p => `
+        lista.innerHTML = filtrados.slice(0, 10).map(p => `
             <div class="autocomplete-item" onclick="seleccionarPersona('${p.dni}')">
                 <strong>${p.nombre}</strong> | DNI: ${p.dni} | 🍽️ ${p.dieta}
             </div>
@@ -451,7 +605,8 @@
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.autocomplete-wrapper')) {
             document.getElementById('autocompleteList').classList.remove('show');
-            document.getElementById('superAutocomplete').classList.remove('show');
+            const superList = document.getElementById('superAutocomplete');
+            if (superList) superList.classList.remove('show');
         }
     });
 
@@ -512,7 +667,7 @@
         document.getElementById('modalSupervisor').style.display = 'flex';
         superLista = [];
         actualizarSuperLista();
-        cargarServiciosSuper();
+        cargarServiciosSuperLocal();
     }
 
     function cerrarModalSuper() {
@@ -520,33 +675,33 @@
         superLista = [];
     }
 
-    async function cargarServiciosSuper() {
-        try {
-            const data = await fetchJsonp('obtener_todos_servicios');
-            const select = document.getElementById('superManualServicio');
-            select.innerHTML = '<option value="">SELECCIONE SERVICIO</option>' + 
-                Object.keys(data.servicios).sort().map(s => `<option value="${s}">${s}</option>`).join('');
-        } catch (e) {}
+    function cargarServiciosSuperLocal() {
+        const servicios = [...new Set(PERSONAL.map(p => p.servicio))].sort();
+        const select = document.getElementById('superManualServicio');
+        select.innerHTML = '<option value="">SELECCIONE SERVICIO</option>' + 
+            servicios.map(s => `<option value="${s}">${s}</option>`).join('');
     }
 
-    async function buscarSuperPersonal() {
+    function buscarSuperPersonal() {
         const input = document.getElementById('superBuscar');
         const lista = document.getElementById('superAutocomplete');
         const query = input.value.toUpperCase().trim();
+        
         if (query.length < 2) { lista.classList.remove('show'); return; }
         
-        try {
-            const data = await fetchJsonp('buscar_personal', { query });
-            const filtrados = (data.resultados || []).filter(p => !superLista.some(s => s.dni === p.dni));
-            if (filtrados.length === 0) { lista.classList.remove('show'); return; }
-            
-            lista.innerHTML = filtrados.slice(0, 8).map(p => `
-                <div class="autocomplete-item" onclick="agregarASuperLista('${p.dni}','${p.nombre.replace(/'/g,"\\'")}','${p.servicio}','${p.dieta}')">
-                    <strong>${p.nombre}</strong> | DNI: ${p.dni} | 🏥 ${p.servicio} | 🍽️ ${p.dieta}
-                </div>
-            `).join('');
-            lista.classList.add('show');
-        } catch (e) {}
+        const filtrados = PERSONAL.filter(p => 
+            !superLista.some(s => s.dni === p.dni) && 
+            (p.nombre.includes(query) || p.dni.includes(query))
+        );
+        
+        if (filtrados.length === 0) { lista.classList.remove('show'); return; }
+        
+        lista.innerHTML = filtrados.slice(0, 8).map(p => `
+            <div class="autocomplete-item" onclick="agregarASuperLista('${p.dni}','${p.nombre.replace(/'/g,"\\'")}','${p.servicio}','${p.dieta}')">
+                <strong>${p.nombre}</strong> | DNI: ${p.dni} | 🏥 ${p.servicio} | 🍽️ ${p.dieta}
+            </div>
+        `).join('');
+        lista.classList.add('show');
     }
 
     function agregarASuperLista(dni, nombre, servicio, dieta) {
@@ -595,18 +750,18 @@
         actualizarSuperLista();
     }
 
-    async function cargarServicioCompletoSuper() {
-        const servicios = await fetchJsonp('obtener_todos_servicios');
-        const servicio = prompt('Ingrese el nombre del servicio:\n\n' + Object.keys(servicios.servicios).sort().join('\n'));
+    function cargarServicioCompletoSuper() {
+        const servicios = [...new Set(PERSONAL.map(p => p.servicio))].sort();
+        const servicio = prompt('Ingrese el nombre del servicio:\n\n' + servicios.join('\n'));
         if (!servicio) return;
         
-        try {
-            const data = await fetchJsonp('obtener_personal_servicio', { servicio: servicio.toUpperCase().trim() });
-            (data.resultados || []).forEach(p => {
-                if (!superLista.some(s => s.dni === p.dni)) superLista.push(p);
-            });
-            actualizarSuperLista();
-        } catch (e) {}
+        const personas = PERSONAL.filter(p => p.servicio.toUpperCase().includes(servicio.toUpperCase().trim()));
+        if (personas.length === 0) { alert('Servicio no encontrado'); return; }
+        
+        personas.forEach(p => {
+            if (!superLista.some(s => s.dni === p.dni)) superLista.push({...p});
+        });
+        actualizarSuperLista();
     }
 
     async function procesarCargaSuper() {
@@ -638,52 +793,39 @@
         if (err === 0) { superLista = []; actualizarSuperLista(); }
     }
 
-    // ==================== ADMIN ====================
-    async function cargarAdminPanel() {
-        try {
-            const data = await fetchJsonp('admin_obtener_servicios', { adminPass: ADMIN_PASS });
-            const list = document.getElementById('adminServiciosList');
-            list.innerHTML = '<table style="width:100%; font-size:0.85rem;"><tr><th>Servicio</th><th>Contraseña</th><th>Tipo</th><th>Acción</th></tr>' +
-                data.servicios.map(s => `
-                    <tr>
-                        <td>${s.servicio}</td>
-                        <td>${'*'.repeat(s.password.length)}</td>
-                        <td>${s.tipo}</td>
-                        <td><button class="btn btn-danger" style="padding:4px 8px;font-size:0.7rem;" onclick="adminEliminarServicio('${s.servicio}')">✕</button></td>
-                    </tr>
-                `).join('') + '</table>';
-            
-            // Cargar servicios para el selector de personal
-            const select = document.getElementById('adminNewServicioPersonal');
-            select.innerHTML = '<option value="">SELECCIONE</option>' + 
-                data.servicios.filter(s => s.tipo !== 'admin').map(s => `<option value="${s.servicio}">${s.servicio}</option>`).join('');
-        } catch (e) {}
+    // ==================== ADMIN LOCAL ====================
+    function cargarAdminPanelLocal() {
+        const list = document.getElementById('adminServiciosList');
+        const servicios = Object.entries(PASSWORDS).filter(([s]) => s !== 'ADMIN');
+        
+        list.innerHTML = '<table style="width:100%; font-size:0.85rem;"><tr><th>Servicio</th><th>Contraseña</th><th>Tipo</th></tr>' +
+            servicios.map(([s, d]) => `
+                <tr>
+                    <td>${s}</td>
+                    <td>${d.pass}</td>
+                    <td>${d.tipo}</td>
+                </tr>
+            `).join('') + '</table>';
+        
+        const select = document.getElementById('adminNewServicioPersonal');
+        select.innerHTML = '<option value="">SELECCIONE</option>' + 
+            servicios.map(([s]) => `<option value="${s}">${s}</option>`).join('');
     }
 
-    async function adminAgregarServicio() {
+    function adminAgregarServicio() {
         const servicio = document.getElementById('adminNewServicio').value.trim().toUpperCase();
         const password = document.getElementById('adminNewPass').value.trim();
         const tipo = document.getElementById('adminNewTipo').value;
         if (!servicio || !password) { document.getElementById('adminServicioMsg').innerText = '❌ Complete todos los campos'; return; }
         
-        try {
-            const resp = await fetchJsonp('admin_guardar_servicio', { adminPass: ADMIN_PASS, servicio, password, tipo });
-            document.getElementById('adminServicioMsg').innerText = resp.status === 'success' ? '✅ Servicio agregado' : '❌ Error';
-            document.getElementById('adminNewServicio').value = '';
-            document.getElementById('adminNewPass').value = '';
-            await cargarAdminPanel();
-        } catch (e) { document.getElementById('adminServicioMsg').innerText = '❌ Error de conexión'; }
+        PASSWORDS[servicio] = { pass: password, tipo };
+        document.getElementById('adminServicioMsg').innerText = '✅ Servicio agregado (local)';
+        document.getElementById('adminNewServicio').value = '';
+        document.getElementById('adminNewPass').value = '';
+        cargarAdminPanelLocal();
     }
 
-    async function adminEliminarServicio(servicio) {
-        if (!confirm(`¿Eliminar servicio "${servicio}"?`)) return;
-        try {
-            await fetchJsonp('admin_eliminar_servicio', { adminPass: ADMIN_PASS, servicio });
-            await cargarAdminPanel();
-        } catch (e) {}
-    }
-
-    async function adminAgregarPersonal() {
+    function adminAgregarPersonal() {
         const nombre = document.getElementById('adminNewNombre').value.trim().toUpperCase();
         const dni = document.getElementById('adminNewDni').value.trim();
         const servicio = document.getElementById('adminNewServicioPersonal').value;
@@ -694,16 +836,15 @@
             return;
         }
         
-        try {
-            const resp = await fetchJsonp('agregar_personal', { adminPass: ADMIN_PASS, nombre, dni, servicio, dieta });
-            document.getElementById('adminPersonalMsg').innerText = resp.status === 'success' ? '✅ Personal agregado' : '❌ ' + (resp.message || 'Error');
-            if (resp.status === 'success') {
-                document.getElementById('adminNewNombre').value = '';
-                document.getElementById('adminNewDni').value = '';
-            }
-        } catch (e) {
-            document.getElementById('adminPersonalMsg').innerText = '❌ Error de conexión';
+        if (PERSONAL.some(p => p.dni === dni)) {
+            document.getElementById('adminPersonalMsg').innerText = '❌ DNI ya existe';
+            return;
         }
+        
+        PERSONAL.push({ nombre, dni, servicio, dieta });
+        document.getElementById('adminPersonalMsg').innerText = `✅ ${nombre} agregado a ${servicio}`;
+        document.getElementById('adminNewNombre').value = '';
+        document.getElementById('adminNewDni').value = '';
     }
 
     function volverAlPanel() {
@@ -719,14 +860,18 @@
     window.logout = logout;
     window.solicitarComida = solicitarComida;
     window.cambioGuardia = cambioGuardia;
+    window.buscarPersonal = buscarPersonal;
+    window.seleccionarPersona = seleccionarPersona;
     window.abrirModalSupervisor = abrirModalSupervisor;
     window.cerrarModalSuper = cerrarModalSuper;
-    window.procesarCargaSuper = procesarCargaSuper;
-    window.cargarServicioCompletoSuper = cargarServicioCompletoSuper;
-    window.limpiarSuperLista = limpiarSuperLista;
+    window.buscarSuperPersonal = buscarSuperPersonal;
+    window.agregarASuperLista = agregarASuperLista;
     window.agregarManualSuper = agregarManualSuper;
+    window.removerDeSuperLista = removerDeSuperLista;
+    window.limpiarSuperLista = limpiarSuperLista;
+    window.cargarServicioCompletoSuper = cargarServicioCompletoSuper;
+    window.procesarCargaSuper = procesarCargaSuper;
     window.adminAgregarServicio = adminAgregarServicio;
-    window.adminEliminarServicio = adminEliminarServicio;
     window.adminAgregarPersonal = adminAgregarPersonal;
     window.volverAlPanel = volverAlPanel;
 </script>
