@@ -6,493 +6,112 @@
     <title>COCINA - HISJB</title>
     <style>
         :root { 
-            --blue: #0056b3; 
-            --blue-dark: #003d7a; 
-            --green: #28a745; 
-            --green-dark: #1e7e34;
-            --red: #dc3545; 
-            --red-dark: #b02a37;
-            --orange: #e67e22;
-            --gray: #f4f7f6; 
-            --white: #ffffff;
-            --dark: #2c3e50;
-            --border: #dee2e6;
-            --shadow: 0 2px 10px rgba(0,0,0,0.06);
+            --blue: #0056b3; --blue-dark: #003d7a; --green: #28a745; --green-dark: #1e7e34;
+            --red: #dc3545; --red-dark: #b02a37; --orange: #e67e22; --gray: #f4f7f6; 
+            --white: #ffffff; --dark: #2c3e50; --border: #dee2e6; --shadow: 0 2px 10px rgba(0,0,0,0.06);
         }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
         body { 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            background: var(--gray); 
-            margin: 0; 
-            text-transform: uppercase; 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            font-size: 14px;
+            font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray); 
+            margin: 0; text-transform: uppercase; min-height: 100vh; display: flex; flex-direction: column; font-size: 14px;
         }
-        
-        header { 
-            background: var(--blue); 
-            color: white; 
-            padding: 15px 20px; 
-            text-align: center; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-            flex-shrink: 0;
-        }
+        header { background: var(--blue); color: white; padding: 15px 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0; }
         header h1 { margin: 0; font-size: 1.3rem; letter-spacing: 1px; }
         header p { margin: 3px 0 0; font-size: 0.7rem; opacity: 0.9; }
+        .main-content { flex: 1; padding: 15px; max-width: 100%; }
+        .container { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        .card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: var(--shadow); }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid var(--blue); flex-wrap: wrap; gap: 8px; }
+        .card-header h2, .card-header h3 { color: var(--blue); font-size: 1.1rem; display: flex; align-items: center; gap: 6px; }
         
-        .main-content {
-            flex: 1;
-            padding: 15px;
-            max-width: 100%;
-        }
+        /* Barra de herramientas */
+        .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; }
+        .toolbar input, .toolbar select { padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.9rem; text-transform: uppercase; }
+        .toolbar input:focus, .toolbar select:focus { outline: none; border-color: var(--blue); }
+        .toolbar input { flex: 1; min-width: 200px; }
+        .toolbar select { min-width: 180px; }
         
-        .container { 
-            max-width: 1300px; 
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+        /* Turno bar */
+        .turno-bar { background: white; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); flex-wrap: wrap; gap: 8px; }
+        .turno-badge { background: var(--blue); color: white; padding: 8px 18px; border-radius: 50px; font-weight: bold; font-size: 0.95rem; white-space: nowrap; }
+        .turno-info { color: var(--dark); font-size: 0.8rem; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         
-        .card { 
-            background: var(--white); 
-            padding: 20px; 
-            border-radius: 12px; 
-            box-shadow: var(--shadow);
-        }
+        /* Estadísticas */
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; }
+        .stat-card { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%); padding: 14px 6px; border-radius: 10px; text-align: center; color: white; }
+        .stat-card .dieta-nombre { font-size: 0.7rem; opacity: 0.9; margin-bottom: 5px; font-weight: bold; }
+        .stat-card .stat-number { font-size: 1.6rem; font-weight: bold; line-height: 1; }
+        .total-badge { background: var(--blue); color: white; padding: 10px 20px; border-radius: 50px; display: inline-block; font-weight: bold; font-size: 0.95rem; }
         
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--blue);
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .card-header h2, .card-header h3 {
-            color: var(--blue);
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        /* Validación */
+        .validacion-section { background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; border: 2px dashed var(--blue); }
+        .input-group { display: flex; gap: 8px; margin-top: 10px; }
+        .input-group input { flex: 1; min-width: 0; padding: 14px; font-size: 1.4rem; text-align: center; border: 2px solid var(--blue); border-radius: 10px; font-weight: bold; letter-spacing: 6px; text-transform: uppercase; }
+        .input-group input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(40,167,69,0.15); }
         
-        /* ========== BARRA DE TURNO ========== */
-        .turno-bar {
-            background: white;
-            padding: 12px 15px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: var(--shadow);
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .turno-badge {
-            background: var(--blue);
-            color: white;
-            padding: 8px 18px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-        }
-        .turno-info {
-            color: var(--dark);
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .turno-info strong {
-            color: var(--blue);
-            font-size: 0.9rem;
-        }
-        
-        /* ========== PANEL DE MENÚ DEL DÍA ========== */
-        .menu-dia-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .menu-dia-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 15px;
-            border-radius: 12px;
-            border: 2px solid var(--border);
-            text-align: center;
-        }
-        .menu-dia-card.activo {
-            border-color: var(--green);
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-        }
-        .menu-dia-card.inactivo {
-            border-color: var(--red);
-            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-        }
-        .menu-dia-card .menu-turno {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--blue);
-            margin-bottom: 8px;
-        }
-        .menu-dia-card .menu-plato {
-            font-size: 0.9rem;
-            color: var(--dark);
-            margin-bottom: 5px;
-        }
-        .menu-dia-card .menu-postre {
-            font-size: 0.8rem;
-            color: #666;
-            font-style: italic;
-        }
-        .menu-dia-card .menu-estado {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            margin-top: 8px;
-        }
-        .menu-estado.publicado {
-            background: var(--green);
-            color: white;
-        }
-        .menu-estado.pendiente {
-            background: var(--red);
-            color: white;
-        }
-        
-        /* ========== ESTADÍSTICAS ========== */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin: 15px 0;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
-            padding: 14px 6px;
-            border-radius: 10px;
-            text-align: center;
-            color: white;
-            transition: transform 0.2s;
-        }
-        .stat-card:active {
-            transform: scale(0.97);
-        }
-        .stat-card .dieta-nombre {
-            font-size: 0.7rem;
-            opacity: 0.9;
-            margin-bottom: 5px;
-            font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .stat-card .stat-number {
-            font-size: 1.6rem;
-            font-weight: bold;
-            line-height: 1;
-        }
-        
-        .total-section {
-            text-align: center;
-            margin: 12px 0;
-        }
-        .total-badge {
-            background: var(--blue);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: inline-block;
-            font-weight: bold;
-            font-size: 0.95rem;
-            box-shadow: 0 2px 8px rgba(0,86,179,0.2);
-        }
-        .total-badge span {
-            font-size: 1.2rem;
-        }
-        
-        /* ========== VALIDACIÓN ========== */
-        .validacion-section {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            border: 2px dashed var(--blue);
-        }
-        .validacion-section h3 {
-            color: var(--dark);
-            margin-top: 0;
-            font-size: 1rem;
-        }
-        .input-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .input-group input {
-            flex: 1;
-            min-width: 0;
-            padding: 14px;
-            font-size: 1.4rem;
-            text-align: center;
-            border: 2px solid var(--blue);
-            border-radius: 10px;
-            font-weight: bold;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            width: 100%;
-        }
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--green);
-            box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
-        }
-        
-        /* ========== BOTONES ========== */
-        .btn {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            transition: all 0.2s;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
+        /* Botones */
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-transform: uppercase; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
         .btn:hover { opacity: 0.9; }
-        .btn:active { transform: scale(0.97); }
         .btn-primary { background: var(--blue); color: white; }
         .btn-success { background: var(--green); color: white; }
         .btn-danger { background: var(--red); color: white; }
         .btn-outline { background: white; color: var(--blue); border: 2px solid var(--blue); }
-        .btn-outline:hover { background: var(--blue); color: white; }
-        .btn-block { width: 100%; }
         .btn-sm { padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; }
+        .btn-block { width: 100%; }
         
-        /* ========== TABLA ========== */
-        .table-wrapper {
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        .table-scroll {
-            overflow-x: auto;
-            overflow-y: auto;
-            max-height: 50vh;
-            -webkit-overflow-scrolling: touch;
-        }
-        .table-scroll::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
-        }
-        .table-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .table-scroll::-webkit-scrollbar-thumb {
-            background: var(--blue);
-            border-radius: 10px;
-        }
+        /* Tabla */
+        .table-wrapper { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 55vh; -webkit-overflow-scrolling: touch; }
+        .table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+        .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .table-scroll::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 800px; }
+        thead { position: sticky; top: 0; z-index: 10; }
+        thead th { background: var(--blue); color: white; padding: 10px 8px; text-align: left; font-weight: bold; font-size: 0.75rem; white-space: nowrap; }
+        tbody td { padding: 8px; border-bottom: 1px solid var(--border); background: white; white-space: nowrap; }
+        tbody tr:hover td { background: #e8f0fe; }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-            min-width: 700px;
-        }
-        thead {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        thead th {
-            background: var(--blue);
-            color: white;
-            padding: 10px 8px;
-            text-align: left;
-            font-weight: bold;
-            font-size: 0.75rem;
-            white-space: nowrap;
-        }
-        tbody td {
-            padding: 8px;
-            border-bottom: 1px solid var(--border);
-            background: white;
-            white-space: nowrap;
-        }
-        tbody tr:active td {
-            background: #e8f0fe;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            white-space: nowrap;
-        }
+        /* Badges */
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
         .badge-dieta { background: var(--blue); color: white; }
         .badge-guardia { background: var(--orange); color: white; }
         .badge-servicio { background: #6c757d; color: white; }
         .badge-comida { background: var(--green); color: white; }
+        .badge-duplicado { background: var(--red); color: white; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         
-        .codigo-cell {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: var(--blue);
-            letter-spacing: 1px;
-        }
+        .codigo-cell { font-size: 0.95rem; font-weight: bold; color: var(--blue); letter-spacing: 1px; }
         
-        .empty-state {
-            text-align: center;
-            padding: 30px 15px;
-            color: #999;
-        }
-        .empty-state .icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
+        /* Duplicados */
+        .duplicado-alert { background: #f8d7da; border: 2px solid var(--red); padding: 10px 15px; border-radius: 8px; margin: 10px 0; display: none; color: #721c24; font-weight: bold; }
+        .duplicado-alert.show { display: block; }
         
-        .mensaje {
-            margin-top: 10px;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            animation: slideIn 0.3s;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .empty-state { text-align: center; padding: 30px 15px; color: #999; }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
+        
+        .mensaje { margin-top: 10px; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         .mensaje.success { background: #d4edda; color: #155724; border-left: 4px solid var(--green); }
         .mensaje.error { background: #f8d7da; color: #721c24; border-left: 4px solid var(--red); }
         
-        /* ========== MODAL ========== */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .modal-overlay.active {
-            display: flex;
-        }
-        .modal {
-            background: white;
-            border-radius: 15px;
-            padding: 25px 20px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            margin: auto;
-        }
-        .modal h2 {
-            color: var(--blue);
-            margin-top: 0;
-            text-align: center;
-            font-size: 1.1rem;
-        }
-        .modal input, .modal select {
-            width: 100%;
-            padding: 10px;
-            margin: 6px 0;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-        .modal input:focus, .modal select:focus {
-            outline: none;
-            border-color: var(--blue);
-        }
-        .modal label {
-            display: block;
-            font-weight: bold;
-            margin-top: 8px;
-            font-size: 0.8rem;
-            color: var(--dark);
-        }
-        .modal .btn-close {
-            background: var(--red);
-            color: white;
-        }
+        .footer { background: var(--blue); color: white; text-align: center; padding: 15px 20px; font-size: 0.7rem; flex-shrink: 0; }
         
-        /* ========== FOOTER ========== */
-        .footer {
-            background: var(--blue);
-            color: white;
-            text-align: center;
-            padding: 15px 20px;
-            font-size: 0.7rem;
-            flex-shrink: 0;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-            letter-spacing: 0.5px;
-        }
-        .footer span {
-            opacity: 0.85;
-            font-size: 0.65rem;
-        }
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: flex-start; padding: 20px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 15px; padding: 25px 20px; width: 100%; max-width: 500px; margin: auto; }
+        .modal h2 { color: var(--blue); margin-top: 0; text-align: center; }
+        .modal input, .modal select { width: 100%; padding: 10px; margin: 6px 0; border: 2px solid var(--border); border-radius: 8px; text-transform: uppercase; font-size: 0.9rem; }
+        .modal label { display: block; font-weight: bold; margin-top: 8px; font-size: 0.8rem; color: var(--dark); text-align: left; }
         
-        /* ========== RESPONSIVE ========== */
-        .stats-grid {
-            grid-template-columns: repeat(3, 1fr);
+        @media (max-width: 900px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .toolbar { flex-direction: column; }
+            .toolbar input, .toolbar select { width: 100%; }
         }
-        
-        @media (min-width: 600px) {
-            body { font-size: 15px; }
-            .stats-grid { grid-template-columns: repeat(5, 1fr); }
-            header h1 { font-size: 1.5rem; }
-            .card { padding: 25px; }
-            .turno-bar { padding: 15px 20px; }
-        }
-        
-        @media (min-width: 900px) {
-            .main-content { padding: 20px; }
-            .container {
-                display: grid;
-                grid-template-columns: 1fr 1.8fr;
-                gap: 20px;
-            }
-            .turno-bar { grid-column: 1 / -1; }
-            .menu-dia-grid { grid-column: 1 / -1; }
-            .card-cierre { grid-column: 1 / -1; }
-            .table-scroll { max-height: 55vh; }
-        }
-        
-        @media (min-width: 1200px) {
-            .container { max-width: 1300px; }
-        }
-        
         @media (max-width: 500px) {
-            .menu-dia-grid {
-                grid-template-columns: 1fr;
-            }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .card { padding: 15px; }
         }
     </style>
 </head>
@@ -509,27 +128,24 @@
         <div class="turno-bar">
             <span class="turno-badge" id="turnoBadge">🍽️ CARGANDO...</span>
             <span class="turno-info">
-                📅 <span id="fechaActual"></span>
-                🕐 <strong id="horaActualizacion"></strong>
+                📅 <span id="fechaActual"></span> | 🕐 <strong id="horaActualizacion"></strong>
             </span>
-            <button class="btn btn-outline btn-sm" onclick="cargarTodo()">
-                🔄 ACTUALIZAR
-            </button>
+            <button class="btn btn-outline btn-sm" onclick="cargarTodo()">🔄 ACTUALIZAR</button>
         </div>
 
-        <!-- ========== NUEVO: PANEL DE MENÚ DEL DÍA ========== -->
-        <div class="menu-dia-grid" id="menuDiaGrid">
-            <div class="menu-dia-card" id="menuAlmuerzo">
-                <div class="menu-turno">🌅 ALMUERZO</div>
-                <div class="menu-plato">Cargando...</div>
-                <div class="menu-postre"></div>
-                <span class="menu-estado pendiente">SIN PUBLICAR</span>
+        <!-- BARRA DE HERRAMIENTAS (BUSCADOR + FILTRO) -->
+        <div class="card">
+            <div class="toolbar">
+                <input type="text" id="buscarInput" placeholder="🔍 BUSCAR POR NOMBRE, DNI O SERVICIO..." oninput="filtrarTabla()">
+                <select id="filtroServicio" onchange="filtrarTabla()">
+                    <option value="TODOS">🏥 TODOS LOS SERVICIOS</option>
+                </select>
+                <span style="font-size: 0.85rem; color: #666;" id="resultadosBusqueda"></span>
             </div>
-            <div class="menu-dia-card" id="menuCena">
-                <div class="menu-turno">🌙 CENA</div>
-                <div class="menu-plato">Cargando...</div>
-                <div class="menu-postre"></div>
-                <span class="menu-estado pendiente">SIN PUBLICAR</span>
+            
+            <!-- Alerta de duplicado -->
+            <div class="duplicado-alert" id="duplicadoAlert">
+                ⚠️ Este DNI ya fue cargado para este turno
             </div>
         </div>
 
@@ -538,13 +154,9 @@
             <div class="card-header">
                 <h2>📊 PEDIDOS PENDIENTES</h2>
             </div>
-            
             <div class="stats-grid" id="resumenDietas"></div>
-            
-            <div class="total-section">
-                <span class="total-badge">
-                    🍽️ TOTAL: <span id="totalPendientes">0</span>
-                </span>
+            <div style="text-align: center; margin: 12px 0;">
+                <span class="total-badge">🍽️ TOTAL: <span id="totalPendientes">0</span></span>
             </div>
             
             <div class="validacion-section">
@@ -556,9 +168,7 @@
                 <div id="mensajeValidacion" class="mensaje" style="display: none;"></div>
             </div>
             
-            <button class="btn btn-outline btn-block" onclick="abrirModalCarga()" style="margin-top: 8px;">
-                ➕ CARGAR PERSONAL
-            </button>
+            <button class="btn btn-outline btn-block" onclick="abrirModalCarga()" style="margin-top: 8px;">➕ CARGAR PERSONAL MANUALMENTE</button>
         </div>
 
         <!-- LISTA DE PENDIENTES -->
@@ -567,7 +177,6 @@
                 <h3>📋 ENTREGAS PENDIENTES</h3>
                 <span style="font-size: 0.8rem; color: #666;" id="contadorPendientes">0 personas</span>
             </div>
-            
             <div class="table-wrapper">
                 <div class="table-scroll">
                     <table id="tablaPendientes">
@@ -575,86 +184,69 @@
                             <tr>
                                 <th>🔢 CÓDIGO</th>
                                 <th>👤 PERSONAL</th>
+                                <th>🆔 DNI</th>
                                 <th>🏥 SERVICIO</th>
                                 <th>⏱️ GUARDIA</th>
                                 <th>🍽️ COMIDA</th>
                                 <th>📋 DIETA</th>
+                                <th>⚠️</th>
                                 <th>✅</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="7">
-                                    <div class="empty-state">
-                                        <div class="icon">🍳</div>
-                                        Cargando...
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
         <!-- CIERRE DE TURNO -->
-        <div class="card card-cierre">
+        <div class="card">
             <div class="card-header">
                 <h3>🔒 CERRAR TURNO</h3>
                 <span style="color: var(--red); font-size: 0.8rem;">⚠️ Irreversible</span>
             </div>
-            
             <p style="color: #666; margin-bottom: 15px; font-size: 0.85rem;">
-                Al cerrar se genera el reporte del día.<br>
                 <strong style="color: var(--red);">⚠️ Los PENDIENTES se marcarán NO ENTREGADOS.</strong>
             </p>
-            
-            <button class="btn btn-danger btn-block" onclick="cerrarTurno()">
-                🚫 CERRAR TURNO Y GENERAR ESTADÍSTICAS
-            </button>
-            
+            <button class="btn btn-danger btn-block" onclick="cerrarTurno()">🚫 CERRAR TURNO Y GENERAR ESTADÍSTICAS</button>
             <div id="mensajeCierre" class="mensaje" style="display: none;"></div>
         </div>
     </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL CARGA MANUAL -->
 <div class="modal-overlay" id="modalCarga">
     <div class="modal">
         <h2>➕ CARGAR PERSONAL</h2>
-        <p style="text-align: center; color: #666; font-size: 0.8rem; margin-bottom: 15px;">
-            Complete los datos para registrar manualmente
-        </p>
-        
         <label>👤 APELLIDO Y NOMBRE *</label>
         <input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
-        
         <label>🆔 DNI *</label>
-        <input type="number" id="modalDni" placeholder="SIN PUNTOS">
-        
+        <input type="number" id="modalDni" placeholder="SIN PUNTOS" oninput="verificarDuplicado()">
+        <div class="duplicado-alert" id="modalDuplicadoAlert" style="margin: 8px 0;">⚠️ Este DNI ya fue cargado para este turno</div>
         <label>🏥 SERVICIO *</label>
         <select id="modalServicio">
             <option value="" disabled selected>SELECCIONE SERVICIO</option>
-            <option value="CIRUGIA">CIRUGÍA</option>
-            <option value="CLINICA MEDICA">CLÍNICA MÉDICA</option>
-            <option value="EMERGENCIAS">EMERGENCIAS</option>
-            <option value="LIMPIEZA">LIMPIEZA</option>
-            <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-            <option value="TELEFONIA">TELEFONÍA</option>
-            <option value="TRAUMATOLOGIA">TRAUMATOLOGÍA</option>
-            <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
             <option value="UTI I">UTI I</option>
-            <option value="UTI II">UTI II</option>
+            <option value="SALUD DIGITAL">SALUD DIGITAL</option>
+            <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
+            <option value="SERVICIO SOCIAL">SERVICIO SOCIAL</option>
+            <option value="HEMOTERAPIA">HEMOTERAPIA</option>
+            <option value="SALUD MENTAL">SALUD MENTAL</option>
+            <option value="RADIOLOGIA">RADIOLOGIA</option>
+            <option value="RISAMCyA">RISAMCyA</option>
+            <option value="KINESIOLOGIA">KINESIOLOGIA</option>
+            <option value="ENFERMERIA">ENFERMERIA</option>
+            <option value="CAMILLEROS">CAMILLEROS</option>
+            <option value="RESIDENTE - CLINICA MEDICA">RESIDENTE - CLINICA MEDICA</option>
+            <option value="RESIDENTE - CIRUGIA GENERAL">RESIDENTE - CIRUGIA GENERAL</option>
+            <option value="RESIDENTE - RISAM">RESIDENTE - RISAM</option>
         </select>
-        
         <label>⏱️ GUARDIA *</label>
         <select id="modalGuardia">
-            <option value="" disabled selected>SELECCIONE GUARDIA</option>
             <option value="12">12 HORAS</option>
             <option value="16">16 HORAS</option>
             <option value="24">24 HORAS</option>
         </select>
-        
         <label>🍽️ DIETA *</label>
         <select id="modalDieta">
             <option value="GENERAL">GENERAL</option>
@@ -663,29 +255,24 @@
             <option value="CELIACA">CELIACA</option>
             <option value="GÁSTRICA">GÁSTRICA</option>
         </select>
-        
         <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;">
-            <button class="btn btn-primary" style="flex: 1; min-width: 120px;" onclick="cargarManual()">
-                ✅ REGISTRAR
-            </button>
-            <button class="btn btn-close" style="flex: 1; min-width: 120px;" onclick="cerrarModalCarga()">
-                ❌ CANCELAR
-            </button>
+            <button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button>
+            <button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button>
         </div>
         <div id="mensajeModal" class="mensaje" style="display: none; margin-top: 12px;"></div>
     </div>
 </div>
 
-<div class="footer">
-    © HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN<br>
-    <span>Panel actualizado en tiempo real | Sistema desarrollado para uso interno</span>
-</div>
+<div class="footer">© HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN</div>
 
 <script>
     const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
     const hora = new Date().getHours();
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     const turnoTexto = turnoActual === "MAÑANA" ? "🌅 ALMUERZO" : "🌙 CENA";
+    
+    let todosPendientes = []; // Almacena todos los pendientes para filtrar
+    let dnisCargados = new Set(); // Set para detectar duplicados
     
     document.getElementById('turnoBadge').innerHTML = `🍽️ ${turnoTexto}`;
     actualizarFecha();
@@ -694,7 +281,6 @@
     cargarTodo();
 
     function cargarTodo() {
-        cargarMenuDelDia();
         cargarPendientes();
     }
 
@@ -712,57 +298,7 @@
         setTimeout(() => { el.style.display = 'none'; }, 5000);
     }
 
-    // ========== CARGAR MENÚ DEL DÍA ==========
-    function cargarMenuDelDia() {
-        // Cargar almuerzo
-        cargarMenuPorTurno('MAÑANA', 'menuAlmuerzo');
-        // Cargar cena
-        cargarMenuPorTurno('NOCHE', 'menuCena');
-    }
-
-    function cargarMenuPorTurno(turno, elementoId) {
-        const callbackName = 'menuCocina_' + turno + '_' + Date.now();
-        
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            
-            const card = document.getElementById(elementoId);
-            const platoEl = card.querySelector('.menu-plato');
-            const postreEl = card.querySelector('.menu-postre');
-            const estadoEl = card.querySelector('.menu-estado');
-            
-            if (data.disponible && data.datos && data.datos.length > 0) {
-                const menu = data.datos[0];
-                platoEl.innerHTML = `🍲 <strong>${menu.platoPrincipal || 'Sin nombre'}</strong>`;
-                
-                if (menu.postre) {
-                    postreEl.innerHTML = `🍰 <strong>Postre:</strong> ${menu.postre}`;
-                    postreEl.style.display = '';
-                } else {
-                    postreEl.style.display = 'none';
-                }
-                
-                estadoEl.textContent = '✅ PUBLICADO';
-                estadoEl.className = 'menu-estado publicado';
-                card.className = 'menu-dia-card activo';
-            } else {
-                platoEl.innerHTML = '🚫 Menú no publicado';
-                postreEl.style.display = 'none';
-                estadoEl.textContent = '⛔ SIN PUBLICAR';
-                estadoEl.className = 'menu-estado pendiente';
-                card.className = 'menu-dia-card inactivo';
-            }
-        };
-        
-        const script = document.createElement('script');
-        script.src = API + '?action=obtener_menu&turno=' + turno + '&callback=' + callbackName;
-        script.onerror = function() {
-            delete window[callbackName];
-        };
-        document.body.appendChild(script);
-    }
-
+    // ==================== CARGAR PENDIENTES ====================
     function cargarPendientes() {
         const callbackName = 'cocinaCallback_' + Date.now();
         
@@ -773,10 +309,10 @@
             
             if (data.error) return;
             
+            // Actualizar estadísticas
             const conteo = data.conteoDietas || {};
             const resumenDiv = document.getElementById('resumenDietas');
             resumenDiv.innerHTML = '';
-            
             const dietas = ['GENERAL', 'HIPOSÓDICA', 'DIABÉTICA', 'CELIACA', 'GÁSTRICA'];
             const iconos = { 'GENERAL': '🍲', 'HIPOSÓDICA': '🧂', 'DIABÉTICA': '🍬', 'CELIACA': '🌾', 'GÁSTRICA': '🥗' };
             
@@ -786,45 +322,92 @@
             
             document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
 
-            const tbody = document.querySelector('#tablaPendientes tbody');
-            tbody.innerHTML = '';
+            // Guardar todos los pendientes
+            todosPendientes = data.listaPendientes || [];
             
-            const pendientes = data.listaPendientes || [];
-            document.getElementById('contadorPendientes').innerText = `${pendientes.length} personas`;
+            // Actualizar DNI cargados (para detección de duplicados)
+            dnisCargados = new Set(todosPendientes.map(p => p.dni + '_' + p.turno));
             
-            if (pendientes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>`;
-                return;
-            }
+            // Llenar filtro de servicios
+            const servicios = [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort();
+            const filtroSelect = document.getElementById('filtroServicio');
+            filtroSelect.innerHTML = '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + 
+                servicios.map(s => `<option value="${s}">${s}</option>`).join('');
             
-            pendientes.sort((a, b) => (a.servicio || '').localeCompare(b.servicio || ''));
-            
-            pendientes.forEach(p => {
-                const guardiaTexto = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
-                const comidaTexto = p.tipoComida === 'AMBAS' ? 'AMBAS' : p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : p.tipoComida === 'CENA' ? '🌙 Cena' : p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
-                
-                const fila = document.createElement('tr');
-                fila.innerHTML = `
-                    <td><span class="codigo-cell">${p.codigo}</span></td>
-                    <td>${p.nombre}</td>
-                    <td><span class="badge badge-servicio">${p.servicio || 'N/E'}</span></td>
-                    <td><span class="badge badge-guardia">${guardiaTexto}</span></td>
-                    <td><span class="badge badge-comida">${comidaTexto}</span></td>
-                    <td><span class="badge badge-dieta">${p.dieta}</span></td>
-                    <td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>
-                `;
-                tbody.appendChild(fila);
-            });
+            // Aplicar filtro actual
+            filtrarTabla();
         };
         
         const script = document.createElement('script');
         script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
         script.onerror = () => {
-            document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">❌</div>Error al cargar.</div></td></tr>';
+            document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="icon">❌</div>Error al cargar.</div></td></tr>';
         };
         document.body.appendChild(script);
     }
 
+    // ==================== FILTRAR TABLA ====================
+    function filtrarTabla() {
+        const buscar = document.getElementById('buscarInput').value.toUpperCase().trim();
+        const servicioFiltro = document.getElementById('filtroServicio').value;
+        
+        let filtrados = todosPendientes;
+        
+        // Filtrar por servicio
+        if (servicioFiltro !== 'TODOS') {
+            filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
+        }
+        
+        // Filtrar por búsqueda (nombre, DNI o servicio)
+        if (buscar.length >= 1) {
+            filtrados = filtrados.filter(p => 
+                (p.nombre || '').includes(buscar) || 
+                (p.dni || '').includes(buscar) || 
+                (p.servicio || '').includes(buscar) ||
+                (p.codigo || '').includes(buscar)
+            );
+        }
+        
+        // Actualizar contador
+        document.getElementById('resultadosBusqueda').innerText = 
+            buscar || servicioFiltro !== 'TODOS' ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
+        
+        // Renderizar tabla
+        const tbody = document.querySelector('#tablaPendientes tbody');
+        tbody.innerHTML = '';
+        
+        if (filtrados.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="icon">✅</div>${todosPendientes.length === 0 ? '¡No hay pedidos pendientes!' : 'Sin resultados para este filtro'}</div></td></tr>`;
+            document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`;
+            return;
+        }
+        
+        document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
+        
+        filtrados.forEach(p => {
+            const guardiaTexto = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
+            const comidaTexto = p.tipoComida === 'AMBAS' ? 'AMBAS' : p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : p.tipoComida === 'CENA' ? '🌙 Cena' : p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
+            
+            // Detectar duplicado (mismo DNI + mismo turno)
+            const esDuplicado = false; // Ya se filtra al cargar
+            
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td><span class="codigo-cell">${p.codigo}</span></td>
+                <td>${p.nombre}</td>
+                <td>${p.dni}</td>
+                <td><span class="badge badge-servicio">${p.servicio || 'N/E'}</span></td>
+                <td><span class="badge badge-guardia">${guardiaTexto}</span></td>
+                <td><span class="badge badge-comida">${comidaTexto}</span></td>
+                <td><span class="badge badge-dieta">${p.dieta}</span></td>
+                <td>${esDuplicado ? '<span class="badge badge-duplicado">⚠️ DUPLICADO</span>' : ''}</td>
+                <td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>
+            `;
+            tbody.appendChild(fila);
+        });
+    }
+
+    // ==================== VALIDAR CÓDIGO ====================
     function validarCodigo() {
         const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
         if (codigo.length !== 4) { mostrarMensaje('mensajeValidacion', 'error', '❌ Código de 4 caracteres'); return; }
@@ -852,27 +435,24 @@
         validarCodigo();
     }
 
-    function cerrarTurno() {
-        if (!confirm("⚠️ ¿CERRAR TURNO?\n\nLos PENDIENTES se marcarán NO ENTREGADOS.\nEsta acción NO se puede revertir.")) return;
+    // ==================== DETECCIÓN DE DUPLICADOS ====================
+    function verificarDuplicado() {
+        const dni = document.getElementById('modalDni').value.trim();
+        const alert = document.getElementById('modalDuplicadoAlert');
         
-        const callbackName = 'cierreCallback_' + Date.now();
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            if (data.status === "success") {
-                mostrarMensaje('mensajeCierre', 'success', `✅ ${data.message}<br>📊 Total: ${data.resumen?.total || 0} | ✅ Entregados: ${data.resumen?.entregados || 0} | ❌ No entregados: ${data.resumen?.pendientes || 0}`);
-                setTimeout(() => cargarTodo(), 2000);
-            } else {
-                mostrarMensaje('mensajeCierre', 'error', `❌ ${data.message}`);
-            }
-        };
-        const script = document.createElement('script');
-        script.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + callbackName;
-        document.body.appendChild(script);
+        if (dni && dnisCargados.has(dni + '_' + turnoActual)) {
+            alert.style.display = 'block';
+        } else {
+            alert.style.display = 'none';
+        }
     }
 
+    // ==================== MODAL CARGA MANUAL ====================
     function abrirModalCarga() {
         document.getElementById('modalCarga').classList.add('active');
+        document.getElementById('modalDuplicadoAlert').style.display = 'none';
+        document.getElementById('modalDni').value = '';
+        document.getElementById('modalNombre').value = '';
     }
     
     function cerrarModalCarga() {
@@ -880,7 +460,7 @@
         document.getElementById('mensajeModal').style.display = 'none';
     }
     
-    function cargarManual() {
+    async function cargarManual() {
         const nombre = document.getElementById('modalNombre').value.trim().toUpperCase();
         const dni = document.getElementById('modalDni').value.trim();
         const servicio = document.getElementById('modalServicio').value;
@@ -890,7 +470,12 @@
         if (!nombre) { mostrarMensaje('mensajeModal', 'error', '❌ Ingrese nombre'); return; }
         if (!dni || dni.length < 7) { mostrarMensaje('mensajeModal', 'error', '❌ DNI válido'); return; }
         if (!servicio) { mostrarMensaje('mensajeModal', 'error', '❌ Seleccione servicio'); return; }
-        if (!guardia) { mostrarMensaje('mensajeModal', 'error', '❌ Seleccione guardia'); return; }
+        
+        // Verificar duplicado
+        if (dnisCargados.has(dni + '_' + turnoActual)) {
+            mostrarMensaje('mensajeModal', 'error', '⚠️ Este DNI ya fue cargado para este turno');
+            return;
+        }
         
         const codigo = Math.random().toString(36).substring(2, 6).toUpperCase();
         const callbackName = 'cargaManual_' + Date.now();
@@ -907,14 +492,32 @@
         };
         
         const params = new URLSearchParams({
-            action: 'generar_codigo', nombre: nombre, dni: dni,
-            servicio: servicio, guardia: guardia, dieta: dieta,
-            turno: turnoActual, codigo: codigo,
-            tipoComida: 'TURNO_ACTUAL', callback: callbackName
+            action: 'generar_codigo', nombre, dni, servicio, guardia, dieta,
+            turno: turnoActual, codigo, tipoComida: 'TURNO_ACTUAL', tipo: 'MANUAL', callback: callbackName
         });
         
         const script = document.createElement('script');
         script.src = API + '?' + params.toString();
+        document.body.appendChild(script);
+    }
+
+    // ==================== CERRAR TURNO ====================
+    function cerrarTurno() {
+        if (!confirm("⚠️ ¿CERRAR TURNO?\n\nLos PENDIENTES se marcarán NO ENTREGADOS.\nEsta acción NO se puede revertir.")) return;
+        
+        const callbackName = 'cierreCallback_' + Date.now();
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            if (data.status === "success") {
+                mostrarMensaje('mensajeCierre', 'success', `✅ ${data.message}<br>📊 Total: ${data.resumen?.total || 0} | ✅ Entregados: ${data.resumen?.entregados || 0} | ❌ No entregados: ${data.resumen?.pendientes || 0}`);
+                setTimeout(() => cargarTodo(), 2000);
+            } else {
+                mostrarMensaje('mensajeCierre', 'error', `❌ ${data.message}`);
+            }
+        };
+        const script = document.createElement('script');
+        script.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + callbackName;
         document.body.appendChild(script);
     }
 
