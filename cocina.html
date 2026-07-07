@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COCINA - HISJB - 2026</title>
+    <title>COCINA - HISJB</title>
     <style>
         :root { 
             --blue: #0056b3; --blue-dark: #003d7a; --green: #28a745; --green-dark: #1e7e34;
@@ -77,8 +77,6 @@
         .badge-guardia { background: var(--orange); color: white; }
         .badge-servicio { background: #6c757d; color: white; }
         .badge-comida { background: var(--green); color: white; }
-        .badge-duplicado { background: var(--red); color: white; animation: pulse 1s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         
         .codigo-cell { font-size: 0.95rem; font-weight: bold; color: var(--blue); letter-spacing: 1px; }
         
@@ -136,16 +134,11 @@
         <!-- BARRA DE HERRAMIENTAS (BUSCADOR + FILTRO) -->
         <div class="card">
             <div class="toolbar">
-                <input type="text" id="buscarInput" placeholder="🔍 BUSCAR POR NOMBRE, DNI O SERVICIO..." oninput="filtrarTabla()">
+                <input type="text" id="buscarInput" placeholder="🔍 BUSCAR POR NOMBRE, DNI, CÓDIGO O SERVICIO..." oninput="filtrarTabla()">
                 <select id="filtroServicio" onchange="filtrarTabla()">
                     <option value="TODOS">🏥 TODOS LOS SERVICIOS</option>
                 </select>
                 <span style="font-size: 0.85rem; color: #666;" id="resultadosBusqueda"></span>
-            </div>
-            
-            <!-- Alerta de duplicado -->
-            <div class="duplicado-alert" id="duplicadoAlert">
-                ⚠️ Este DNI ya fue cargado para este turno
             </div>
         </div>
 
@@ -189,11 +182,19 @@
                                 <th>⏱️ GUARDIA</th>
                                 <th>🍽️ COMIDA</th>
                                 <th>📋 DIETA</th>
-                                <th>⚠️</th>
                                 <th>✅</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="icon">🍳</div>
+                                        Cargando pedidos pendientes...
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -221,8 +222,7 @@
         <label>👤 APELLIDO Y NOMBRE *</label>
         <input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
         <label>🆔 DNI *</label>
-        <input type="number" id="modalDni" placeholder="SIN PUNTOS" oninput="verificarDuplicado()">
-        <div class="duplicado-alert" id="modalDuplicadoAlert" style="margin: 8px 0;">⚠️ Este DNI ya fue cargado para este turno</div>
+        <input type="number" id="modalDni" placeholder="SIN PUNTOS">
         <label>🏥 SERVICIO *</label>
         <select id="modalServicio">
             <option value="" disabled selected>SELECCIONE SERVICIO</option>
@@ -271,8 +271,7 @@
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     const turnoTexto = turnoActual === "MAÑANA" ? "🌅 ALMUERZO" : "🌙 CENA";
     
-    let todosPendientes = []; // Almacena todos los pendientes para filtrar
-    let dnisCargados = new Set(); // Set para detectar duplicados
+    let todosPendientes = [];
     
     document.getElementById('turnoBadge').innerHTML = `🍽️ ${turnoTexto}`;
     actualizarFecha();
@@ -325,23 +324,20 @@
             // Guardar todos los pendientes
             todosPendientes = data.listaPendientes || [];
             
-            // Actualizar DNI cargados (para detección de duplicados)
-            dnisCargados = new Set(todosPendientes.map(p => p.dni + '_' + p.turno));
-            
             // Llenar filtro de servicios
-            const servicios = [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort();
+            const serviciosConPendientes = [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort();
             const filtroSelect = document.getElementById('filtroServicio');
             filtroSelect.innerHTML = '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + 
-                servicios.map(s => `<option value="${s}">${s}</option>`).join('');
+                serviciosConPendientes.map(s => `<option value="${s}">${s}</option>`).join('');
             
-            // Aplicar filtro actual
+            // Aplicar filtro
             filtrarTabla();
         };
         
         const script = document.createElement('script');
         script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
         script.onerror = () => {
-            document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="icon">❌</div>Error al cargar.</div></td></tr>';
+            document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon">❌</div>Error al cargar.</div></td></tr>';
         };
         document.body.appendChild(script);
     }
@@ -358,49 +354,55 @@
             filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
         }
         
-        // Filtrar por búsqueda (nombre, DNI o servicio)
+        // Filtrar por búsqueda (nombre, DNI, código o servicio)
         if (buscar.length >= 1) {
             filtrados = filtrados.filter(p => 
-                (p.nombre || '').includes(buscar) || 
+                (p.nombre || '').toUpperCase().includes(buscar) || 
                 (p.dni || '').includes(buscar) || 
-                (p.servicio || '').includes(buscar) ||
-                (p.codigo || '').includes(buscar)
+                (p.servicio || '').toUpperCase().includes(buscar) ||
+                (p.codigo || '').toUpperCase().includes(buscar)
             );
         }
         
         // Actualizar contador
         document.getElementById('resultadosBusqueda').innerText = 
-            buscar || servicioFiltro !== 'TODOS' ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
+            (buscar || servicioFiltro !== 'TODOS') ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
         
         // Renderizar tabla
         const tbody = document.querySelector('#tablaPendientes tbody');
         tbody.innerHTML = '';
         
         if (filtrados.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="icon">✅</div>${todosPendientes.length === 0 ? '¡No hay pedidos pendientes!' : 'Sin resultados para este filtro'}</div></td></tr>`;
+            if (todosPendientes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>`;
+            } else {
+                tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div>Sin resultados para: "${buscar || ''}"</div></td></tr>`;
+            }
             document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`;
             return;
         }
         
         document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
         
+        // Ordenar por nombre
+        filtrados.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        
         filtrados.forEach(p => {
             const guardiaTexto = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
-            const comidaTexto = p.tipoComida === 'AMBAS' ? 'AMBAS' : p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : p.tipoComida === 'CENA' ? '🌙 Cena' : p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
-            
-            // Detectar duplicado (mismo DNI + mismo turno)
-            const esDuplicado = false; // Ya se filtra al cargar
+            const comidaTexto = p.tipoComida === 'AMBAS' ? 'AMBAS' : 
+                               p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : 
+                               p.tipoComida === 'CENA' ? '🌙 Cena' : 
+                               p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
             
             const fila = document.createElement('tr');
             fila.innerHTML = `
                 <td><span class="codigo-cell">${p.codigo}</span></td>
-                <td>${p.nombre}</td>
-                <td>${p.dni}</td>
+                <td>${p.nombre || 'N/E'}</td>
+                <td>${p.dni || 'N/E'}</td>
                 <td><span class="badge badge-servicio">${p.servicio || 'N/E'}</span></td>
                 <td><span class="badge badge-guardia">${guardiaTexto}</span></td>
                 <td><span class="badge badge-comida">${comidaTexto}</span></td>
-                <td><span class="badge badge-dieta">${p.dieta}</span></td>
-                <td>${esDuplicado ? '<span class="badge badge-duplicado">⚠️ DUPLICADO</span>' : ''}</td>
+                <td><span class="badge badge-dieta">${p.dieta || 'GENERAL'}</span></td>
                 <td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>
             `;
             tbody.appendChild(fila);
@@ -435,22 +437,9 @@
         validarCodigo();
     }
 
-    // ==================== DETECCIÓN DE DUPLICADOS ====================
-    function verificarDuplicado() {
-        const dni = document.getElementById('modalDni').value.trim();
-        const alert = document.getElementById('modalDuplicadoAlert');
-        
-        if (dni && dnisCargados.has(dni + '_' + turnoActual)) {
-            alert.style.display = 'block';
-        } else {
-            alert.style.display = 'none';
-        }
-    }
-
     // ==================== MODAL CARGA MANUAL ====================
     function abrirModalCarga() {
         document.getElementById('modalCarga').classList.add('active');
-        document.getElementById('modalDuplicadoAlert').style.display = 'none';
         document.getElementById('modalDni').value = '';
         document.getElementById('modalNombre').value = '';
     }
@@ -470,12 +459,6 @@
         if (!nombre) { mostrarMensaje('mensajeModal', 'error', '❌ Ingrese nombre'); return; }
         if (!dni || dni.length < 7) { mostrarMensaje('mensajeModal', 'error', '❌ DNI válido'); return; }
         if (!servicio) { mostrarMensaje('mensajeModal', 'error', '❌ Seleccione servicio'); return; }
-        
-        // Verificar duplicado
-        if (dnisCargados.has(dni + '_' + turnoActual)) {
-            mostrarMensaje('mensajeModal', 'error', '⚠️ Este DNI ya fue cargado para este turno');
-            return;
-        }
         
         const codigo = Math.random().toString(36).substring(2, 6).toUpperCase();
         const callbackName = 'cargaManual_' + Date.now();
