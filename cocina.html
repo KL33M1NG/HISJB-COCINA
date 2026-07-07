@@ -342,73 +342,80 @@
         document.body.appendChild(script);
     }
 
-    // ==================== FILTRAR TABLA ====================
-    function filtrarTabla() {
-        const buscar = document.getElementById('buscarInput').value.toUpperCase().trim();
-        const servicioFiltro = document.getElementById('filtroServicio').value;
-        
-        let filtrados = todosPendientes;
-        
-        // Filtrar por servicio
-        if (servicioFiltro !== 'TODOS') {
-            filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
-        }
-        
-        // Filtrar por búsqueda (nombre, DNI, código o servicio)
-        if (buscar.length >= 1) {
-            filtrados = filtrados.filter(p => 
-                (p.nombre || '').toUpperCase().includes(buscar) || 
-                (p.dni || '').includes(buscar) || 
-                (p.servicio || '').toUpperCase().includes(buscar) ||
-                (p.codigo || '').toUpperCase().includes(buscar)
-            );
-        }
-        
-        // Actualizar contador
-        document.getElementById('resultadosBusqueda').innerText = 
-            (buscar || servicioFiltro !== 'TODOS') ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
-        
-        // Renderizar tabla
-        const tbody = document.querySelector('#tablaPendientes tbody');
-        tbody.innerHTML = '';
-        
-        if (filtrados.length === 0) {
-            if (todosPendientes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>`;
-            } else {
-                tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div>Sin resultados para: "${buscar || ''}"</div></td></tr>`;
-            }
-            document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`;
-            return;
-        }
-        
-        document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
-        
-        // Ordenar por nombre
-        filtrados.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-        
-        filtrados.forEach(p => {
-            const guardiaTexto = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
-            const comidaTexto = p.tipoComida === 'AMBAS' ? 'AMBAS' : 
-                               p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : 
-                               p.tipoComida === 'CENA' ? '🌙 Cena' : 
-                               p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
+   // ==================== FILTRAR TABLA (CORREGIDO) ====================
+function filtrarTabla() {
+    const buscar = document.getElementById('buscarInput').value.toUpperCase().trim();
+    const servicioFiltro = document.getElementById('filtroServicio').value;
+    
+    let filtrados = todosPendientes;
+    
+    // Filtrar por servicio
+    if (servicioFiltro !== 'TODOS') {
+        filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
+    }
+    
+    // Filtrar por búsqueda (nombre, DNI, código o servicio)
+    if (buscar.length >= 1) {
+        filtrados = filtrados.filter(p => {
+            const nombre = (p.nombre || '').toString().toUpperCase();
+            const dni = (p.dni || '').toString();
+            const servicio = (p.servicio || '').toString().toUpperCase();
+            const codigo = (p.codigo || '').toString().toUpperCase();
             
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td><span class="codigo-cell">${p.codigo}</span></td>
-                <td>${p.nombre || 'N/E'}</td>
-                <td>${p.dni || 'N/E'}</td>
-                <td><span class="badge badge-servicio">${p.servicio || 'N/E'}</span></td>
-                <td><span class="badge badge-guardia">${guardiaTexto}</span></td>
-                <td><span class="badge badge-comida">${comidaTexto}</span></td>
-                <td><span class="badge badge-dieta">${p.dieta || 'GENERAL'}</span></td>
-                <td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>
-            `;
-            tbody.appendChild(fila);
+            return nombre.includes(buscar) || 
+                   dni.includes(buscar) || 
+                   servicio.includes(buscar) ||
+                   codigo.includes(buscar);
         });
     }
-
+    
+    // Actualizar contador
+    document.getElementById('resultadosBusqueda').innerText = 
+        (buscar || servicioFiltro !== 'TODOS') ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
+    
+    // Renderizar tabla
+    const tbody = document.querySelector('#tablaPendientes tbody');
+    tbody.innerHTML = '';
+    
+    if (filtrados.length === 0) {
+        if (todosPendientes.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>`;
+        } else {
+            tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div>Sin resultados para: "${buscar || ''}"</div></td></tr>`;
+        }
+        document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`;
+        return;
+    }
+    
+    document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
+    
+    // Ordenar por nombre
+    filtrados.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    
+    filtrados.forEach(p => {
+        const guardiaTexto = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
+        const comidaTexto = p.tipoComida === 'AMBAS' ? 'AMBAS' : 
+                           p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : 
+                           p.tipoComida === 'CENA' ? '🌙 Cena' : 
+                           p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
+        
+        // Convertir DNI a string para mostrar
+        const dniStr = (p.dni || '').toString();
+        
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td><span class="codigo-cell">${p.codigo}</span></td>
+            <td>${p.nombre || 'N/E'}</td>
+            <td>${dniStr}</td>
+            <td><span class="badge badge-servicio">${p.servicio || 'N/E'}</span></td>
+            <td><span class="badge badge-guardia">${guardiaTexto}</span></td>
+            <td><span class="badge badge-comida">${comidaTexto}</span></td>
+            <td><span class="badge badge-dieta">${p.dieta || 'GENERAL'}</span></td>
+            <td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>
+        `;
+        tbody.appendChild(fila);
+    });
+}
     // ==================== VALIDAR CÓDIGO ====================
     function validarCodigo() {
         const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
