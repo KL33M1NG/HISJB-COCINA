@@ -23,33 +23,23 @@
         .card { background: var(--white); padding: 20px; border-radius: 12px; box-shadow: var(--shadow); }
         .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid var(--blue); flex-wrap: wrap; gap: 8px; }
         .card-header h2, .card-header h3 { color: var(--blue); font-size: 1.1rem; display: flex; align-items: center; gap: 6px; }
-        
-        /* Barra de herramientas */
         .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; }
         .toolbar input, .toolbar select { padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.9rem; text-transform: uppercase; }
         .toolbar input:focus, .toolbar select:focus { outline: none; border-color: var(--blue); }
         .toolbar input { flex: 1; min-width: 200px; }
         .toolbar select { min-width: 180px; }
-        
-        /* Turno bar */
         .turno-bar { background: white; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); flex-wrap: wrap; gap: 8px; }
         .turno-badge { background: var(--blue); color: white; padding: 8px 18px; border-radius: 50px; font-weight: bold; font-size: 0.95rem; white-space: nowrap; }
         .turno-info { color: var(--dark); font-size: 0.8rem; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        
-        /* Estadísticas */
         .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; }
         .stat-card { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%); padding: 14px 6px; border-radius: 10px; text-align: center; color: white; }
         .stat-card .dieta-nombre { font-size: 0.7rem; opacity: 0.9; margin-bottom: 5px; font-weight: bold; }
         .stat-card .stat-number { font-size: 1.6rem; font-weight: bold; line-height: 1; }
         .total-badge { background: var(--blue); color: white; padding: 10px 20px; border-radius: 50px; display: inline-block; font-weight: bold; font-size: 0.95rem; }
-        
-        /* Validación */
         .validacion-section { background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; border: 2px dashed var(--blue); }
         .input-group { display: flex; gap: 8px; margin-top: 10px; }
         .input-group input { flex: 1; min-width: 0; padding: 14px; font-size: 1.4rem; text-align: center; border: 2px solid var(--blue); border-radius: 10px; font-weight: bold; letter-spacing: 6px; text-transform: uppercase; }
         .input-group input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(40,167,69,0.15); }
-        
-        /* Botones */
         .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-transform: uppercase; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
         .btn:hover { opacity: 0.9; }
         .btn-primary { background: var(--blue); color: white; }
@@ -58,8 +48,6 @@
         .btn-outline { background: white; color: var(--blue); border: 2px solid var(--blue); }
         .btn-sm { padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; }
         .btn-block { width: 100%; }
-        
-        /* Tabla */
         .table-wrapper { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 55vh; -webkit-overflow-scrolling: touch; }
         .table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
@@ -70,38 +58,25 @@
         thead th { background: var(--blue); color: white; padding: 10px 8px; text-align: left; font-weight: bold; font-size: 0.75rem; white-space: nowrap; }
         tbody td { padding: 8px; border-bottom: 1px solid var(--border); background: white; white-space: nowrap; }
         tbody tr:hover td { background: #e8f0fe; }
-        
-        /* Badges */
         .badge { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
         .badge-dieta { background: var(--blue); color: white; }
         .badge-guardia { background: var(--orange); color: white; }
         .badge-servicio { background: #6c757d; color: white; }
         .badge-comida { background: var(--green); color: white; }
-        
         .codigo-cell { font-size: 0.95rem; font-weight: bold; color: var(--blue); letter-spacing: 1px; }
-        
-        /* Duplicados */
-        .duplicado-alert { background: #f8d7da; border: 2px solid var(--red); padding: 10px 15px; border-radius: 8px; margin: 10px 0; display: none; color: #721c24; font-weight: bold; }
-        .duplicado-alert.show { display: block; }
-        
         .empty-state { text-align: center; padding: 30px 15px; color: #999; }
         .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
-        
         .mensaje { margin-top: 10px; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; animation: slideIn 0.3s; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         .mensaje.success { background: #d4edda; color: #155724; border-left: 4px solid var(--green); }
         .mensaje.error { background: #f8d7da; color: #721c24; border-left: 4px solid var(--red); }
-        
         .footer { background: var(--blue); color: white; text-align: center; padding: 15px 20px; font-size: 0.7rem; flex-shrink: 0; }
-        
-        /* Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: flex-start; padding: 20px; overflow-y: auto; }
         .modal-overlay.active { display: flex; }
         .modal { background: white; border-radius: 15px; padding: 25px 20px; width: 100%; max-width: 500px; margin: auto; }
         .modal h2 { color: var(--blue); margin-top: 0; text-align: center; }
         .modal input, .modal select { width: 100%; padding: 10px; margin: 6px 0; border: 2px solid var(--border); border-radius: 8px; text-transform: uppercase; font-size: 0.9rem; }
         .modal label { display: block; font-weight: bold; margin-top: 8px; font-size: 0.8rem; color: var(--dark); text-align: left; }
-        
         @media (max-width: 900px) {
             .stats-grid { grid-template-columns: repeat(3, 1fr); }
             .toolbar { flex-direction: column; }
@@ -114,406 +89,212 @@
     </style>
 </head>
 <body>
-
 <header>
     <h1>👨‍🍳 PANEL DE COCINA</h1>
     <p>HOSPITAL SAN JUAN BAUTISTA - SISTEMA DE GESTIÓN DE VIANDAS</p>
 </header>
-
 <div class="main-content">
     <div class="container">
-        <!-- BARRA DE TURNO -->
         <div class="turno-bar">
             <span class="turno-badge" id="turnoBadge">🍽️ CARGANDO...</span>
-            <span class="turno-info">
-                📅 <span id="fechaActual"></span> | 🕐 <strong id="horaActualizacion"></strong>
-            </span>
+            <span class="turno-info">📅 <span id="fechaActual"></span> | 🕐 <strong id="horaActualizacion"></strong></span>
             <button class="btn btn-outline btn-sm" onclick="cargarTodo()">🔄 ACTUALIZAR</button>
         </div>
-
-        <!-- BARRA DE HERRAMIENTAS (BUSCADOR + FILTRO) -->
         <div class="card">
             <div class="toolbar">
                 <input type="text" id="buscarInput" placeholder="🔍 BUSCAR POR NOMBRE, DNI, CÓDIGO O SERVICIO..." oninput="filtrarTabla()">
-                <select id="filtroServicio" onchange="filtrarTabla()">
-                    <option value="TODOS">🏥 TODOS LOS SERVICIOS</option>
-                </select>
+                <select id="filtroServicio" onchange="filtrarTabla()"><option value="TODOS">🏥 TODOS LOS SERVICIOS</option></select>
                 <span style="font-size: 0.85rem; color: #666;" id="resultadosBusqueda"></span>
             </div>
         </div>
-
-        <!-- ESTADÍSTICAS Y VALIDACIÓN -->
         <div class="card">
-            <div class="card-header">
-                <h2>📊 PEDIDOS PENDIENTES</h2>
-            </div>
+            <div class="card-header"><h2>📊 PEDIDOS PENDIENTES</h2></div>
             <div class="stats-grid" id="resumenDietas"></div>
-            <div style="text-align: center; margin: 12px 0;">
-                <span class="total-badge">🍽️ TOTAL: <span id="totalPendientes">0</span></span>
-            </div>
-            
+            <div style="text-align: center; margin: 12px 0;"><span class="total-badge">🍽️ TOTAL: <span id="totalPendientes">0</span></span></div>
             <div class="validacion-section">
                 <h3>🔍 VALIDAR ENTREGA</h3>
                 <div class="input-group">
-                    <input type="text" id="codigoInput" placeholder="CÓDIGO" maxlength="4" autocomplete="off" inputmode="text">
+                    <input type="text" id="codigoInput" placeholder="CÓDIGO" maxlength="4" autocomplete="off">
                     <button class="btn btn-primary" onclick="validarCodigo()">✅ VALIDAR</button>
                 </div>
                 <div id="mensajeValidacion" class="mensaje" style="display: none;"></div>
             </div>
-            
             <button class="btn btn-outline btn-block" onclick="abrirModalCarga()" style="margin-top: 8px;">➕ CARGAR PERSONAL MANUALMENTE</button>
         </div>
-
-        <!-- LISTA DE PENDIENTES -->
         <div class="card">
-            <div class="card-header">
-                <h3>📋 ENTREGAS PENDIENTES</h3>
-                <span style="font-size: 0.8rem; color: #666;" id="contadorPendientes">0 personas</span>
-            </div>
-            <div class="table-wrapper">
-                <div class="table-scroll">
-                    <table id="tablaPendientes">
-                        <thead>
-                            <tr>
-                                <th>🔢 CÓDIGO</th>
-                                <th>👤 PERSONAL</th>
-                                <th>🆔 DNI</th>
-                                <th>🏥 SERVICIO</th>
-                                <th>⏱️ GUARDIA</th>
-                                <th>🍽️ COMIDA</th>
-                                <th>📋 DIETA</th>
-                                <th>✅</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="8">
-                                    <div class="empty-state">
-                                        <div class="icon">🍳</div>
-                                        Cargando pedidos pendientes...
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="card-header"><h3>📋 ENTREGAS PENDIENTES</h3><span style="font-size: 0.8rem; color: #666;" id="contadorPendientes">0 personas</span></div>
+            <div class="table-wrapper"><div class="table-scroll"><table id="tablaPendientes"><thead><tr><th>🔢 CÓDIGO</th><th>👤 PERSONAL</th><th>🆔 DNI</th><th>🏥 SERVICIO</th><th>⏱️ GUARDIA</th><th>🍽️ COMIDA</th><th>📋 DIETA</th><th>✅</th></tr></thead><tbody><tr><td colspan="8"><div class="empty-state"><div class="icon">🍳</div>Cargando...</div></td></tr></tbody></table></div></div>
         </div>
-
-        <!-- CIERRE DE TURNO -->
         <div class="card">
-            <div class="card-header">
-                <h3>🔒 CERRAR TURNO</h3>
-                <span style="color: var(--red); font-size: 0.8rem;">⚠️ Irreversible</span>
-            </div>
-            <p style="color: #666; margin-bottom: 15px; font-size: 0.85rem;">
-                <strong style="color: var(--red);">⚠️ Los PENDIENTES se marcarán NO ENTREGADOS.</strong>
-            </p>
+            <div class="card-header"><h3>🔒 CERRAR TURNO</h3><span style="color: var(--red); font-size: 0.8rem;">⚠️ Irreversible</span></div>
+            <p style="color: #666; margin-bottom: 15px; font-size: 0.85rem;"><strong style="color: var(--red);">⚠️ Los PENDIENTES se marcarán NO ENTREGADOS.</strong></p>
             <button class="btn btn-danger btn-block" onclick="cerrarTurno()">🚫 CERRAR TURNO Y GENERAR ESTADÍSTICAS</button>
             <div id="mensajeCierre" class="mensaje" style="display: none;"></div>
         </div>
     </div>
 </div>
-
-<!-- MODAL CARGA MANUAL -->
 <div class="modal-overlay" id="modalCarga">
     <div class="modal">
         <h2>➕ CARGAR PERSONAL</h2>
-        <label>👤 APELLIDO Y NOMBRE *</label>
-        <input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
-        <label>🆔 DNI *</label>
-        <input type="number" id="modalDni" placeholder="SIN PUNTOS">
+        <label>👤 APELLIDO Y NOMBRE *</label><input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
+        <label>🆔 DNI *</label><input type="number" id="modalDni" placeholder="SIN PUNTOS">
         <label>🏥 SERVICIO *</label>
-        <select id="modalServicio">
-            <option value="" disabled selected>SELECCIONE SERVICIO</option>
-            <option value="UTI I">UTI I</option>
-            <option value="SALUD DIGITAL">SALUD DIGITAL</option>
-            <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
-            <option value="SERVICIO SOCIAL">SERVICIO SOCIAL</option>
-            <option value="HEMOTERAPIA">HEMOTERAPIA</option>
-            <option value="SALUD MENTAL">SALUD MENTAL</option>
-            <option value="RADIOLOGIA">RADIOLOGIA</option>
-            <option value="RISAMCyA">RISAMCyA</option>
-            <option value="KINESIOLOGIA">KINESIOLOGIA</option>
-            <option value="ENFERMERIA">ENFERMERIA</option>
-            <option value="CAMILLEROS">CAMILLEROS</option>
-            <option value="RESIDENTE - CLINICA MEDICA">RESIDENTE - CLINICA MEDICA</option>
-            <option value="RESIDENTE - CIRUGIA GENERAL">RESIDENTE - CIRUGIA GENERAL</option>
-            <option value="RESIDENTE - RISAM">RESIDENTE - RISAM</option>
-        </select>
-        <label>⏱️ GUARDIA *</label>
-        <select id="modalGuardia">
-            <option value="12">12 HORAS</option>
-            <option value="16">16 HORAS</option>
-            <option value="24">24 HORAS</option>
-        </select>
-        <label>🍽️ DIETA *</label>
-        <select id="modalDieta">
-            <option value="GENERAL">GENERAL</option>
-            <option value="HIPOSÓDICA">HIPOSÓDICA</option>
-            <option value="DIABÉTICA">DIABÉTICA</option>
-            <option value="CELIACA">CELIACA</option>
-            <option value="GÁSTRICA">GÁSTRICA</option>
-        </select>
-        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;">
-            <button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button>
-            <button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button>
-        </div>
+        <select id="modalServicio"><option value="" disabled selected>SELECCIONE SERVICIO</option><option value="UTI I">UTI I</option><option value="SALUD DIGITAL">SALUD DIGITAL</option><option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option><option value="SERVICIO SOCIAL">SERVICIO SOCIAL</option><option value="HEMOTERAPIA">HEMOTERAPIA</option><option value="SALUD MENTAL">SALUD MENTAL</option><option value="RADIOLOGIA">RADIOLOGIA</option><option value="RISAMCyA">RISAMCyA</option><option value="KINESIOLOGIA">KINESIOLOGIA</option><option value="ENFERMERIA">ENFERMERIA</option><option value="CAMILLEROS">CAMILLEROS</option><option value="RESIDENTE - CLINICA MEDICA">RESIDENTE - CLINICA MEDICA</option><option value="RESIDENTE - CIRUGIA GENERAL">RESIDENTE - CIRUGIA GENERAL</option><option value="RESIDENTE - RISAM">RESIDENTE - RISAM</option></select>
+        <label>⏱️ GUARDIA *</label><select id="modalGuardia"><option value="12">12 HORAS</option><option value="16">16 HORAS</option><option value="24">24 HORAS</option></select>
+        <label>🍽️ DIETA *</label><select id="modalDieta"><option value="GENERAL">GENERAL</option><option value="HIPOSÓDICA">HIPOSÓDICA</option><option value="DIABÉTICA">DIABÉTICA</option><option value="CELIACA">CELIACA</option><option value="GÁSTRICA">GÁSTRICA</option></select>
+        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;"><button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button><button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button></div>
         <div id="mensajeModal" class="mensaje" style="display: none; margin-top: 12px;"></div>
     </div>
 </div>
-
 <div class="footer">© HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN</div>
-
 <script>
     const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
     const hora = new Date().getHours();
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
     const turnoTexto = turnoActual === "MAÑANA" ? "🌅 ALMUERZO" : "🌙 CENA";
-    
     let todosPendientes = [];
-    
     document.getElementById('turnoBadge').innerHTML = `🍽️ ${turnoTexto}`;
     actualizarFecha();
-
     let intervalo = setInterval(cargarTodo, 20000);
     cargarTodo();
 
-    function cargarTodo() {
-        cargarPendientes();
-    }
-
+    function cargarTodo() { cargarPendientes(); }
     function actualizarFecha() {
         const ahora = new Date();
         document.getElementById('fechaActual').innerText = ahora.toLocaleDateString('es-AR');
         document.getElementById('horaActualizacion').innerText = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
     }
-
-    function mostrarMensaje(elementId, tipo, texto) {
-        const el = document.getElementById(elementId);
-        el.innerHTML = texto;
-        el.className = `mensaje ${tipo}`;
-        el.style.display = 'block';
+    function mostrarMensaje(id, tipo, texto) {
+        const el = document.getElementById(id);
+        el.innerHTML = texto; el.className = `mensaje ${tipo}`; el.style.display = 'block';
         setTimeout(() => { el.style.display = 'none'; }, 5000);
     }
 
-    // ==================== CARGAR PENDIENTES ====================
     function cargarPendientes() {
-        const callbackName = 'cocinaCallback_' + Date.now();
-        
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            actualizarFecha();
-            
+        const cb = 'cocinaCallback_' + Date.now();
+        window[cb] = function(data) {
+            delete window[cb]; document.body.removeChild(s); actualizarFecha();
             if (data.error) return;
-            
-            // Actualizar estadísticas
             const conteo = data.conteoDietas || {};
-            const resumenDiv = document.getElementById('resumenDietas');
-            resumenDiv.innerHTML = '';
-            const dietas = ['GENERAL', 'HIPOSÓDICA', 'DIABÉTICA', 'CELIACA', 'GÁSTRICA'];
-            const iconos = { 'GENERAL': '🍲', 'HIPOSÓDICA': '🧂', 'DIABÉTICA': '🍬', 'CELIACA': '🌾', 'GÁSTRICA': '🥗' };
-            
-            dietas.forEach(d => {
-                resumenDiv.innerHTML += `<div class="stat-card"><div class="dieta-nombre">${iconos[d]} ${d}</div><div class="stat-number">${conteo[d] || 0}</div></div>`;
+            document.getElementById('resumenDietas').innerHTML = '';
+            ['GENERAL','HIPOSÓDICA','DIABÉTICA','CELIACA','GÁSTRICA'].forEach(d => {
+                const iconos = {'GENERAL':'🍲','HIPOSÓDICA':'🧂','DIABÉTICA':'🍬','CELIACA':'🌾','GÁSTRICA':'🥗'};
+                document.getElementById('resumenDietas').innerHTML += `<div class="stat-card"><div class="dieta-nombre">${iconos[d]} ${d}</div><div class="stat-number">${conteo[d]||0}</div></div>`;
             });
-            
             document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
-
-            // Guardar todos los pendientes
             todosPendientes = data.listaPendientes || [];
-            
-            // Llenar filtro de servicios
-            const serviciosConPendientes = [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort();
-            const filtroSelect = document.getElementById('filtroServicio');
-            filtroSelect.innerHTML = '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + 
-                serviciosConPendientes.map(s => `<option value="${s}">${s}</option>`).join('');
-            
-            // Aplicar filtro
+            const servicios = [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort();
+            const sel = document.getElementById('filtroServicio');
+            sel.innerHTML = '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + servicios.map(s => `<option value="${s}">${s}</option>`).join('');
             filtrarTabla();
         };
-        
-        const script = document.createElement('script');
-        script.src = API + '?action=obtener_pendientes&callback=' + callbackName;
-        script.onerror = () => {
-            document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="icon">❌</div>Error al cargar.</div></td></tr>';
-        };
-        document.body.appendChild(script);
+        const s = document.createElement('script');
+        s.src = API + '?action=obtener_pendientes&callback=' + cb;
+        s.onerror = () => { document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state">❌ Error</div></td></tr>'; };
+        document.body.appendChild(s);
     }
 
-   // ==================== FILTRAR TABLA (CORREGIDO) ====================
-function filtrarTabla() {
-    const buscar = document.getElementById('buscarInput').value.toUpperCase().trim();
-    const servicioFiltro = document.getElementById('filtroServicio').value;
-    
-    let filtrados = todosPendientes;
-    
-    // Filtrar por servicio
-    if (servicioFiltro !== 'TODOS') {
-        filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
-    }
-    
-    // Filtrar por búsqueda (nombre, DNI, código o servicio)
-    if (buscar.length >= 1) {
-        filtrados = filtrados.filter(p => {
-            const nombre = (p.nombre || '').toString().toUpperCase();
-            const dni = (p.dni || '').toString();
-            const servicio = (p.servicio || '').toString().toUpperCase();
-            const codigo = (p.codigo || '').toString().toUpperCase();
-            
-            return nombre.includes(buscar) || 
-                   dni.includes(buscar) || 
-                   servicio.includes(buscar) ||
-                   codigo.includes(buscar);
-        });
-    }
-    
-    // Actualizar contador
-    document.getElementById('resultadosBusqueda').innerText = 
-        (buscar || servicioFiltro !== 'TODOS') ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
-    
-    // Renderizar tabla
-    const tbody = document.querySelector('#tablaPendientes tbody');
-    tbody.innerHTML = '';
-    
-    if (filtrados.length === 0) {
-        if (todosPendientes.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>`;
-        } else {
-            tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div>Sin resultados para: "${buscar || ''}"</div></td></tr>`;
+    // ==================== FILTRAR TABLA (VERSIÓN FINAL CORREGIDA) ====================
+    function filtrarTabla() {
+        const buscar = document.getElementById('buscarInput').value.toUpperCase().trim();
+        const servicioFiltro = document.getElementById('filtroServicio').value;
+        let filtrados = todosPendientes;
+        
+        if (servicioFiltro !== 'TODOS') {
+            filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
         }
-        document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`;
-        return;
-    }
-    
-    document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
-    
-    // Ordenar por nombre
-    filtrados.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-    
-    filtrados.forEach(p => {
-        const guardiaTexto = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
-        const comidaTexto = p.tipoComida === 'AMBAS' ? 'AMBAS' : 
-                           p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : 
-                           p.tipoComida === 'CENA' ? '🌙 Cena' : 
-                           p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
         
-        // Convertir DNI a string para mostrar
-        const dniStr = (p.dni || '').toString();
+        if (buscar.length >= 1) {
+            filtrados = filtrados.filter(p => {
+                // Convertir todo a string explícitamente con String()
+                const nombre = String(p.nombre || '').toUpperCase();
+                const dni = String(p.dni || '');
+                const servicio = String(p.servicio || '').toUpperCase();
+                const codigo = String(p.codigo || '').toUpperCase();
+                
+                // Usar indexOf en lugar de includes (más compatible)
+                return nombre.indexOf(buscar) !== -1 || 
+                       dni.indexOf(buscar) !== -1 || 
+                       servicio.indexOf(buscar) !== -1 ||
+                       codigo.indexOf(buscar) !== -1;
+            });
+        }
         
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-            <td><span class="codigo-cell">${p.codigo}</span></td>
-            <td>${p.nombre || 'N/E'}</td>
-            <td>${dniStr}</td>
-            <td><span class="badge badge-servicio">${p.servicio || 'N/E'}</span></td>
-            <td><span class="badge badge-guardia">${guardiaTexto}</span></td>
-            <td><span class="badge badge-comida">${comidaTexto}</span></td>
-            <td><span class="badge badge-dieta">${p.dieta || 'GENERAL'}</span></td>
-            <td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>
-        `;
-        tbody.appendChild(fila);
-    });
-}
-    // ==================== VALIDAR CÓDIGO ====================
-    function validarCodigo() {
-        const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
-        if (codigo.length !== 4) { mostrarMensaje('mensajeValidacion', 'error', '❌ Código de 4 caracteres'); return; }
-
-        const callbackName = 'validarCallback_' + Date.now();
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            if (data.status === "success") {
-                mostrarMensaje('mensajeValidacion', 'success', `✅ ${data.nombre} | ${data.dieta}`);
-                document.getElementById('codigoInput').value = '';
-                cargarTodo();
-            } else {
-                mostrarMensaje('mensajeValidacion', 'error', `❌ ${data.message}`);
-            }
-        };
-        const script = document.createElement('script');
-        script.src = API + '?action=validar_codigo&codigo=' + codigo + '&callback=' + callbackName;
-        document.body.appendChild(script);
-    }
-
-    function entregarRapido(codigo) {
-        document.getElementById('codigoInput').value = codigo;
-        document.getElementById('codigoInput').focus();
-        validarCodigo();
-    }
-
-    // ==================== MODAL CARGA MANUAL ====================
-    function abrirModalCarga() {
-        document.getElementById('modalCarga').classList.add('active');
-        document.getElementById('modalDni').value = '';
-        document.getElementById('modalNombre').value = '';
-    }
-    
-    function cerrarModalCarga() {
-        document.getElementById('modalCarga').classList.remove('active');
-        document.getElementById('mensajeModal').style.display = 'none';
-    }
-    
-    async function cargarManual() {
-        const nombre = document.getElementById('modalNombre').value.trim().toUpperCase();
-        const dni = document.getElementById('modalDni').value.trim();
-        const servicio = document.getElementById('modalServicio').value;
-        const guardia = document.getElementById('modalGuardia').value;
-        const dieta = document.getElementById('modalDieta').value;
+        document.getElementById('resultadosBusqueda').innerText = 
+            (buscar || servicioFiltro !== 'TODOS') ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
         
-        if (!nombre) { mostrarMensaje('mensajeModal', 'error', '❌ Ingrese nombre'); return; }
-        if (!dni || dni.length < 7) { mostrarMensaje('mensajeModal', 'error', '❌ DNI válido'); return; }
-        if (!servicio) { mostrarMensaje('mensajeModal', 'error', '❌ Seleccione servicio'); return; }
+        const tbody = document.querySelector('#tablaPendientes tbody');
+        tbody.innerHTML = '';
         
-        const codigo = Math.random().toString(36).substring(2, 6).toUpperCase();
-        const callbackName = 'cargaManual_' + Date.now();
+        if (filtrados.length === 0) {
+            tbody.innerHTML = todosPendientes.length === 0 ? 
+                '<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>' :
+                `<tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div>Sin resultados</div></td></tr>`;
+            document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`;
+            return;
+        }
         
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            if (data && data.status === "success") {
-                mostrarMensaje('mensajeModal', 'success', `✅ REGISTRADO<br>👤 ${nombre}<br>🔢 Código: <strong>${codigo}</strong>`);
-                setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2500);
-            } else {
-                mostrarMensaje('mensajeModal', 'error', '❌ Error al registrar');
-            }
-        };
+        document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
+        filtrados.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
         
-        const params = new URLSearchParams({
-            action: 'generar_codigo', nombre, dni, servicio, guardia, dieta,
-            turno: turnoActual, codigo, tipoComida: 'TURNO_ACTUAL', tipo: 'MANUAL', callback: callbackName
+        filtrados.forEach(p => {
+            const g = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
+            const c = p.tipoComida === 'AMBAS' ? 'AMBAS' : p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : p.tipoComida === 'CENA' ? '🌙 Cena' : p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><span class="codigo-cell">${p.codigo}</span></td><td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge badge-guardia">${g}</span></td><td><span class="badge badge-comida">${c}</span></td><td><span class="badge badge-dieta">${p.dieta||'GENERAL'}</span></td><td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>`;
+            tbody.appendChild(tr);
         });
-        
-        const script = document.createElement('script');
-        script.src = API + '?' + params.toString();
-        document.body.appendChild(script);
     }
 
-    // ==================== CERRAR TURNO ====================
-    function cerrarTurno() {
-        if (!confirm("⚠️ ¿CERRAR TURNO?\n\nLos PENDIENTES se marcarán NO ENTREGADOS.\nEsta acción NO se puede revertir.")) return;
-        
-        const callbackName = 'cierreCallback_' + Date.now();
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            if (data.status === "success") {
-                mostrarMensaje('mensajeCierre', 'success', `✅ ${data.message}<br>📊 Total: ${data.resumen?.total || 0} | ✅ Entregados: ${data.resumen?.entregados || 0} | ❌ No entregados: ${data.resumen?.pendientes || 0}`);
-                setTimeout(() => cargarTodo(), 2000);
-            } else {
-                mostrarMensaje('mensajeCierre', 'error', `❌ ${data.message}`);
-            }
+    function validarCodigo() {
+        const cod = document.getElementById('codigoInput').value.trim().toUpperCase();
+        if (cod.length !== 4) { mostrarMensaje('mensajeValidacion','error','❌ Código de 4 caracteres'); return; }
+        const cb = 'v_' + Date.now();
+        window[cb] = function(d) {
+            delete window[cb]; document.body.removeChild(s);
+            if (d.status === "success") { mostrarMensaje('mensajeValidacion','success',`✅ ${d.nombre} | ${d.dieta}`); document.getElementById('codigoInput').value = ''; cargarTodo(); }
+            else { mostrarMensaje('mensajeValidacion','error',`❌ ${d.message}`); }
         };
-        const script = document.createElement('script');
-        script.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + callbackName;
-        document.body.appendChild(script);
+        const s = document.createElement('script');
+        s.src = API + '?action=validar_codigo&codigo=' + cod + '&callback=' + cb;
+        document.body.appendChild(s);
     }
-
-    document.getElementById('codigoInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') validarCodigo();
-    });
+    function entregarRapido(c) { document.getElementById('codigoInput').value = c; document.getElementById('codigoInput').focus(); validarCodigo(); }
+    function abrirModalCarga() { document.getElementById('modalCarga').classList.add('active'); }
+    function cerrarModalCarga() { document.getElementById('modalCarga').classList.remove('active'); }
+    function cargarManual() {
+        const n = document.getElementById('modalNombre').value.trim().toUpperCase();
+        const d = document.getElementById('modalDni').value.trim();
+        const srv = document.getElementById('modalServicio').value;
+        const g = document.getElementById('modalGuardia').value;
+        const die = document.getElementById('modalDieta').value;
+        if (!n) { mostrarMensaje('mensajeModal','error','❌ Ingrese nombre'); return; }
+        if (!d || d.length < 7) { mostrarMensaje('mensajeModal','error','❌ DNI válido'); return; }
+        if (!srv) { mostrarMensaje('mensajeModal','error','❌ Seleccione servicio'); return; }
+        const cod = Math.random().toString(36).substring(2,6).toUpperCase();
+        const cb = 'cm_' + Date.now();
+        window[cb] = function(data) {
+            delete window[cb]; document.body.removeChild(s);
+            if (data && data.status === "success") { mostrarMensaje('mensajeModal','success',`✅ REGISTRADO<br>🔢 Código: <strong>${cod}</strong>`); setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2500); }
+            else { mostrarMensaje('mensajeModal','error','❌ Error'); }
+        };
+        const s = document.createElement('script');
+        s.src = API + '?' + new URLSearchParams({ action: 'generar_codigo', nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual, codigo: cod, tipoComida: 'TURNO_ACTUAL', tipo: 'MANUAL', callback: cb }).toString();
+        document.body.appendChild(s);
+    }
+    function cerrarTurno() {
+        if (!confirm("⚠️ ¿CERRAR TURNO?\n\nLos PENDIENTES se marcarán NO ENTREGADOS.")) return;
+        const cb = 'ct_' + Date.now();
+        window[cb] = function(d) {
+            delete window[cb]; document.body.removeChild(s);
+            if (d.status === "success") { mostrarMensaje('mensajeCierre','success',`✅ ${d.message}`); setTimeout(() => cargarTodo(), 2000); }
+            else { mostrarMensaje('mensajeCierre','error',`❌ ${d.message}`); }
+        };
+        const s = document.createElement('script');
+        s.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + cb;
+        document.body.appendChild(s);
+    }
+    document.getElementById('codigoInput').addEventListener('keypress', e => { if (e.key === 'Enter') validarCodigo(); });
     document.getElementById('codigoInput').focus();
     window.addEventListener('beforeunload', () => clearInterval(intervalo));
 </script>
