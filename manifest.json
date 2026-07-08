@@ -1,0 +1,22 @@
+{
+  "name": "HISJB - Nutrición",
+  "short_name": "HISJB",
+  "description": "Sistema de Gestión de Viandas - Hospital San Juan Bautista",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0056b3",
+  "theme_color": "#0056b3",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icono-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icono-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
