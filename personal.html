@@ -28,7 +28,6 @@
         .btn-dark { background: var(--dark); color: white; }
         .btn:disabled { background: #6c757d; cursor: not-allowed; }
         .hidden { display: none !important; }
-        
         .autocomplete-wrapper { position: relative; }
         .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid var(--blue); border-top: none; border-radius: 0 0 8px 8px; max-height: 180px; overflow-y: auto; z-index: 100; display: none; }
         .autocomplete-list.show { display: block; }
@@ -43,7 +42,7 @@
         .admin-section { background: #f8f0ff; border: 2px solid var(--purple); padding: 15px; border-radius: 10px; margin: 15px 0; }
         .menu-info-detalle { background: #e7f3ff; padding: 12px; border-radius: 8px; margin: 10px 0; text-align: left; border-left: 5px solid var(--blue); }
         #resultado { display: none; }
-        
+        .continuar-carga { background: #e8f8f5; padding: 12px; border-radius: 8px; margin: 10px 0; text-align: center; border: 2px dashed var(--green); display: none; }
         @media (max-width: 500px) {
             .container { padding: 10px; }
             .card { padding: 20px 15px; }
@@ -133,6 +132,12 @@
                 </div>
 
                 <button class="btn btn-success" id="btnAccion" onclick="solicitarComida()">🍴 SOLICITAR VIANDA</button>
+                
+                <!-- Mensaje de carga continua -->
+                <div class="continuar-carga" id="continuarCarga">
+                    ✅ ¡CARGADO! Puede continuar con otra persona ↕️
+                </div>
+                
                 <div id="errorMensaje" class="error-mensaje"></div>
             </div>
         </div>
@@ -145,7 +150,7 @@
             </div>
             <p style="font-size: 0.85rem;">MUESTRE ESTE CÓDIGO EN COCINA</p>
             <div id="infoAdicional" style="margin-top: 15px; font-size: 0.85rem; color: #666;"></div>
-            <button class="btn btn-primary" onclick="location.reload()">🔙 NUEVA SOLICITUD</button>
+            <button class="btn btn-primary" onclick="nuevaCarga()">🔙 CARGAR OTRA PERSONA</button>
         </div>
 
         <div id="supervisorSection" class="hidden" style="text-align: center; margin-top: 15px;">
@@ -161,11 +166,9 @@
                 <button class="btn btn-danger" style="width: auto; padding: 8px 15px; font-size: 0.8rem;" onclick="logout()">🚪 SALIR</button>
             </div>
         </div>
-
         <div class="card">
             <h3>📋 GESTIÓN DE SERVICIOS</h3>
             <div id="adminServiciosList" style="max-height: 300px; overflow-y: auto; margin: 15px 0; text-align: left;"></div>
-            
             <div class="admin-section">
                 <h3>➕ AGREGAR SERVICIO</h3>
                 <label>NOMBRE DEL SERVICIO</label>
@@ -181,7 +184,6 @@
                 <div id="adminServicioMsg" class="error-mensaje"></div>
             </div>
         </div>
-
         <div class="card">
             <h3>👥 AGREGAR PERSONAL</h3>
             <label>APELLIDO Y NOMBRE</label>
@@ -201,7 +203,6 @@
             <button class="btn btn-success" onclick="adminAgregarPersonal()">✅ AGREGAR PERSONAL</button>
             <div id="adminPersonalMsg" class="error-mensaje"></div>
         </div>
-
         <button class="btn btn-primary" onclick="volverAlPanel()">🔙 VOLVER AL PANEL PRINCIPAL</button>
     </div>
 </div>
@@ -210,54 +211,29 @@
 <div id="modalSupervisor" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
     <div style="background: white; border-radius: 15px; padding: 25px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto;">
         <h2 style="color: var(--blue);">📦 CARGA MASIVA - SUPERVISOR</h2>
-        
         <label>🔍 BUSCAR PERSONAL</label>
         <div class="autocomplete-wrapper">
             <input type="text" id="superBuscar" placeholder="ESCRIBA NOMBRE O DNI..." autocomplete="off" oninput="buscarSuperPersonal()">
             <div class="autocomplete-list" id="superAutocomplete"></div>
         </div>
-        
-        <div id="superSelected" style="min-height: 40px; padding: 10px; background: #f8f9fa; border-radius: 8px; margin: 10px 0;">
-            <span style="color: #999;">👆 Busque y seleccione personal</span>
-        </div>
-        
+        <div id="superSelected" style="min-height: 40px; padding: 10px; background: #f8f9fa; border-radius: 8px; margin: 10px 0;"><span style="color: #999;">👆 Busque y seleccione personal</span></div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0;">
             <button class="btn btn-dark" style="flex: 1; padding: 10px; font-size: 0.85rem;" onclick="cargarServicioCompletoSuper()">📦 CARGAR SERVICIO</button>
             <button class="btn" style="flex: 1; padding: 10px; font-size: 0.85rem; background: #6c757d; color: white;" onclick="limpiarSuperLista()">🗑️ LIMPIAR</button>
         </div>
-        
         <div style="background: #f0f0f0; padding: 12px; border-radius: 8px; margin: 10px 0;">
             <h4 style="margin-top: 0;">➕ AGREGAR PERSONA MANUALMENTE</h4>
             <input type="text" id="superManualNombre" placeholder="APELLIDO Y NOMBRE" oninput="this.value = this.value.toUpperCase()">
             <input type="number" id="superManualDni" placeholder="DNI">
-            <select id="superManualServicio">
-                <option value="">SELECCIONE SERVICIO</option>
-            </select>
+            <select id="superManualServicio"><option value="">SELECCIONE SERVICIO</option></select>
             <button class="btn btn-dark" style="padding: 8px; font-size: 0.85rem;" onclick="agregarManualSuper()">AGREGAR A LISTA</button>
         </div>
-        
         <label>🍽️ TURNO</label>
-        <select id="superTurno">
-            <option value="MAÑANA">🌅 ALMUERZO</option>
-            <option value="NOCHE">🌙 CENA</option>
-        </select>
-        
+        <select id="superTurno"><option value="MAÑANA">🌅 ALMUERZO</option><option value="NOCHE">🌙 CENA</option></select>
         <label>📋 DIETA POR DEFECTO</label>
-        <select id="superDieta">
-            <option value="GENERAL">GENERAL</option>
-            <option value="HIPOSÓDICA">HIPOSÓDICA</option>
-            <option value="DIABÉTICA">DIABÉTICA</option>
-            <option value="CELIACA">CELIACA</option>
-            <option value="GÁSTRICA">GÁSTRICA</option>
-        </select>
-        
+        <select id="superDieta"><option value="GENERAL">GENERAL</option><option value="HIPOSÓDICA">HIPOSÓDICA</option><option value="DIABÉTICA">DIABÉTICA</option><option value="CELIACA">CELIACA</option><option value="GÁSTRICA">GÁSTRICA</option></select>
         <label>⏱️ GUARDIA</label>
-        <select id="superGuardia">
-            <option value="12">12 HORAS</option>
-            <option value="16">16 HORAS</option>
-            <option value="24">24 HORAS</option>
-        </select>
-        
+        <select id="superGuardia"><option value="12">12 HORAS</option><option value="16">16 HORAS</option><option value="24">24 HORAS</option></select>
         <button class="btn btn-success" onclick="procesarCargaSuper()">✅ PROCESAR CARGA (<span id="superContador">0</span> PERSONAS)</button>
         <button class="btn btn-danger" onclick="cerrarModalSuper()" style="margin-top: 8px;">❌ CERRAR</button>
         <div id="superMensaje" class="error-mensaje"></div>
@@ -271,7 +247,6 @@
     const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
     const ADMIN_PASS = "HISJBadmin2024";
     
-    // Contraseñas locales (respaldo si la API falla)
     const PASSWORDS = {
         "ADMIN": { pass: "226452", tipo: "admin" },
         "ENFERMERIA": { pass: "enfermeria2024", tipo: "supervisor" },
@@ -285,6 +260,7 @@
         "RADIOLOGIA": { pass: "radio2024", tipo: "normal" },
         "RISAMCyA": { pass: "risam2024", tipo: "normal" },
         "KINESIOLOGIA": { pass: "kine2024", tipo: "normal" },
+        "CLINICA MEDICA": { pass: "dem2026", tipo: "normal" },
         "RESIDENTE - CLINICA MEDICA": { pass: "resicm2024", tipo: "normal" },
         "RESIDENTE - MEDICINA FAMILIAR": { pass: "resimf2024", tipo: "normal" },
         "RESIDENTE - TERAPIA INTENSIVA": { pass: "resiti2024", tipo: "normal" },
@@ -292,7 +268,6 @@
         "RESIDENTE - RISAM": { pass: "resirisam2024", tipo: "normal" },
         "RESIDENTE - HEMATOLOGIA": { pass: "resihema2024", tipo: "normal" },
         "RESIDENTE - CIRUGIA VASCULAR": { pass: "resicv2024", tipo: "normal" },
-        "RESIDENTE - HEMATOLOGIA": { pass: "UTI", tipo: "normal" },
         "UTI II": { pass: "UTII2026", tipo: "normal" },
         "CIRUGIA GENERAL": { pass: "CX2026", tipo: "normal" },
         "EMERGENCIAS MEDICAS": { pass: "dem2026", tipo: "normal" },
@@ -302,10 +277,15 @@
         "MANTENIMIENTO": { pass: "mante2026", tipo: "normal" },
         "TELEFONIA": { pass: "urg2026", tipo: "normal" },
         "QUIROFANO": { pass: "quir2026", tipo: "normal" },
-        "TOMOGRAFIA": { pass: "tomo2026", tipo: "normal" },        
+        "TOMOGRAFIA": { pass: "tomo2026", tipo: "normal" }
     };
     
-    let currentUser = null;
+    // ==================== RECUPERAR SESIÓN GUARDADA ====================
+    const savedUser = localStorage.getItem('hisjb_user');
+    const savedTime = localStorage.getItem('hisjb_time');
+    const now = Date.now();
+    let currentUser = (savedUser && savedTime && (now - parseInt(savedTime)) < 5400000) ? JSON.parse(savedUser) : null;
+    
     let personalServicio = [];
     let menuDataGlobal = null;
     let superLista = [];
@@ -432,26 +412,21 @@
         { nombre: "JUAREZ FIAMA", dni: "38485630", servicio: "RISAMCyA", dieta: "GENERAL" },
         { nombre: "GIL ORELLANA IRIS", dni: "36504513", servicio: "RISAMCyA", dieta: "GENERAL" },
         { nombre: "ZALAZAR MARIA ANGELES", dni: "37089290", servicio: "RISAMCyA", dieta: "GENERAL" },
-        // RESIDENTES - CLINICA MEDICA
+        // RESIDENTES
         { nombre: "ALVAREZ CAVILLA LUIS", dni: "39013934", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
         { nombre: "CARDOSO MARA DANIELA", dni: "39015492", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
         { nombre: "VILLEGAS CHAVES EMILCE", dni: "94953080", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
         { nombre: "TORRES MOYANO JOSE", dni: "94905020", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
-        { nombre: "ACOSTA MARIBEL", dni: "35389117", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
         { nombre: "PALACIOS LORENA", dni: "38202348", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
         { nombre: "GIL ORELLANA CAMILA", dni: "37642274", servicio: "RESIDENTE - CLINICA MEDICA", dieta: "GENERAL" },
-        // RESIDENTES - MEDICINA FAMILIAR
         { nombre: "CHAILE DOMINGUEZ DAYANA", dni: "35500377", servicio: "RESIDENTE - MEDICINA FAMILIAR", dieta: "GENERAL" },
-        // RESIDENTES - TERAPIA INTENSIVA
         { nombre: "HERRERO CARLA", dni: "37204733", servicio: "RESIDENTE - TERAPIA INTENSIVA", dieta: "GENERAL" },
         { nombre: "VILLAFAÑEZ WALTHER", dni: "39012860", servicio: "RESIDENTE - TERAPIA INTENSIVA", dieta: "GENERAL" },
-        // RESIDENTES - CIRUGIA GENERAL
         { nombre: "ZURITA AGÜERO DAIANA", dni: "37168081", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
         { nombre: "SARMIENTO LAUTARO", dni: "41618811", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
         { nombre: "LENCINA LUCIANA", dni: "37167407", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
         { nombre: "TOLOZA BLANCO MICAELA", dni: "40749285", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
         { nombre: "AVELLANEDA CARLOS", dni: "37307056", servicio: "RESIDENTE - CIRUGIA GENERAL", dieta: "GENERAL" },
-        // RESIDENTES - RISAM
         { nombre: "ZALAZAR MARIA ANGELES", dni: "37089290", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
         { nombre: "CARRIZO GUILLERMO", dni: "38762461", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
         { nombre: "GIL ORELLANA IRIS", dni: "36504513", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
@@ -460,9 +435,7 @@
         { nombre: "ALAMO JIMENA NAHIR", dni: "36854034", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
         { nombre: "RODRIGUEZ ABRIL", dni: "42696141", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
         { nombre: "CARMONA MICHELLE", dni: "38626990", servicio: "RESIDENTE - RISAM", dieta: "GENERAL" },
-        // RESIDENTES - HEMATOLOGIA
         { nombre: "FERREYRA REYES GUADALUPE", dni: "35388246", servicio: "RESIDENTE - HEMATOLOGIA", dieta: "GENERAL" },
-        // RESIDENTES - CIRUGIA VASCULAR
         { nombre: "DIAMANTE ANABELLA", dni: "35390810", servicio: "RESIDENTE - CIRUGIA VASCULAR", dieta: "GENERAL" },
         // KINESIOLOGIA
         { nombre: "ALMENDRA SOLEDAD", dni: "21944436", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
@@ -479,330 +452,34 @@
         { nombre: "SANCHEZ REINOSO", dni: "28309793", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
         { nombre: "VERA ROXANA", dni: "25117405", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
         { nombre: "ZAMPIERI GABRIELA", dni: "29711035", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
-        { nombre: "ZARATE VIRGINIA", dni: "30304857", servicio: "KINESIOLOGIA", dieta: "GENERAL" },
-        // ENFERMERIA
-        { nombre: "GOMEZ EDGARDO ADRIAN", dni: "27092037", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "SORIA SERGIO OMAR", dni: "22219581", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "ANDRADA IRMA ISABEL", dni: "17763396", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "BATALLAN KARINA DEL VALLE", dni: "31249449", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "ARCE NANCY SILVINA", dni: "20477423", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "TOLOTTI JOANA JAQUELINE", dni: "32433687", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "VILLACORTA CARMEN YANINA", dni: "27278569", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "YAÑEZ VERONICA ANAHI", dni: "32027734", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "FERREYRA LUCIANA ANTONELA", dni: "37164581", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "MOLINA YOHANA MARISEL", dni: "31231092", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "NOBLEGA NORA DEL VALLE", dni: "23854135", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "VELARDEZ CRISTIAN GUSTAVO", dni: "35934233", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "GUARAZ MARIA FERNANDA", dni: "32628380", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "VANACKERE PABLO CRISTIAN H.", dni: "25541388", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "ROMERO CARMEN LILIANA", dni: "27665861", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "MONTIVERO MELINA MARIEL", dni: "38225164", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "ROMERO SOLEDAD DEL VALLE", dni: "29473184", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "CACERES GABRIELA CELESTINA", dni: "36453554", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "HERRERA DAIANA ROMINA", dni: "37962187", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "NORIEGA KARINA", dni: "23561525", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "PEREZ MARIA EUGENIA", dni: "25117472", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "PESCHUITTA ROSALBA", dni: "24309942", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "IRIARTE YESICA SAMANTHA", dni: "39805831", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "COLLANTES DANIELA", dni: "30376702", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "ASTRADA INES", dni: "24605418", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "BARRERA BRENDA", dni: "43995676", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "VERGARA KATIA", dni: "25117848", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "SALCEDO MIRIAN LIDIA", dni: "26856341", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "PACHECO IVANA SOLEDAD", dni: "37464116", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "CARDENAS SILVINA NATALI", dni: "37622272", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "ROJAS ANAHI", dni: "30375867", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "BAZAN LILIANA DEL VALLE", dni: "22751345", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "BUSTAMANTE CARLOS ALBERTO", dni: "25302406", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "SORIA GRACIELA VERONICA", dni: "29651167", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "ACEVEDO JUANA MARIA", dni: "27053295", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "FUENZALIDA MARCOS ANTONIO", dni: "37643522", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "RIVERO LORENA PAOLA", dni: "28309792", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "SECO MARIA LAURA", dni: "31906871", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "CANELO CLAUDIA BEATRIZ", dni: "22219022", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "BARRIOS MARIO AGUSTIN", dni: "39807321", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "PONCE CLAUDIA", dni: "26187121", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "VILLACORTA VILVA ANGELICA", dni: "27525546", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "MORALES NOEMI RAFAELA", dni: "31205017", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "FERREYRA DEOLINDA EDITH", dni: "28357960", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "SILVA LILIANA MANUELA", dni: "33993313", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "MOLAS CYNTHIA LUCIANA", dni: "28456262", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "CARABAJAL DAIANA ELIZABETH", dni: "39805831", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "OROPEL SERGIO", dni: "37637744", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "PISANI PAOLA", dni: "26606853", servicio: "ENFERMERIA", dieta: "GENERAL" },
-        { nombre: "DIAZ SILVIA YOLANDA", dni: "23854809", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FUENZALIDA MARIELA", dni: "28093459", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PEREA JONATAN SEVERO", dni: "37743605", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO HEBE ARACELI", dni: "28917080", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ARROYO VALERIA SILVINA", dni: "28995224", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "NIEVA RUTH JEANNETTE", dni: "35500828", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PEÑAFLOR CAMILA MARIANA", dni: "37464350", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "LOPEZ GISELLA ANAHI", dni: "43532597", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MOYA ROSA DEL CARMEN", dni: "21944800", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SALGUEIRO ADRIANA", dni: "29783790", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OLIVA ADRIANA DEL VALLE", dni: "18476091", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "JAIME TOMAS LUCAS", dni: "33965532", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VEGA VIVIANA DEL CARMEN", dni: "29263445", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARRIZO CLAUDIA BEATRIZ", dni: "26960759", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PALAVECINO EVELIN IRENE", dni: "29819240", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PACHECO ROMINA", dni: "33965532", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SEGOVIA OMAR DANIEL", dni: "33385502", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OÑA ALEJANDRO MAXIMILIANO", dni: "35823858", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CORREA CARINA", dni: "31450930", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FERNANDEZ DIEGO", dni: "32282594", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PACHECO DANIELA ROMINA", dni: "32688162", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FERNANDEZ ERIKA FABIANA", dni: "35269306", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MORENO SILVIA ELVIRA", dni: "18476778", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "LAZARTE MAYRA ELIZABETH", dni: "37049367", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "HERRERA MACARENA Z. CELIA", dni: "34886183", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RODOLFO REARTE", dni: "23389851", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIOS RAMON ADEL", dni: "20388757", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "AGÜERO MONICA ESTHER", dni: "23854136", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CORREA PATRICIA NOELIA", dni: "30949897", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SANCHEZ HUGO ARIEL", dni: "25270602", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RIVAS ROMINA SUSANA", dni: "33758719", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "DIAZ MARIA JOSE", dni: "27923671", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "QUINTEROS ALEXIS RODRIGO", dni: "28885616", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIONUEVO MELISA EVELYN", dni: "35388660", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CHANAMPA MARIANA ELIZABETH", dni: "25511300", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MARTINEZ MUSEDA HERMAN", dni: "36619741", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "HERRERA IVANNA SOLEDAD", dni: "27351702", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "AYALA ALAN ALEJANDRO", dni: "33065987", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIONUEVO MARIA DEL CARMEN", dni: "24605950", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SALCEDO ANA GABRIELA", dni: "37164881", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO JUANA MABEL", dni: "14899024", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VEGA GORDILLO GIOVANA E.", dni: "33550496", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OCHOA MERCEDES", dni: "40598744", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "LEGUIZAMON ALCIRA ROSA", dni: "16059956", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CASTRO VICTOR GABRIEL", dni: "28404222", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VERGARA KATIA", dni: "25117848", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ARIAS ZULEMA DEL CARMEN", dni: "20588667", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VIZCARRA MARIA LAURA", dni: "28456146", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RODRIGUEZ YAMIL EDUARDO", dni: "32414383", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PERALTA ANGELA", dni: "24787496", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARRIZO KARINA ELIZABETH", dni: "24870057", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "LOBO NANCY BEATRIZ", dni: "22219235", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CAJAL NOELIA PAOLA", dni: "31705933", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RAMIREZ ANABEL", dni: "31691074", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OCAMPO SILVIA ALEJANDRA", dni: "22751717", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VILTE NICOLAS", dni: "93760001", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VILLAFAÑE ELIDA BEATRIZ", dni: "26373197", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CRISTALDO MIGUEL ANGEL", dni: "20935099", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO CLELIA DEL VALLE", dni: "23339757", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIOS JORGE ANTONIO", dni: "17890231", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "AYOSA SERGIO RAUL", dni: "28540519", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SALAS SILVANA BEATRIZ", dni: "32027734", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                        { nombre: "CORREA NANCY CARINA", dni: "25749350", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SALAS SILVIA SUSANA", dni: "20935099", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SALAS SILVANA BEATRIZ", dni: "20935099", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "COLLANTES NORA BEATRIZ", dni: "30376702", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "LUNA JOSE EDUARDO", dni: "31814486", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SILVA MARIA DE JESUS", dni: "27053211", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OCAMPO STELLA MARIS", dni: "17603437", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SANCHEZ ALBA ZULEMA", dni: "23631504", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "IGNES IVANNA DEL VALLE", dni: "30676421", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "HERRERA ANA KARINA", dni: "28404319", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "COBACHO MARIA", dni: "23561578", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VARELA MONICA ELIZABETH", dni: "24605221", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "NAVARRO FANY LIDIA", dni: "20925224", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "REYNOSO SARA AIDA", dni: "14601470", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VILLAFAÑE ELIDA BEATRIZ", dni: "26373197", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SANTELLAN SERGIO NICOLAS", dni: "22834553", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "IRIARTE VERONICA DEL VALLE", dni: "27102879", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CASAS DIANA VALERIA", dni: "39016570", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MUÑOS MARIELA SILVINA", dni: "26576477", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SARMIENTO EDUARDO", dni: "32282549", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MUÑOZ MARIELA", dni: "26576477", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VALLE OLGA GABRIELA", dni: "23854671", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARDENAS CLAUDIA ALEJANDRA", dni: "17534663", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "GATICA EDITH", dni: "22872152", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARRIZO FANNY DEL VALLE", dni: "31450871", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MONTILLA CECILIA LORENA", dni: "25928471", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OCAMPO SILVIA ALEJANDRA", dni: "22751717", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FLORES MIRIAM", dni: "28414933", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RAMIREZ ANABEL LORENA", dni: "31691074", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CORONEL MERCEDES DEL CARMEN", dni: "25511538", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MIRANDA MARIA EUGENIA", dni: "18187939", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CATIVA ANDREA BETINA", dni: "26185552", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "DIAZ LUCAS EMANUEL", dni: "31691021", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARROS NATALIA EVANGELINA", dni: "32687855", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CONTRERAS NORMA NATIVIDAD", dni: "20524682", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OROPEL SERGIO ENRIQUE", dni: "37637744", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARRAZANA LEANDRO SEBASTIAN", dni: "34118338", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ARAMBURU RAUL", dni: "31336826", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OCHOA MERCEDES", dni: "40598744", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PAEZ MARCELO ANTONIO", dni: "33550197", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO REYES JORGE", dni: "35286126", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PAEZ DIEGO NICOLAS", dni: "35500514", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PACHECO CESAR", dni: "33550472", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIONUEVO SERGIO LEONARDO", dni: "32027998", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FABIAN JORGE", dni: "20512278", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SANCHEZ IVAN", dni: "28780715", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "QUISPE CARLOS MARTIN", dni: "23030287", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "AVELLANEDA MARIANO", dni: "37089790", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CORREA JOSE", dni: "21325756", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARROS HILDA VIVIANA", dni: "25874880", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RIVERO BLANCA AZUCENA", dni: "17890099", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MEDIAVILLA FELISA ESTER", dni: "17028825", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "QUINTERO MARA SOLEDAD", dni: "26373278", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "DOMINGUEZ ERICA", dni: "25746760", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "DIAZ ROXANA ELIZABETH", dni: "24830288", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CANELO CLAUDIA BEATRIZ", dni: "22219022", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ACUÑA MARCELA", dni: "21944843", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MONTALVAN RITA FRANCISCA", dni: "16333619", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "HERRERA ALEJANDRA", dni: "20924470", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "DIAZ HECTOR", dni: "17733337", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CELIZ TEYO TAMARA", dni: "32832282", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRERA BRENDA CARMEN", dni: "43995676", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIENTOS ROSA ESTELA", dni: "20925311", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIONUEVO MARIA DEL C.", dni: "24605950", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIONUEVO MELISA EVELYN", dni: "35388660", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIOS MARIO AGUSTIN", dni: "39807321", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIOS JORGE ANTONIO", dni: "17890231", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARRIOS RAMON ADEL", dni: "20388757", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BARROS MARIO ADRIAN", dni: "25302906", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BATALLAN KARINA DEL VALLE", dni: "31249449", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BAZAN ERIKA JUDITH", dni: "28628404", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "BUSTAMANTE CARLOS ALBERTO", dni: "25302406", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CABRERA MIRIAM", dni: "18266211", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CACERES GABRIELA", dni: "36453554", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CAJAL NOELIA PAOLA", dni: "31705933", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARABAJAL DAIANA ELIZABETH", dni: "37164260", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARDENAS SILVINA NATALI", dni: "37622272", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARDENES NANCY CAROLINA", dni: "29414126", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CAROS MARIA ROSA", dni: "23031738", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CARRIZO CLAUDIA", dni: "26960759", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CASTRO MARGARITA NOEMI", dni: "30498522", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CHAVEZ PEDRO RODOLFO", dni: "22751038", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CISNEROS NATALIA", dni: "24687397", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "COLLANTES LUISA DANIELA", dni: "23366947", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CORDOBA GRACIELA", dni: "33049835", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "CORREA PATRICIA NOELIA", dni: "30949897", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "DELGADO ANA GABRIELA", dni: "28995488", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "DIAZ MARIA JOSE", dni: "27923671", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "DIAZ SILVIA YOLANDA", dni: "23854809", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FERNANDEZ CUELLO ERICA F.", dni: "35269306", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FERNANDEZ CINTHIA NOELIA", dni: "30949522", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FERNANDEZ DIEGO", dni: "32282594", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FLORES MIRIAM ANGELICA", dni: "28414933", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "FUENZALIDA MARIELA", dni: "28093459", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "GOMEZ EDGARDO ADRIAN", dni: "27092037", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "HERRERA IVANNA SOLEDAD", dni: "27351702", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "HERRERA DANIA ROMINA", dni: "37962187", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "IRIARTE YESICA SAMANTA", dni: "39805831", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "JAIME TOMAS LUCAS", dni: "33965532", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "LEIGUE YERNEIBE MARIA ELVY", dni: "94547920", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "LOPEZ GISELLA ANAHI", dni: "43532597", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MARQUEZ OLGA", dni: "93644209", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MARTINEZ HERMAN", dni: "36619741", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MERCADO LAURA AZUCENA", dni: "22455815", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MOLAS CINTHIA LUCIANA", dni: "28456262", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MOLINA JOHANA", dni: "31231092", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MONTIVERO MELINA MARIEL", dni: "38225164", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MORALES NOEMI RAFAELA", dni: "31205017", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MORENO SILVIA ELVIRA", dni: "18476778", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "MOYA ROSA DEL CARMEN", dni: "21944800", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "NIEVA LIVIA DEL VALLE", dni: "30920693", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "NIEVA RUTH JANNETTE", dni: "35500828", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "NOBLEGA NORA DEL VALLE", dni: "23854135", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "NORIEGA KARINA", dni: "23561525", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OLIVA ADRIANA", dni: "18476091", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "OÑA ALEJANDRO MAXIMILIANO", dni: "35823858", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ORELLANA MARIA LAURA", dni: "31648643", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PACHECO DANIELA ROMINA", dni: "32688162", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PACHECO IVANA SOLEDAD", dni: "29651028", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PALAVECINO EVELIN", dni: "29819240", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PEÑAFLOR CAMILA MARIANA", dni: "37464350", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PERALTA ANGELA", dni: "24787496", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PEREA JONATHAN SEVERO", dni: "37743605", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PEREZ MARIA EUGENIA", dni: "25117472", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PESCHUITTA ROSALBA", dni: "24309942", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PISANI PAOLA", dni: "26606853", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PONCE FARIAS CLAUDIA", dni: "26187121", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "PONCE ROSANA PAOLA", dni: "27091867", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "QUINTEROS ALEXIS", dni: "28885616", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RAMOS CAROLINA", dni: "22868170", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RAMOS GLADYS", dni: "27352728", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RASGUIDO CARLINA", dni: "34040674", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "REALES ERIC", dni: "29972133", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "REARTE RODOLFO", dni: "23389851", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "REYES CINTIA GRACIANA", dni: "32257537", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RIVERO LIA SUSANA", dni: "28995412", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RIVERO LORENA PAOLA", dni: "28309792", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "RODRIGUEZ MARIANA PAOLA", dni: "34129826", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROJAS GRACIELA ANAHI", dni: "30375867", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROJAS CESAR DAVID", dni: "28137616", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO CARMEN", dni: "27665861", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO HEBE", dni: "28917080", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO JUANA MABEL", dni: "14899024", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO RENZO LAUREANO", dni: "30311855", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "ROMERO SOLEDAD DEL VALLE", dni: "29473184", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SALCEDO ANA GABRIELA", dni: "37164881", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SALGUEIRO ADRIANA", dni: "29783790", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SANCHEZ HUGO ARIEL", dni: "25270602", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SECO MARIA LAURA", dni: "31906871", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SEGOBIA OMAR DANIEL", dni: "33385502", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SILVA ERICA", dni: "27496207", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SILVA LILIANA MANUELA", dni: "33993313", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SORIA GRACIELA VERONICA", dni: "29651167", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SORIA SERGIO OMAR", dni: "22219581", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "SOTELO GUSTAVO ARNALDO", dni: "33610052", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "TAPIA SEBASTIAN ERNANDO", dni: "29527485", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "TOLEDO ANAHI NEREA", dni: "32415849", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "TOLOTTI JOHANA JAQUELINE", dni: "32433687", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "USQUEDA IRIS", dni: "28198229", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VANAKERE PABLO CRISTIAN H.", dni: "25541388", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VEGA GORDILLO GIOVANNA E.", dni: "33550496", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VEGA VIVIANA CARLINA", dni: "25117001", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VEGA VIVIANA DEL CARMEN", dni: "29263445", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VEKI CAMILA", dni: "39015612", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VERGARA EUGENIA", dni: "25117848", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VERGARA KATIA NOEMI", dni: "31450930", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VILLACORTA VILVA ANGELICA", dni: "27525546", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VILLACORTA CARMEN YANINA", dni: "27278569", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VILTE VERA NICOLAS ANTONIO", dni: "93760001", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                { nombre: "VIZCARRA MARIA LAURA", dni: "28456146", servicio: "ENFERMERIA", dieta: "GENERAL" },
-                
+        { nombre: "ZARATE VIRGINIA", dni: "30304857", servicio: "KINESIOLOGIA", dieta: "GENERAL" }
     ];
 
-    // ==================== FUNCIÓN AUXILIAR JSONP ====================
+    // ==================== FUNCIONES ====================
     function fetchJsonp(action, params = {}) {
         return new Promise((resolve, reject) => {
-            const callbackName = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            window[callbackName] = function(data) {
-                delete window[callbackName];
-                document.body.removeChild(script);
-                resolve(data);
-            };
-            const query = new URLSearchParams({ ...params, action, callback: callbackName }).toString();
-            const script = document.createElement('script');
-            script.src = API + '?' + query;
-            script.onerror = () => { delete window[callbackName]; reject(new Error('Network error')); };
-            document.body.appendChild(script);
-            setTimeout(() => { if (window[callbackName]) { delete window[callbackName]; reject(new Error('Timeout')); } }, 15000);
+            const cb = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            window[cb] = function(data) { delete window[cb]; document.body.removeChild(s); resolve(data); };
+            const s = document.createElement('script');
+            s.src = API + '?' + new URLSearchParams({ ...params, action, callback: cb }).toString();
+            s.onerror = () => { delete window[cb]; reject(new Error('Error')); };
+            document.body.appendChild(s);
+            setTimeout(() => { if (window[cb]) { delete window[cb]; reject(new Error('Timeout')); } }, 15000);
         });
     }
 
-    // ==================== LOGIN ====================
     function login() {
         const pass = document.getElementById('loginPass').value.trim();
         if (!pass) return;
-        
-        // Buscar en contraseñas locales
         let found = null;
         for (const [servicio, data] of Object.entries(PASSWORDS)) {
-            if (data.pass === pass) {
-                found = { servicio, tipo: data.tipo };
-                break;
-            }
+            if (data.pass === pass) { found = { servicio, tipo: data.tipo }; break; }
         }
-        
-        if (!found) {
-            document.getElementById('loginError').innerText = '❌ Contraseña incorrecta';
-            return;
-        }
+        if (!found) { document.getElementById('loginError').innerText = '❌ Contraseña incorrecta'; return; }
         
         currentUser = found;
+        localStorage.setItem('hisjb_user', JSON.stringify(found));
+        localStorage.setItem('hisjb_time', Date.now());
         
         if (found.tipo === 'admin') {
             document.getElementById('loginScreen').classList.add('hidden');
@@ -819,13 +496,8 @@
         document.getElementById('userTipo').innerText = found.tipo === 'supervisor' ? '🔓 SUPERVISOR' : '👤 USUARIO';
         document.getElementById('servicio').value = found.servicio;
         
-        if (found.tipo === 'supervisor') {
-            personalServicio = [...PERSONAL];
-            document.getElementById('supervisorSection').classList.remove('hidden');
-        } else {
-            personalServicio = PERSONAL.filter(p => p.servicio.toUpperCase() === found.servicio.toUpperCase());
-            document.getElementById('supervisorSection').classList.add('hidden');
-        }
+        personalServicio = found.tipo === 'supervisor' ? [...PERSONAL] : PERSONAL.filter(p => p.servicio.toUpperCase() === found.servicio.toUpperCase());
+        document.getElementById('supervisorSection').classList.toggle('hidden', found.tipo !== 'supervisor');
         
         console.log('✅ Personal cargado:', personalServicio.length, 'personas para', found.servicio);
         inicializarPanel();
@@ -834,6 +506,8 @@
     function logout() {
         currentUser = null;
         personalServicio = [];
+        localStorage.removeItem('hisjb_user');
+        localStorage.removeItem('hisjb_time');
         document.getElementById('loginScreen').classList.remove('hidden');
         document.getElementById('mainScreen').classList.add('hidden');
         document.getElementById('adminScreen').classList.add('hidden');
@@ -841,109 +515,79 @@
         document.getElementById('loginError').innerText = '';
     }
 
-    document.getElementById('loginPass').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') login();
-    });
+    function nuevaCarga() {
+        document.getElementById('resultado').style.display = 'none';
+        document.getElementById('formCard').style.display = 'block';
+        document.getElementById('codigoContainer').innerHTML = '<h1 id="codigoDisplay" style="font-size: 4rem; color: var(--green); margin: 15px 0; letter-spacing: 5px;">----</h1>';
+        document.getElementById('nombre').value = '';
+        document.getElementById('dni').value = '';
+        document.getElementById('buscarInput').value = '';
+        document.getElementById('continuarCarga').style.display = 'none';
+        document.getElementById('formCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
-    // ==================== PANEL PRINCIPAL ====================
+    document.getElementById('loginPass').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+
     function inicializarPanel() {
         document.getElementById('txtTurno').innerText = turnoActual === "MAÑANA" ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
         validarMenu();
     }
 
     function cambioGuardia() {
-        const guardia = document.getElementById('guardia').value;
-        document.getElementById('comida16').style.display = guardia === '16' ? 'block' : 'none';
-        document.getElementById('info24').style.display = guardia === '24' ? 'block' : 'none';
-        comidaSeleccionada = guardia === '24' ? 'AMBAS' : null;
+        const g = document.getElementById('guardia').value;
+        document.getElementById('comida16').style.display = g === '16' ? 'block' : 'none';
+        document.getElementById('info24').style.display = g === '24' ? 'block' : 'none';
+        comidaSeleccionada = g === '24' ? 'AMBAS' : null;
     }
 
     async function validarMenu() {
-        const box = document.getElementById('statusBox');
-        const menuInfo = document.getElementById('menuInfo');
-        box.innerText = "🔄 CONSULTANDO DISPONIBILIDAD...";
-        box.className = "status cargando";
-        
+        const box = document.getElementById('statusBox'), info = document.getElementById('menuInfo');
+        box.innerText = "🔄 CONSULTANDO..."; box.className = "status cargando";
         try {
             const data = await fetchJsonp('obtener_menu', { turno: turnoActual });
             if (data.disponible && data.datos.length > 0) {
                 menuDataGlobal = data.datos[0];
-                box.innerText = "✅ MENÚ PUBLICADO - PEDIDOS HABILITADOS";
-                box.className = "status disponible";
-                menuInfo.innerHTML = `🍲 HOY: <strong>${menuDataGlobal.platoPrincipal || 'Menú del día'}</strong>`;
-                if (menuDataGlobal.postre) {
-                    document.getElementById('postreTexto').innerText = menuDataGlobal.postre;
-                    document.getElementById('postreInfo').style.display = 'block';
-                }
+                box.innerText = "✅ MENÚ PUBLICADO"; box.className = "status disponible";
+                info.innerHTML = `🍲 HOY: <strong>${menuDataGlobal.platoPrincipal || 'Menú del día'}</strong>`;
+                if (menuDataGlobal.postre) { document.getElementById('postreTexto').innerText = menuDataGlobal.postre; document.getElementById('postreInfo').style.display = 'block'; }
                 document.getElementById('camposPersonal').style.display = 'block';
             } else {
-                box.innerText = "⏳ MENÚ EN PREPARACIÓN";
-                box.className = "status cargando";
-                menuInfo.innerHTML = "El equipo de nutrición está preparando el menú.";
+                box.innerText = "⏳ MENÚ EN PREPARACIÓN"; box.className = "status cargando";
+                info.innerHTML = "El equipo de nutrición está preparando el menú.";
                 document.getElementById('camposPersonal').style.display = 'none';
             }
-        } catch (e) {
-            box.innerText = "⚠️ ERROR DE CONEXIÓN";
-            box.className = "status cargando";
-        }
+        } catch (e) { box.innerText = "⚠️ ERROR"; box.className = "status cargando"; }
     }
 
-    // ==================== AUTOCOMPLETADO ====================
     function buscarPersonal() {
-        const input = document.getElementById('buscarInput');
-        const lista = document.getElementById('autocompleteList');
+        const input = document.getElementById('buscarInput'), lista = document.getElementById('autocompleteList');
         const query = input.value.toUpperCase().trim();
-        
         if (query.length < 2) { lista.classList.remove('show'); return; }
-        
         const filtrados = personalServicio.filter(p => p.nombre.includes(query) || p.dni.includes(query));
-        
         if (filtrados.length === 0) { lista.classList.remove('show'); return; }
-        
-        lista.innerHTML = filtrados.slice(0, 10).map(p => `
-            <div class="autocomplete-item" onclick="seleccionarPersona('${p.dni}')">
-                <strong>${p.nombre}</strong> | DNI: ${p.dni} | 🍽️ ${p.dieta}
-            </div>
-        `).join('');
+        lista.innerHTML = filtrados.slice(0, 10).map(p => `<div class="autocomplete-item" onclick="seleccionarPersona('${p.dni}')"><strong>${p.nombre}</strong> | DNI: ${p.dni} | 🍽️ ${p.dieta}</div>`).join('');
         lista.classList.add('show');
     }
 
     function seleccionarPersona(dni) {
-        const persona = personalServicio.find(p => p.dni === dni);
-        if (persona) {
-            document.getElementById('nombre').value = persona.nombre;
-            document.getElementById('dni').value = persona.dni;
-            document.getElementById('dieta').value = persona.dieta;
-            document.getElementById('buscarInput').value = '';
-            document.getElementById('autocompleteList').classList.remove('show');
-        }
+        const p = personalServicio.find(x => x.dni === dni);
+        if (p) { document.getElementById('nombre').value = p.nombre; document.getElementById('dni').value = p.dni; document.getElementById('dieta').value = p.dieta; document.getElementById('buscarInput').value = ''; document.getElementById('autocompleteList').classList.remove('show'); }
     }
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.autocomplete-wrapper')) {
-            document.getElementById('autocompleteList').classList.remove('show');
-            const superList = document.getElementById('superAutocomplete');
-            if (superList) superList.classList.remove('show');
-        }
-    });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.autocomplete-wrapper')) { document.getElementById('autocompleteList').classList.remove('show'); const sl = document.getElementById('superAutocomplete'); if (sl) sl.classList.remove('show'); } });
 
-    // ==================== SOLICITAR COMIDA ====================
     async function solicitarComida() {
         const nombre = document.getElementById('nombre').value.trim().toUpperCase();
         const dni = document.getElementById('dni').value.trim();
         const servicio = document.getElementById('servicio').value;
         const guardia = document.getElementById('guardia').value;
-        const errorDiv = document.getElementById('errorMensaje');
+        const err = document.getElementById('errorMensaje');
+        err.innerText = '';
+        if (!nombre) { err.innerText = '❌ Ingrese nombre y apellido'; return; }
+        if (!dni || dni.length < 7) { err.innerText = '❌ Ingrese DNI válido'; return; }
+        if (guardia === '16' && !comidaSeleccionada) { err.innerText = '❌ Seleccione Almuerzo o Cena'; return; }
         
-        errorDiv.innerText = '';
-        if (!nombre) { errorDiv.innerText = '❌ Ingrese nombre y apellido'; return; }
-        if (!dni || dni.length < 7) { errorDiv.innerText = '❌ Ingrese DNI válido'; return; }
-        if (guardia === '16' && !comidaSeleccionada) { errorDiv.innerText = '❌ Seleccione Almuerzo o Cena'; return; }
-        
-        const btn = document.getElementById('btnAccion');
-        btn.disabled = true;
-        btn.innerText = "⏳ PROCESANDO...";
-        
+        const btn = document.getElementById('btnAccion'); btn.disabled = true; btn.innerText = "⏳ PROCESANDO...";
         const dieta = document.getElementById('dieta').value;
         const codigo = Math.random().toString(36).substring(2, 6).toUpperCase();
         const codigo2 = guardia === '24' ? Math.random().toString(36).substring(2, 6).toUpperCase() : '';
@@ -951,246 +595,115 @@
         const turnoEnvio = guardia === '16' ? (document.getElementById('comidaElegida').value === 'ALMUERZO' ? 'MAÑANA' : 'NOCHE') : turnoActual;
         
         try {
-            const resp = await fetchJsonp('generar_codigo', {
-                nombre, dni, servicio, guardia, dieta, turno: turnoEnvio,
-                tipoComida, codigo, codigo2, tipo: currentUser.tipo === 'supervisor' ? 'SUPERVISOR' : 'WEB'
-            });
-            
+            const resp = await fetchJsonp('generar_codigo', { nombre, dni, servicio, guardia, dieta, turno: turnoEnvio, tipoComida, codigo, codigo2, tipo: currentUser.tipo === 'supervisor' ? 'SUPERVISOR' : 'WEB' });
             if (resp.status === 'success') {
-                document.getElementById('formCard').style.display = 'none';
                 document.getElementById('codigoDisplay').innerText = codigo;
-                if (codigo2) {
-                    document.getElementById('codigoContainer').innerHTML = `
-                        <p>🌅 ALMUERZO: <strong style="font-size: 2rem; color: var(--green);">${codigo}</strong></p>
-                        <p>🌙 CENA: <strong style="font-size: 2rem; color: var(--green);">${codigo2}</strong></p>
-                    `;
-                }
+                if (codigo2) document.getElementById('codigoContainer').innerHTML = `<p>🌅 ALMUERZO: <strong style="font-size:2rem;color:var(--green);">${codigo}</strong></p><p>🌙 CENA: <strong style="font-size:2rem;color:var(--green);">${codigo2}</strong></p>`;
                 document.getElementById('infoAdicional').innerHTML = `🏥 ${servicio} | ⏱️ ${guardia}hs | 🍽️ ${dieta}`;
                 document.getElementById('resultado').style.display = 'block';
-            } else {
-                errorDiv.innerText = '❌ Error: ' + (resp.message || 'Intente nuevamente');
-                btn.disabled = false;
-                btn.innerText = "🍴 SOLICITAR VIANDA";
-            }
-        } catch (e) {
-            errorDiv.innerText = '❌ Error de conexión';
-            btn.disabled = false;
-            btn.innerText = "🍴 SOLICITAR VIANDA";
-        }
+                document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.getElementById('nombre').value = ''; document.getElementById('dni').value = ''; document.getElementById('buscarInput').value = '';
+                document.getElementById('continuarCarga').style.display = 'block';
+                btn.disabled = false; btn.innerText = "🍴 SOLICITAR VIANDA";
+            } else { err.innerText = '❌ Error: ' + (resp.message || 'Intente nuevamente'); btn.disabled = false; btn.innerText = "🍴 SOLICITAR VIANDA"; }
+        } catch (e) { err.innerText = '❌ Error de conexión'; btn.disabled = false; btn.innerText = "🍴 SOLICITAR VIANDA"; }
     }
 
     // ==================== SUPERVISOR ====================
-    function abrirModalSupervisor() {
-        document.getElementById('modalSupervisor').style.display = 'flex';
-        superLista = [];
-        actualizarSuperLista();
-        cargarServiciosSuperLocal();
-    }
-
-    function cerrarModalSuper() {
-        document.getElementById('modalSupervisor').style.display = 'none';
-        superLista = [];
-    }
-
-    function cargarServiciosSuperLocal() {
-        const servicios = [...new Set(PERSONAL.map(p => p.servicio))].sort();
-        const select = document.getElementById('superManualServicio');
-        select.innerHTML = '<option value="">SELECCIONE SERVICIO</option>' + 
-            servicios.map(s => `<option value="${s}">${s}</option>`).join('');
-    }
-
+    function abrirModalSupervisor() { document.getElementById('modalSupervisor').style.display = 'flex'; superLista = []; actualizarSuperLista(); cargarServiciosSuperLocal(); }
+    function cerrarModalSuper() { document.getElementById('modalSupervisor').style.display = 'none'; superLista = []; }
+    function cargarServiciosSuperLocal() { const servicios = [...new Set(PERSONAL.map(p => p.servicio))].sort(); document.getElementById('superManualServicio').innerHTML = '<option value="">SELECCIONE SERVICIO</option>' + servicios.map(s => `<option value="${s}">${s}</option>`).join(''); }
     function buscarSuperPersonal() {
-        const input = document.getElementById('superBuscar');
-        const lista = document.getElementById('superAutocomplete');
-        const query = input.value.toUpperCase().trim();
-        
+        const input = document.getElementById('superBuscar'), lista = document.getElementById('superAutocomplete'), query = input.value.toUpperCase().trim();
         if (query.length < 2) { lista.classList.remove('show'); return; }
-        
-        const filtrados = PERSONAL.filter(p => 
-            !superLista.some(s => s.dni === p.dni) && 
-            (p.nombre.includes(query) || p.dni.includes(query))
-        );
-        
+        const filtrados = PERSONAL.filter(p => !superLista.some(s => s.dni === p.dni) && (p.nombre.includes(query) || p.dni.includes(query)));
         if (filtrados.length === 0) { lista.classList.remove('show'); return; }
-        
-        lista.innerHTML = filtrados.slice(0, 8).map(p => `
-            <div class="autocomplete-item" onclick="agregarASuperLista('${p.dni}','${p.nombre.replace(/'/g,"\\'")}','${p.servicio}','${p.dieta}')">
-                <strong>${p.nombre}</strong> | DNI: ${p.dni} | 🏥 ${p.servicio} | 🍽️ ${p.dieta}
-            </div>
-        `).join('');
+        lista.innerHTML = filtrados.slice(0, 8).map(p => `<div class="autocomplete-item" onclick="agregarASuperLista('${p.dni}','${p.nombre.replace(/'/g,"\\'")}','${p.servicio}','${p.dieta}')"><strong>${p.nombre}</strong> | DNI: ${p.dni} | 🏥 ${p.servicio} | 🍽️ ${p.dieta}</div>`).join('');
         lista.classList.add('show');
     }
-
-    function agregarASuperLista(dni, nombre, servicio, dieta) {
-        if (superLista.some(s => s.dni === dni)) return;
-        superLista.push({ dni, nombre, servicio, dieta });
-        actualizarSuperLista();
-        document.getElementById('superBuscar').value = '';
-        document.getElementById('superAutocomplete').classList.remove('show');
-    }
-
+    function agregarASuperLista(dni, nombre, servicio, dieta) { if (superLista.some(s => s.dni === dni)) return; superLista.push({ dni, nombre, servicio, dieta }); actualizarSuperLista(); document.getElementById('superBuscar').value = ''; document.getElementById('superAutocomplete').classList.remove('show'); }
     function agregarManualSuper() {
-        const nombre = document.getElementById('superManualNombre').value.trim().toUpperCase();
-        const dni = document.getElementById('superManualDni').value.trim();
-        const servicio = document.getElementById('superManualServicio').value;
-        if (!nombre || !dni || !servicio) { alert('Complete todos los campos'); return; }
-        if (superLista.some(s => s.dni === dni)) { alert('DNI ya en lista'); return; }
-        superLista.push({ dni, nombre, servicio, dieta: 'GENERAL' });
-        actualizarSuperLista();
-        document.getElementById('superManualNombre').value = '';
-        document.getElementById('superManualDni').value = '';
+        const n = document.getElementById('superManualNombre').value.trim().toUpperCase(), d = document.getElementById('superManualDni').value.trim(), srv = document.getElementById('superManualServicio').value;
+        if (!n || !d || !srv) { alert('Complete todos los campos'); return; }
+        if (superLista.some(s => s.dni === d)) { alert('DNI ya en lista'); return; }
+        superLista.push({ dni: d, nombre: n, servicio: srv, dieta: 'GENERAL' }); actualizarSuperLista();
+        document.getElementById('superManualNombre').value = ''; document.getElementById('superManualDni').value = '';
     }
-
     function actualizarSuperLista() {
-        const container = document.getElementById('superSelected');
-        document.getElementById('superContador').innerText = superLista.length;
-        if (superLista.length === 0) {
-            container.innerHTML = '<span style="color: #999;">👆 Busque y seleccione personal</span>';
-            return;
-        }
-        container.innerHTML = superLista.map(p => `
-            <span class="selected-item">
-                ${p.nombre} (${p.servicio})
-                <span class="remove" onclick="removerDeSuperLista('${p.dni}')">✕</span>
-            </span>
-        `).join('');
+        const c = document.getElementById('superSelected'); document.getElementById('superContador').innerText = superLista.length;
+        c.innerHTML = superLista.length === 0 ? '<span style="color:#999;">👆 Busque y seleccione personal</span>' : superLista.map(p => `<span class="selected-item">${p.nombre} (${p.servicio}) <span class="remove" onclick="removerDeSuperLista('${p.dni}')">✕</span></span>`).join('');
     }
-
-    function removerDeSuperLista(dni) {
-        superLista = superLista.filter(p => p.dni !== dni);
-        actualizarSuperLista();
-    }
-
-    function limpiarSuperLista() {
-        if (!confirm('¿Limpiar toda la lista?')) return;
-        superLista = [];
-        actualizarSuperLista();
-    }
-
+    function removerDeSuperLista(dni) { superLista = superLista.filter(p => p.dni !== dni); actualizarSuperLista(); }
+    function limpiarSuperLista() { if (!confirm('¿Limpiar toda la lista?')) return; superLista = []; actualizarSuperLista(); }
     function cargarServicioCompletoSuper() {
         const servicios = [...new Set(PERSONAL.map(p => p.servicio))].sort();
         const servicio = prompt('Ingrese el nombre del servicio:\n\n' + servicios.join('\n'));
         if (!servicio) return;
-        
         const personas = PERSONAL.filter(p => p.servicio.toUpperCase().includes(servicio.toUpperCase().trim()));
         if (personas.length === 0) { alert('Servicio no encontrado'); return; }
-        
-        personas.forEach(p => {
-            if (!superLista.some(s => s.dni === p.dni)) superLista.push({...p});
-        });
+        personas.forEach(p => { if (!superLista.some(s => s.dni === p.dni)) superLista.push({...p}); });
         actualizarSuperLista();
     }
-
     async function procesarCargaSuper() {
         if (superLista.length === 0) { document.getElementById('superMensaje').innerText = '❌ Lista vacía'; return; }
-        
-        const turno = document.getElementById('superTurno').value;
-        const dieta = document.getElementById('superDieta').value;
-        const guardia = document.getElementById('superGuardia').value;
-        
+        const turno = document.getElementById('superTurno').value, dieta = document.getElementById('superDieta').value, guardia = document.getElementById('superGuardia').value;
         if (!confirm(`¿Procesar ${superLista.length} personas?\nTurno: ${turno}\nDieta: ${dieta}\nGuardia: ${guardia}hs`)) return;
-        
-        let ok = 0, err = 0;
-        document.getElementById('superMensaje').innerText = '⏳ Procesando...';
-        
+        let ok = 0, err = 0; document.getElementById('superMensaje').innerText = '⏳ Procesando...';
         for (const p of superLista) {
-            try {
-                const codigo = Math.random().toString(36).substring(2, 6).toUpperCase();
-                await fetchJsonp('generar_codigo', {
-                    nombre: p.nombre, dni: p.dni, servicio: p.servicio,
-                    guardia, dieta: p.dieta === 'CELIACA' ? 'CELIACA' : dieta,
-                    turno, codigo, tipoComida: 'TURNO', tipo: 'SUPERVISOR'
-                });
-                ok++;
-            } catch (e) { err++; }
+            try { const codigo = Math.random().toString(36).substring(2,6).toUpperCase(); await fetchJsonp('generar_codigo', { nombre: p.nombre, dni: p.dni, servicio: p.servicio, guardia, dieta: p.dieta === 'CELIACA' ? 'CELIACA' : dieta, turno, codigo, tipoComida: 'TURNO', tipo: 'SUPERVISOR' }); ok++; } catch (e) { err++; }
             await new Promise(r => setTimeout(r, 200));
         }
-        
         document.getElementById('superMensaje').innerText = `✅ ${ok} registrados${err ? ' | ❌ ' + err + ' errores' : ''}`;
         if (err === 0) { superLista = []; actualizarSuperLista(); }
     }
 
-    // ==================== ADMIN LOCAL ====================
+    // ==================== ADMIN ====================
     function cargarAdminPanelLocal() {
-        const list = document.getElementById('adminServiciosList');
         const servicios = Object.entries(PASSWORDS).filter(([s]) => s !== 'ADMIN');
-        
-        list.innerHTML = '<table style="width:100%; font-size:0.85rem;"><tr><th>Servicio</th><th>Contraseña</th><th>Tipo</th></tr>' +
-            servicios.map(([s, d]) => `
-                <tr>
-                    <td>${s}</td>
-                    <td>${d.pass}</td>
-                    <td>${d.tipo}</td>
-                </tr>
-            `).join('') + '</table>';
-        
-        const select = document.getElementById('adminNewServicioPersonal');
-        select.innerHTML = '<option value="">SELECCIONE</option>' + 
-            servicios.map(([s]) => `<option value="${s}">${s}</option>`).join('');
+        document.getElementById('adminServiciosList').innerHTML = '<table style="width:100%;font-size:0.85rem;"><tr><th>Servicio</th><th>Contraseña</th><th>Tipo</th></tr>' + servicios.map(([s,d]) => `<tr><td>${s}</td><td>${d.pass}</td><td>${d.tipo}</td></tr>`).join('') + '</table>';
+        document.getElementById('adminNewServicioPersonal').innerHTML = '<option value="">SELECCIONE</option>' + servicios.map(([s]) => `<option value="${s}">${s}</option>`).join('');
     }
-
     function adminAgregarServicio() {
-        const servicio = document.getElementById('adminNewServicio').value.trim().toUpperCase();
-        const password = document.getElementById('adminNewPass').value.trim();
-        const tipo = document.getElementById('adminNewTipo').value;
-        if (!servicio || !password) { document.getElementById('adminServicioMsg').innerText = '❌ Complete todos los campos'; return; }
-        
-        PASSWORDS[servicio] = { pass: password, tipo };
-        document.getElementById('adminServicioMsg').innerText = '✅ Servicio agregado (local)';
-        document.getElementById('adminNewServicio').value = '';
-        document.getElementById('adminNewPass').value = '';
-        cargarAdminPanelLocal();
+        const s = document.getElementById('adminNewServicio').value.trim().toUpperCase(), p = document.getElementById('adminNewPass').value.trim(), t = document.getElementById('adminNewTipo').value;
+        if (!s || !p) { document.getElementById('adminServicioMsg').innerText = '❌ Complete todos los campos'; return; }
+        PASSWORDS[s] = { pass: p, tipo: t }; document.getElementById('adminServicioMsg').innerText = '✅ Servicio agregado';
+        document.getElementById('adminNewServicio').value = ''; document.getElementById('adminNewPass').value = ''; cargarAdminPanelLocal();
     }
-
     function adminAgregarPersonal() {
-        const nombre = document.getElementById('adminNewNombre').value.trim().toUpperCase();
-        const dni = document.getElementById('adminNewDni').value.trim();
-        const servicio = document.getElementById('adminNewServicioPersonal').value;
-        const dieta = document.getElementById('adminNewDieta').value;
-        
-        if (!nombre || !dni || !servicio) {
-            document.getElementById('adminPersonalMsg').innerText = '❌ Complete todos los campos';
-            return;
-        }
-        
-        if (PERSONAL.some(p => p.dni === dni)) {
-            document.getElementById('adminPersonalMsg').innerText = '❌ DNI ya existe';
-            return;
-        }
-        
-        PERSONAL.push({ nombre, dni, servicio, dieta });
-        document.getElementById('adminPersonalMsg').innerText = `✅ ${nombre} agregado a ${servicio}`;
-        document.getElementById('adminNewNombre').value = '';
-        document.getElementById('adminNewDni').value = '';
+        const n = document.getElementById('adminNewNombre').value.trim().toUpperCase(), d = document.getElementById('adminNewDni').value.trim(), srv = document.getElementById('adminNewServicioPersonal').value, die = document.getElementById('adminNewDieta').value;
+        if (!n || !d || !srv) { document.getElementById('adminPersonalMsg').innerText = '❌ Complete todos los campos'; return; }
+        if (PERSONAL.some(p => p.dni === d)) { document.getElementById('adminPersonalMsg').innerText = '❌ DNI ya existe'; return; }
+        PERSONAL.push({ nombre: n, dni: d, servicio: srv, dieta: die }); document.getElementById('adminPersonalMsg').innerText = `✅ ${n} agregado a ${srv}`;
+        document.getElementById('adminNewNombre').value = ''; document.getElementById('adminNewDni').value = '';
     }
-
-    function volverAlPanel() {
-        document.getElementById('adminScreen').classList.add('hidden');
-        document.getElementById('mainScreen').classList.remove('hidden');
-    }
+    function volverAlPanel() { document.getElementById('adminScreen').classList.add('hidden'); document.getElementById('mainScreen').classList.remove('hidden'); }
 
     // ==================== INICIALIZACIÓN ====================
     document.getElementById('loginPass').focus();
     
+    // Auto-login si hay sesión guardada
+    if (currentUser) {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainScreen').classList.remove('hidden');
+        document.getElementById('userServicio').innerText = currentUser.servicio;
+        document.getElementById('userTipo').innerText = currentUser.tipo === 'supervisor' ? '🔓 SUPERVISOR' : '👤 USUARIO';
+        document.getElementById('servicio').value = currentUser.servicio;
+        personalServicio = currentUser.tipo === 'supervisor' ? [...PERSONAL] : PERSONAL.filter(p => p.servicio.toUpperCase() === currentUser.servicio.toUpperCase());
+        document.getElementById('supervisorSection').classList.toggle('hidden', currentUser.tipo !== 'supervisor');
+        console.log('✅ Sesión restaurada:', currentUser.servicio, '-', personalServicio.length, 'personas');
+        inicializarPanel();
+    }
+    
     // Exponer funciones globales
-    window.login = login;
-    window.logout = logout;
-    window.solicitarComida = solicitarComida;
-    window.cambioGuardia = cambioGuardia;
-    window.buscarPersonal = buscarPersonal;
-    window.seleccionarPersona = seleccionarPersona;
-    window.abrirModalSupervisor = abrirModalSupervisor;
-    window.cerrarModalSuper = cerrarModalSuper;
-    window.buscarSuperPersonal = buscarSuperPersonal;
-    window.agregarASuperLista = agregarASuperLista;
-    window.agregarManualSuper = agregarManualSuper;
-    window.removerDeSuperLista = removerDeSuperLista;
-    window.limpiarSuperLista = limpiarSuperLista;
-    window.cargarServicioCompletoSuper = cargarServicioCompletoSuper;
-    window.procesarCargaSuper = procesarCargaSuper;
-    window.adminAgregarServicio = adminAgregarServicio;
-    window.adminAgregarPersonal = adminAgregarPersonal;
-    window.volverAlPanel = volverAlPanel;
+    window.login = login; window.logout = logout; window.nuevaCarga = nuevaCarga;
+    window.solicitarComida = solicitarComida; window.cambioGuardia = cambioGuardia;
+    window.buscarPersonal = buscarPersonal; window.seleccionarPersona = seleccionarPersona;
+    window.abrirModalSupervisor = abrirModalSupervisor; window.cerrarModalSuper = cerrarModalSuper;
+    window.buscarSuperPersonal = buscarSuperPersonal; window.agregarASuperLista = agregarASuperLista;
+    window.agregarManualSuper = agregarManualSuper; window.removerDeSuperLista = removerDeSuperLista;
+    window.limpiarSuperLista = limpiarSuperLista; window.cargarServicioCompletoSuper = cargarServicioCompletoSuper;
+    window.procesarCargaSuper = procesarCargaSuper; window.adminAgregarServicio = adminAgregarServicio;
+    window.adminAgregarPersonal = adminAgregarPersonal; window.volverAlPanel = volverAlPanel;
 </script>
 </body>
 </html>
