@@ -737,6 +737,25 @@
 { nombre: "VILLACORTA CARMEN YANINA", dni: "27278569", servicio: "ENFERMERIA", dieta: "GENERAL" },
 { nombre: "VILTE VERA NICOLAS ANTONIO", dni: "93760001", servicio: "ENFERMERIA", dieta: "GENERAL" },
 { nombre: "VIZCARRA MARIA LAURA", dni: "28456146", servicio: "ENFERMERIA", dieta: "GENERAL" },
+        { nombre: "MALDONADO MARCELO", dni: "24605146", servicio: "ENFERMERIA", dieta: "GENERAL" },
+        { nombre: "BARRIONUEVO MARCELO", dni: "35390576", servicio: "ENFERMERIA", dieta: "GENERAL" },
+        // CAMILLEROS
+{ nombre: "AVELLANEDA MARIANO", dni: "37089790", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "BARRIONUEVO FABIAN", dni: "21682413", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "BARRIONUEVO SERGIO", dni: "32027998", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "BURGOS LUIS", dni: "33758648", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "FABIAN JORGE", dni: "20512278", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "GUTIERREZ FERNANDO", dni: "31450892", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "NARVAEZ YONATHAN", dni: "38202583", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "OVEJERO ALEJANDRO", dni: "20588370", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "PACHECO CESAR", dni: "33550472", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "PAEZ DIEGO NICOLAS", dni: "35500514", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "PAEZ MARCELO", dni: "33550197", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "QUISPE CARLOS", dni: "23030287", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "RIVERA CESAR", dni: "30949960", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "RODAS SERGIO", dni: "23309500", servicio: "CAMILLEROS", dieta: "GENERAL" },
+{ nombre: "VARGAS JEREMIAS", dni: "35269013", servicio: "CAMILLEROS", dieta: "GENERAL" },
+        
 
        // CIRUGIA GENERAL
 { nombre: "MACISZONEK DANIEL", dni: "", servicio: "CIRUGIA GENERAL", dieta: "GENERAL" },
@@ -832,11 +851,49 @@
 
     document.getElementById('loginPass').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
 
-    function inicializarPanel() {
-        document.getElementById('txtTurno').innerText = turnoActual === "MAÑANA" ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
-        validarMenu();
+   function inicializarPanel() {
+    document.getElementById('txtTurno').innerText = turnoActual === "MAÑANA" ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
+    validarMenu();
+    
+    // Agregar evento para cuando cambie la dieta
+    document.getElementById('dieta').addEventListener('change', actualizarDescripcionDieta);
+}
+function actualizarDescripcionDieta() {
+    const descripcionSpan = document.getElementById('descripcionDieta');
+    
+    if (!menuDataGlobal) {
+        descripcionSpan.innerText = 'Menú no cargado';
+        return;
     }
-
+    
+    try {
+        let dietasObj = {};
+        if (menuDataGlobal.dietas && typeof menuDataGlobal.dietas === 'string') {
+            dietasObj = JSON.parse(menuDataGlobal.dietas);
+        }
+        
+        const dietaSeleccionada = document.getElementById('dieta').value;
+        let descripcion = dietasObj[dietaSeleccionada] || menuDataGlobal.platoPrincipal || 'Menú del día';
+        
+        const platoBase = menuDataGlobal.platoPrincipal || '';
+        descripcionSpan.innerHTML = `<strong>🍲 Plato:</strong> ${platoBase}<br>`;
+        
+        if (dietaSeleccionada !== 'GENERAL' && dietasObj[dietaSeleccionada]) {
+            descripcionSpan.innerHTML += `<strong>📝 Adaptación ${dietaSeleccionada}:</strong> ${descripcion}`;
+        } else {
+            descripcionSpan.innerHTML += `<strong>📝 ${dietaSeleccionada}:</strong> ${descripcion}`;
+        }
+        
+        // Mostrar postre si existe
+        if (menuDataGlobal.postre) {
+            descripcionSpan.innerHTML += `<br><strong>🍰 Postre:</strong> ${menuDataGlobal.postre}`;
+        }
+        
+    } catch (e) {
+        console.error('Error al mostrar dietas:', e);
+        descripcionSpan.innerText = menuDataGlobal.platoPrincipal || 'Menú del día';
+    }
+}
     function cambioGuardia() {
         const g = document.getElementById('guardia').value;
         document.getElementById('comida16').style.display = g === '16' ? 'block' : 'none';
