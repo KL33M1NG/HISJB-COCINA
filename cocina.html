@@ -183,12 +183,15 @@
 <div class="modal-overlay" id="modalCarga">
     <div class="modal">
         <h2>➕ CARGAR PERSONAL</h2>
-        <label>👤 APELLIDO Y NOMBRE *</label><input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
-        <label>🆔 DNI *</label><input type="number" id="modalDni" placeholder="SIN PUNTOS">
+        <label>👤 APELLIDO Y NOMBRE *</label>
+        <input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
+        
+        <label>🆔 DNI *</label>
+        <input type="number" id="modalDni" placeholder="SIN PUNTOS">
+        
         <label>🏥 SERVICIO *</label>
         <select id="modalServicio">
             <option value="" disabled selected>SELECCIONE SERVICIO</option>
-            <select id="modalServicio">
             <option value="CAMILLEROS">CAMILLEROS</option>
             <option value="CHOFERES">CHOFERES</option>
             <option value="CIRUGIA GENERAL">CIRUGIA GENERAL</option>
@@ -221,10 +224,29 @@
             <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
             <option value="UTI I">UTI I</option>
             <option value="UTI II">UTI II</option>
-                </select>
-        <label>⏱️ GUARDIA *</label><select id="modalGuardia"><option value="12">12 HORAS</option><option value="16">16 HORAS</option><option value="20">20 HORAS</option><option value="24">24 HORAS</option></select>
-        <label>🍽️ DIETA *</label><select id="modalDieta"><option value="GENERAL">GENERAL</option><option value="HIPOSÓDICA">HIPOSÓDICA</option><option value="DIABÉTICA">DIABÉTICA</option><option value="CELIACA">CELIACA</option><option value="GÁSTRICA">GÁSTRICA</option></select>
-        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;"><button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button><button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button></div>
+        </select>
+        
+        <label>⏱️ GUARDIA *</label>
+        <select id="modalGuardia">
+            <option value="12">12 HORAS</option>
+            <option value="16">16 HORAS</option>
+            <option value="20">20 HORAS</option>
+            <option value="24">24 HORAS</option>
+        </select>
+        
+        <label>🍽️ DIETA *</label>
+        <select id="modalDieta">
+            <option value="GENERAL">GENERAL</option>
+            <option value="HIPOSÓDICA">HIPOSÓDICA</option>
+            <option value="DIABÉTICA">DIABÉTICA</option>
+            <option value="CELIACA">CELIACA</option>
+            <option value="GÁSTRICA">GÁSTRICA</option>
+        </select>
+        
+        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;">
+            <button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button>
+            <button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button>
+        </div>
         <div id="mensajeModal" class="mensaje" style="display: none; margin-top: 12px;"></div>
     </div>
 </div>
