@@ -9,6 +9,7 @@
             --blue: #0056b3; --blue-dark: #003d7a; --green: #28a745; --green-dark: #1e7e34;
             --red: #dc3545; --red-dark: #b02a37; --orange: #e67e22; --gray: #f4f7f6; 
             --white: #ffffff; --dark: #2c3e50; --border: #dee2e6; --shadow: 0 2px 10px rgba(0,0,0,0.06);
+            --purple: #6f42c1;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
@@ -32,9 +33,8 @@
         .turno-badge { background: var(--blue); color: white; padding: 8px 18px; border-radius: 50px; font-weight: bold; font-size: 0.95rem; white-space: nowrap; }
         .turno-info { color: var(--dark); font-size: 0.8rem; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         
-        /* Panel de Menú del Día */
         .menu-dia-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 5px; }
-        .menu-dia-card { padding: 18px; border-radius: 12px; text-align: center; border: 3px solid var(--border); transition: all 0.3s; }
+        .menu-dia-card { padding: 18px; border-radius: 12px; text-align: center; border: 3px solid var(--border); }
         .menu-dia-card.publicado { border-color: var(--green); background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); }
         .menu-dia-card.no-publicado { border-color: var(--red); background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); }
         .menu-dia-card .menu-turno { font-size: 1.2rem; font-weight: bold; color: var(--blue); margin-bottom: 10px; }
@@ -77,8 +77,10 @@
         .badge-dieta { background: var(--blue); color: white; }
         .badge-dieta-especial { background: var(--orange); color: white; }
         .badge-guardia { background: var(--orange); color: white; }
+        .badge-guardia-24 { background: var(--purple); color: white; }
         .badge-servicio { background: #6c757d; color: white; }
         .badge-comida { background: var(--green); color: white; }
+        .badge-comida-24 { background: var(--purple); color: white; }
         .badge-celiaca { background: #e74c3c; color: white; }
         .codigo-cell { font-size: 0.95rem; font-weight: bold; color: var(--blue); letter-spacing: 1px; }
         .empty-state { text-align: center; padding: 30px 15px; color: #999; }
@@ -113,14 +115,12 @@
 </header>
 <div class="main-content">
     <div class="container">
-        <!-- BARRA DE TURNO -->
         <div class="turno-bar">
             <span class="turno-badge" id="turnoBadge">🍽️ CARGANDO...</span>
             <span class="turno-info">📅 <span id="fechaActual"></span> | 🕐 <strong id="horaActualizacion"></strong></span>
             <button class="btn btn-outline btn-sm" onclick="cargarTodo()">🔄 ACTUALIZAR</button>
         </div>
 
-        <!-- ========== PANEL DE MENÚ DEL DÍA ========== -->
         <div class="menu-dia-grid" id="menuDiaGrid">
             <div class="menu-dia-card no-publicado" id="menuAlmuerzo">
                 <div class="menu-turno">🌅 ALMUERZO</div>
@@ -138,7 +138,6 @@
             </div>
         </div>
 
-        <!-- BARRA DE HERRAMIENTAS -->
         <div class="card">
             <div class="toolbar">
                 <input type="text" id="buscarInput" placeholder="🔍 BUSCAR POR NOMBRE, DNI, CÓDIGO O SERVICIO..." oninput="filtrarTabla()">
@@ -147,7 +146,6 @@
             </div>
         </div>
 
-        <!-- ESTADÍSTICAS Y VALIDACIÓN -->
         <div class="card">
             <div class="card-header"><h2>📊 PEDIDOS PENDIENTES</h2></div>
             <div class="stats-grid" id="resumenDietas"></div>
@@ -163,13 +161,11 @@
             <button class="btn btn-outline btn-block" onclick="abrirModalCarga()" style="margin-top: 8px;">➕ CARGAR PERSONAL MANUALMENTE</button>
         </div>
 
-        <!-- LISTA DE PENDIENTES -->
         <div class="card">
             <div class="card-header"><h3>📋 ENTREGAS PENDIENTES</h3><span style="font-size: 0.8rem; color: #666;" id="contadorPendientes">0 personas</span></div>
             <div class="table-wrapper"><div class="table-scroll"><table id="tablaPendientes"><thead><tr><th>🔢 CÓDIGO</th><th>👤 PERSONAL</th><th>🆔 DNI</th><th>🏥 SERVICIO</th><th>⏱️ G.</th><th>🍽️ COMIDA</th><th>📋 DIETA</th><th>✅</th></tr></thead><tbody><tr><td colspan="8"><div class="empty-state"><div class="icon">🍳</div>Cargando...</div></td></tr></tbody></table></div></div>
         </div>
 
-        <!-- CIERRE DE TURNO -->
         <div class="card">
             <div class="card-header"><h3>🔒 CERRAR TURNO</h3><span style="color: var(--red); font-size: 0.8rem;">⚠️ Irreversible</span></div>
             <p style="color: #666; margin-bottom: 15px; font-size: 0.85rem;"><strong style="color: var(--red);">⚠️ Los PENDIENTES se marcarán NO ENTREGADOS.</strong></p>
@@ -179,61 +175,23 @@
     </div>
 </div>
 
-<!-- MODAL CARGA MANUAL -->
 <div class="modal-overlay" id="modalCarga">
     <div class="modal">
         <h2>➕ CARGAR PERSONAL</h2>
-        <label>👤 APELLIDO Y NOMBRE *</label>
-        <input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
-        
-        <label>🆔 DNI *</label>
-        <input type="number" id="modalDni" placeholder="SIN PUNTOS">
-        
+        <label>👤 APELLIDO Y NOMBRE *</label><input type="text" id="modalNombre" placeholder="COMO FIGURA EN DNI" oninput="this.value = this.value.toUpperCase()">
+        <label>🆔 DNI *</label><input type="number" id="modalDni" placeholder="SIN PUNTOS">
         <label>🏥 SERVICIO *</label>
         <select id="modalServicio">
             <option value="" disabled selected>SELECCIONE SERVICIO</option>
-            <option value="CAMILLEROS">CAMILLEROS</option>
-            <option value="CHOFERES">CHOFERES</option>
-            <option value="CIRUGIA GENERAL">CIRUGIA GENERAL</option>
-            <option value="CLINICA MEDICA">CLINICA MEDICA</option>
-            <option value="CONSIGNA">CONSIGNA</option>
-            <option value="EMERGENCIAS MEDICAS">EMERGENCIAS MEDICAS</option>
-            <option value="ENFERMERIA">ENFERMERIA</option>
-            <option value="HEMOTERAPIA">HEMOTERAPIA</option>
-            <option value="KINESIOLOGIA">KINESIOLOGIA</option>
-            <option value="LABORATORIO">LABORATORIO</option>
-            <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-            <option value="QUEMADOS">QUEMADOS</option>
-            <option value="QUIROFANO">QUIROFANO</option>
-            <option value="RADIOLOGIA">RADIOLOGIA</option>
-            <option value="RESIDENTE - CIRUGIA GENERAL">RESIDENTE - CIRUGIA GENERAL</option>
-            <option value="RESIDENTE - CIRUGIA VASCULAR">RESIDENTE - CIRUGIA VASCULAR</option>
-            <option value="RESIDENTE - CLINICA MEDICA">RESIDENTE - CLINICA MEDICA</option>
-            <option value="RESIDENTE - HEMATOLOGIA">RESIDENTE - HEMATOLOGIA</option>
-            <option value="RESIDENTE - MEDICINA FAMILIAR">RESIDENTE - MEDICINA FAMILIAR</option>
-            <option value="RESIDENTE - RISAM">RESIDENTE - RISAM</option>
-            <option value="RESIDENTE - TERAPIA INTENSIVA">RESIDENTE - TERAPIA INTENSIVA</option>
-            <option value="RISAMCyA">RISAMCyA</option>
-            <option value="SALUD DIGITAL">SALUD DIGITAL</option>
-            <option value="SALUD MENTAL">SALUD MENTAL</option>
-            <option value="SEGURIDAD">SEGURIDAD</option>
-            <option value="SERVICIO SOCIAL">SERVICIO SOCIAL</option>
-            <option value="TELEFONIA">TELEFONIA</option>
-            <option value="TOMOGRAFIA">TOMOGRAFIA</option>
-            <option value="TRAUMATOLOGIA">TRAUMATOLOGIA</option>
-            <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
-            <option value="UTI I">UTI I</option>
-            <option value="UTI II">UTI II</option>
+            <option value="CAMILLEROS">CAMILLEROS</option><option value="CHOFERES">CHOFERES</option><option value="CIRUGIA GENERAL">CIRUGIA GENERAL</option><option value="CLINICA MEDICA">CLINICA MEDICA</option><option value="CONSIGNA">CONSIGNA</option><option value="EMERGENCIAS MEDICAS">EMERGENCIAS MEDICAS</option><option value="ENFERMERIA">ENFERMERIA</option><option value="HEMOTERAPIA">HEMOTERAPIA</option><option value="KINESIOLOGIA">KINESIOLOGIA</option><option value="LABORATORIO">LABORATORIO</option><option value="MANTENIMIENTO">MANTENIMIENTO</option><option value="QUEMADOS">QUEMADOS</option><option value="QUIROFANO">QUIROFANO</option><option value="RADIOLOGIA">RADIOLOGIA</option><option value="RESIDENTE - CIRUGIA GENERAL">RESIDENTE - CIRUGIA GENERAL</option><option value="RESIDENTE - CIRUGIA VASCULAR">RESIDENTE - CIRUGIA VASCULAR</option><option value="RESIDENTE - CLINICA MEDICA">RESIDENTE - CLINICA MEDICA</option><option value="RESIDENTE - HEMATOLOGIA">RESIDENTE - HEMATOLOGIA</option><option value="RESIDENTE - MEDICINA FAMILIAR">RESIDENTE - MEDICINA FAMILIAR</option><option value="RESIDENTE - RISAM">RESIDENTE - RISAM</option><option value="RESIDENTE - TERAPIA INTENSIVA">RESIDENTE - TERAPIA INTENSIVA</option><option value="RISAMCyA">RISAMCyA</option><option value="SALUD DIGITAL">SALUD DIGITAL</option><option value="SALUD MENTAL">SALUD MENTAL</option><option value="SEGURIDAD">SEGURIDAD</option><option value="SERVICIO SOCIAL">SERVICIO SOCIAL</option><option value="TELEFONIA">TELEFONIA</option><option value="TOMOGRAFIA">TOMOGRAFIA</option><option value="TRAUMATOLOGIA">TRAUMATOLOGIA</option><option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option><option value="UTI I">UTI I</option><option value="UTI II">UTI II</option>
         </select>
-        
         <label>⏱️ GUARDIA *</label>
         <select id="modalGuardia">
             <option value="12">12 HORAS</option>
             <option value="16">16 HORAS</option>
             <option value="20">20 HORAS</option>
-            <option value="24">24 HORAS</option>
+            <option value="24">24 HORAS (AMBAS COMIDAS)</option>
         </select>
-        
         <label>🍽️ DIETA *</label>
         <select id="modalDieta">
             <option value="GENERAL">GENERAL</option>
@@ -242,11 +200,7 @@
             <option value="CELIACA">CELIACA</option>
             <option value="GÁSTRICA">GÁSTRICA</option>
         </select>
-        
-        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;">
-            <button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button>
-            <button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button>
-        </div>
+        <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;"><button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button><button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button></div>
         <div id="mensajeModal" class="mensaje" style="display: none; margin-top: 12px;"></div>
     </div>
 </div>
@@ -264,7 +218,6 @@
     cargarTodo();
 
     function cargarTodo() { cargarMenuDelDia(); cargarPendientes(); }
-    
     function actualizarFecha() {
         const ahora = new Date();
         document.getElementById('fechaActual').innerText = ahora.toLocaleDateString('es-AR');
@@ -276,60 +229,30 @@
         setTimeout(() => { el.style.display = 'none'; }, 5000);
     }
 
-    // ==================== CARGAR MENÚ DEL DÍA ====================
     function cargarMenuDelDia() {
         cargarMenuPorTurno('MAÑANA', 'menuAlmuerzo', 'dietasAlmuerzo');
         cargarMenuPorTurno('NOCHE', 'menuCena', 'dietasCena');
     }
-
     function cargarMenuPorTurno(turno, cardId, dietasId) {
         const cb = 'menuCocina_' + turno + '_' + Date.now();
         window[cb] = function(data) {
             delete window[cb]; document.body.removeChild(s);
             const card = document.getElementById(cardId);
-            const platoEl = card.querySelector('.menu-plato');
-            const postreEl = card.querySelector('.menu-postre');
-            const estadoEl = card.querySelector('.menu-estado');
-            const dietasEl = document.getElementById(dietasId);
-            
+            const platoEl = card.querySelector('.menu-plato'), postreEl = card.querySelector('.menu-postre'), estadoEl = card.querySelector('.menu-estado'), dietasEl = document.getElementById(dietasId);
             if (data.disponible && data.datos && data.datos.length > 0) {
                 const menu = data.datos[0];
                 platoEl.innerHTML = `🍲 <strong>${menu.platoPrincipal || 'Sin nombre'}</strong>`;
-                
-                if (menu.postre) {
-                    postreEl.innerHTML = `🍰 <strong>Postre:</strong> ${menu.postre}`;
-                    postreEl.style.display = '';
-                } else {
-                    postreEl.style.display = 'none';
-                }
-                
-                // Mostrar detalle de dietas
-                try {
-                    const dietasObj = JSON.parse(menu.dietas || '{}');
-                    dietasEl.innerHTML = Object.entries(dietasObj).map(([dieta, desc]) => 
-                        `<span>🍽️ ${dieta}: ${desc}</span>`
-                    ).join(' ');
-                    dietasEl.style.display = '';
-                } catch(e) { dietasEl.style.display = 'none'; }
-                
-                estadoEl.textContent = '✅ PUBLICADO';
-                estadoEl.className = 'menu-estado publicado';
-                card.className = 'menu-dia-card publicado';
+                if (menu.postre) { postreEl.innerHTML = `🍰 <strong>Postre:</strong> ${menu.postre}`; postreEl.style.display = ''; } else { postreEl.style.display = 'none'; }
+                try { const dietasObj = JSON.parse(menu.dietas || '{}'); dietasEl.innerHTML = Object.entries(dietasObj).map(([dieta, desc]) => `<span>🍽️ ${dieta}: ${desc}</span>`).join(' '); dietasEl.style.display = ''; } catch(e) { dietasEl.style.display = 'none'; }
+                estadoEl.textContent = '✅ PUBLICADO'; estadoEl.className = 'menu-estado publicado'; card.className = 'menu-dia-card publicado';
             } else {
-                platoEl.innerHTML = '🚫 Menú no publicado';
-                postreEl.style.display = 'none';
-                dietasEl.style.display = 'none';
-                estadoEl.textContent = '⛔ SIN PUBLICAR';
-                estadoEl.className = 'menu-estado pendiente';
-                card.className = 'menu-dia-card no-publicado';
+                platoEl.innerHTML = '🚫 Menú no publicado'; postreEl.style.display = 'none'; dietasEl.style.display = 'none';
+                estadoEl.textContent = '⛔ SIN PUBLICAR'; estadoEl.className = 'menu-estado pendiente'; card.className = 'menu-dia-card no-publicado';
             }
         };
-        const s = document.createElement('script');
-        s.src = API + '?action=obtener_menu&turno=' + turno + '&callback=' + cb;
-        document.body.appendChild(s);
+        const s = document.createElement('script'); s.src = API + '?action=obtener_menu&turno=' + turno + '&callback=' + cb; document.body.appendChild(s);
     }
 
-    // ==================== CARGAR PENDIENTES ====================
     function cargarPendientes() {
         const cb = 'cocinaCallback_' + Date.now();
         window[cb] = function(data) {
@@ -343,51 +266,37 @@
             });
             document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
             todosPendientes = data.listaPendientes || [];
-            const servicios = [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort();
-            document.getElementById('filtroServicio').innerHTML = '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + servicios.map(s => `<option value="${s}">${s}</option>`).join('');
+            document.getElementById('filtroServicio').innerHTML = '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort().map(s => `<option value="${s}">${s}</option>`).join('');
             filtrarTabla();
         };
-        const s = document.createElement('script');
-        s.src = API + '?action=obtener_pendientes&callback=' + cb;
+        const s = document.createElement('script'); s.src = API + '?action=obtener_pendientes&callback=' + cb;
         s.onerror = () => { document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state">❌ Error</div></td></tr>'; };
         document.body.appendChild(s);
     }
 
     function filtrarTabla() {
-        const buscar = document.getElementById('buscarInput').value.toUpperCase().trim();
-        const servicioFiltro = document.getElementById('filtroServicio').value;
+        const buscar = document.getElementById('buscarInput').value.toUpperCase().trim(), servicioFiltro = document.getElementById('filtroServicio').value;
         let filtrados = todosPendientes;
         if (servicioFiltro !== 'TODOS') filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
-        if (buscar.length >= 1) {
-            filtrados = filtrados.filter(p => {
-                return String(p.nombre||'').toUpperCase().indexOf(buscar) !== -1 || 
-                       String(p.dni||'').indexOf(buscar) !== -1 || 
-                       String(p.servicio||'').toUpperCase().indexOf(buscar) !== -1 ||
-                       String(p.codigo||'').toUpperCase().indexOf(buscar) !== -1;
-            });
-        }
+        if (buscar.length >= 1) filtrados = filtrados.filter(p => String(p.nombre||'').toUpperCase().indexOf(buscar) !== -1 || String(p.dni||'').indexOf(buscar) !== -1 || String(p.servicio||'').toUpperCase().indexOf(buscar) !== -1 || String(p.codigo||'').toUpperCase().indexOf(buscar) !== -1);
         document.getElementById('resultadosBusqueda').innerText = (buscar || servicioFiltro !== 'TODOS') ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
-        const tbody = document.querySelector('#tablaPendientes tbody');
-        tbody.innerHTML = '';
+        const tbody = document.querySelector('#tablaPendientes tbody'); tbody.innerHTML = '';
         if (filtrados.length === 0) {
             tbody.innerHTML = todosPendientes.length === 0 ? '<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>' : '<tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div>Sin resultados</div></td></tr>';
-            document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`;
-            return;
+            document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`; return;
         }
         document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
         filtrados.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
-        
         filtrados.forEach(p => {
-            const g = p.guardia === '24' ? '24hs' : p.guardia === '16' ? '16hs' : '12hs';
-            const c = p.tipoComida === 'AMBAS' ? 'AMBAS' : p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : p.tipoComida === 'CENA' ? '🌙 Cena' : p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
-            
-            // Badge especial según dieta
+            const g = p.guardia === '24' ? '24hs' : p.guardia === '20' ? '20hs' : p.guardia === '16' ? '16hs' : '12hs';
+            const guardiaBadge = p.guardia === '24' ? 'badge-guardia-24' : 'badge-guardia';
+            const c = p.tipoComida === '24HS (AMBAS)' ? '🌅🌙 24HS' : p.tipoComida === 'ALMUERZO' ? '🌅 Alm' : p.tipoComida === 'CENA' ? '🌙 Cena' : p.turno === 'MAÑANA' ? '🌅 Alm' : '🌙 Cena';
+            const comidaBadge = p.tipoComida === '24HS (AMBAS)' ? 'badge-comida-24' : 'badge-comida';
             let dietaBadge = 'badge-dieta';
             if (p.dieta === 'CELIACA') dietaBadge = 'badge-celiaca';
             else if (p.dieta !== 'GENERAL') dietaBadge = 'badge-dieta-especial';
-            
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><span class="codigo-cell">${p.codigo}</span></td><td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge badge-guardia">${g}</span></td><td><span class="badge badge-comida">${c}</span></td><td><span class="badge ${dietaBadge}">${p.dieta||'GENERAL'}</span></td><td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>`;
+            tr.innerHTML = `<td><span class="codigo-cell">${p.codigo}</span></td><td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge ${guardiaBadge}">${g}</span></td><td><span class="badge ${comidaBadge}">${c}</span></td><td><span class="badge ${dietaBadge}">${p.dieta||'GENERAL'}</span></td><td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>`;
             tbody.appendChild(tr);
         });
     }
@@ -407,9 +316,10 @@
         if (!n) { mostrarMensaje('mensajeModal','error','❌ Ingrese nombre'); return; }
         if (!d || d.length < 7) { mostrarMensaje('mensajeModal','error','❌ DNI válido'); return; }
         if (!srv) { mostrarMensaje('mensajeModal','error','❌ Seleccione servicio'); return; }
+        const tipoComida = g === '24' ? '24HS (AMBAS)' : 'TURNO_ACTUAL';
         const cod = Math.random().toString(36).substring(2,6).toUpperCase(), cb = 'cm_' + Date.now();
         window[cb] = function(data) { delete window[cb]; document.body.removeChild(s); if (data && data.status === "success") { mostrarMensaje('mensajeModal','success',`✅ REGISTRADO<br>🔢 Código: <strong>${cod}</strong>`); setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2500); } else { mostrarMensaje('mensajeModal','error','❌ Error'); } };
-        const s = document.createElement('script'); s.src = API + '?' + new URLSearchParams({ action: 'generar_codigo', nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual, codigo: cod, tipoComida: 'TURNO_ACTUAL', tipo: 'MANUAL', callback: cb }).toString(); document.body.appendChild(s);
+        const s = document.createElement('script'); s.src = API + '?' + new URLSearchParams({ action: 'generar_codigo', nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual, codigo: cod, tipoComida: tipoComida, tipo: 'MANUAL', callback: cb }).toString(); document.body.appendChild(s);
     }
     function cerrarTurno() {
         if (!confirm("⚠️ ¿CERRAR TURNO?\n\nLos PENDIENTES se marcarán NO ENTREGADOS.")) return;
