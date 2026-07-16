@@ -96,7 +96,6 @@
             font-size: 0.85rem;
             text-align: left;
         }
-        .menu-actual-info strong { color: var(--blue); }
         .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn-group button { flex: 1; }
         
@@ -145,6 +144,8 @@
                 <div class="dieta-item"><label>DIABÉTICA:</label><input type="text" id="editarDiabetica" autocomplete="off"></div>
                 <div class="dieta-item"><label>CELIACA:</label><input type="text" id="editarCeliaca" autocomplete="off"></div>
                 <div class="dieta-item"><label>GÁSTRICA:</label><input type="text" id="editarGastrica" autocomplete="off"></div>
+                <div class="dieta-item"><label>ASTRINGENTE:</label><input type="text" id="editarAstringente" autocomplete="off"></div>
+                <div class="dieta-item"><label>VEGETARIANA:</label><input type="text" id="editarVegetariana" autocomplete="off"></div>
             </div>
             
             <div class="btn-group">
@@ -179,11 +180,35 @@
         <div class="dieta-group">
             <p>📝 ESPECIFICACIONES POR DIETA (Opcional)</p>
             <div class="info-text" style="margin-bottom: 15px;">Si no completa algún campo, se usará el nombre genérico</div>
-            <div class="dieta-item"><label>GENERAL:</label><input type="text" id="dietaGeneral" placeholder="Ej: Guiso de lentejas completo" autocomplete="off"></div>
-            <div class="dieta-item"><label>HIPOSÓDICA:</label><input type="text" id="dietaHipo" placeholder="Ej: Guiso sin sal agregada" autocomplete="off"></div>
-            <div class="dieta-item"><label>DIABÉTICA:</label><input type="text" id="dietaDiabetica" placeholder="Ej: Guiso con legumbres controladas" autocomplete="off"></div>
-            <div class="dieta-item"><label>CELIACA:</label><input type="text" id="dietaCeliaca" placeholder="Ej: Guiso apto celíacos" autocomplete="off"></div>
-            <div class="dieta-item"><label>GÁSTRICA:</label><input type="text" id="dietaGastrica" placeholder="Ej: Guiso sin condimentos picantes" autocomplete="off"></div>
+            
+            <div class="dieta-item">
+                <label>GENERAL:</label>
+                <input type="text" id="dietaGeneral" placeholder="Ej: Guiso de lentejas completo" autocomplete="off">
+            </div>
+            <div class="dieta-item">
+                <label>HIPOSÓDICA (Baja en sodio):</label>
+                <input type="text" id="dietaHipo" placeholder="Ej: Guiso sin sal agregada" autocomplete="off">
+            </div>
+            <div class="dieta-item">
+                <label>DIABÉTICA:</label>
+                <input type="text" id="dietaDiabetica" placeholder="Ej: Guiso con legumbres controladas" autocomplete="off">
+            </div>
+            <div class="dieta-item">
+                <label>CELIACA (Sin TACC):</label>
+                <input type="text" id="dietaCeliaca" placeholder="Ej: Guiso apto celíacos" autocomplete="off">
+            </div>
+            <div class="dieta-item">
+                <label>GÁSTRICA (Liviana):</label>
+                <input type="text" id="dietaGastrica" placeholder="Ej: Guiso sin condimentos picantes" autocomplete="off">
+            </div>
+            <div class="dieta-item">
+                <label>🆕 ASTRINGENTE:</label>
+                <input type="text" id="dietaAstringente" placeholder="Ej: Guiso adaptado para dieta astringente" autocomplete="off">
+            </div>
+            <div class="dieta-item">
+                <label>🆕 VEGETARIANA:</label>
+                <input type="text" id="dietaVegetariana" placeholder="Ej: Guiso de lentejas vegetariano" autocomplete="off">
+            </div>
         </div>
 
         <button id="btnPublicar" onclick="publicarMenu()">✅ HABILITAR PEDIDOS</button>
@@ -209,7 +234,6 @@
             infoDiv.className = 'mensaje loading';
             infoDiv.innerHTML = '⏳ Consultando menús del día...';
             
-            // Cargar ambos turnos
             const almuerzo = await fetchMenu('MAÑANA');
             const cena = await fetchMenu('NOCHE');
             
@@ -233,7 +257,6 @@
             infoDiv.className = 'mensaje info';
             infoDiv.innerHTML = html;
             
-            // Mostrar panel de edición
             document.getElementById('editarSection').classList.add('active');
         }
         
@@ -267,7 +290,6 @@
                 document.getElementById('editarPlato').value = menu.platoPrincipal || '';
                 document.getElementById('editarPostre').value = menu.postre || '';
                 
-                // Cargar dietas
                 try {
                     const dietasObj = JSON.parse(menu.dietas || '{}');
                     document.getElementById('editarGeneral').value = dietasObj.GENERAL || '';
@@ -275,6 +297,8 @@
                     document.getElementById('editarDiabetica').value = dietasObj.DIABÉTICA || '';
                     document.getElementById('editarCeliaca').value = dietasObj.CELIACA || '';
                     document.getElementById('editarGastrica').value = dietasObj.GÁSTRICA || '';
+                    document.getElementById('editarAstringente').value = dietasObj.ASTRINGENTE || '';
+                    document.getElementById('editarVegetariana').value = dietasObj.VEGETARIANA || '';
                 } catch(e) {
                     document.getElementById('editarGeneral').value = menu.platoPrincipal || '';
                 }
@@ -301,14 +325,16 @@
                 return;
             }
             
-            if (!confirm(`¿Guardar cambios en el menú de ${turno === 'MAÑANA' ? 'ALMUERZO' : 'CENA'}?\n\nPlato: ${platoPrincipal}\nPostre: ${postre || 'Ninguno'}`)) return;
+            if (!confirm(`¿Guardar cambios en el menú de ${turno === 'MAÑANA' ? 'ALMUERZO' : 'CENA'}?`)) return;
             
             const dietas = {
                 GENERAL: document.getElementById('editarGeneral').value.trim() || platoPrincipal,
                 HIPOSÓDICA: document.getElementById('editarHipo').value.trim() || platoPrincipal + " (adaptado)",
                 DIABÉTICA: document.getElementById('editarDiabetica').value.trim() || platoPrincipal + " (adaptado)",
                 CELIACA: document.getElementById('editarCeliaca').value.trim() || platoPrincipal + " (adaptado)",
-                GÁSTRICA: document.getElementById('editarGastrica').value.trim() || platoPrincipal + " (adaptado)"
+                GÁSTRICA: document.getElementById('editarGastrica').value.trim() || platoPrincipal + " (adaptado)",
+                ASTRINGENTE: document.getElementById('editarAstringente').value.trim() || platoPrincipal + " (adaptado)",
+                VEGETARIANA: document.getElementById('editarVegetariana').value.trim() || platoPrincipal + " (adaptado)"
             };
             
             msgDiv.className = 'mensaje loading';
@@ -319,8 +345,8 @@
                 delete window[cb]; document.body.removeChild(s);
                 if (data && data.status === "success") {
                     msgDiv.className = 'mensaje success';
-                    msgDiv.innerHTML = `✅ Menú de ${turno === 'MAÑANA' ? 'ALMUERZO' : 'CENA'} actualizado correctamente.`;
-                    verMenuActual(); // Refrescar vista
+                    msgDiv.innerHTML = `✅ Menú actualizado correctamente.`;
+                    verMenuActual();
                 } else {
                     msgDiv.className = 'mensaje error';
                     msgDiv.innerHTML = '❌ Error: ' + (data?.message || 'No se pudo guardar');
@@ -328,16 +354,11 @@
             };
             
             const params = new URLSearchParams({
-                action: 'editar_menu',
-                turno: turno,
-                platoPrincipal: platoPrincipal,
-                postre: postre,
-                general: dietas.GENERAL,
-                hiposodica: dietas.HIPOSÓDICA,
-                diabetica: dietas.DIABÉTICA,
-                celiaca: dietas.CELIACA,
-                gastrica: dietas.GÁSTRICA,
-                callback: cb
+                action: 'editar_menu', turno, platoPrincipal, postre,
+                general: dietas.GENERAL, hiposodica: dietas.HIPOSÓDICA,
+                diabetica: dietas.DIABÉTICA, celiaca: dietas.CELIACA,
+                gastrica: dietas.GÁSTRICA, astringente: dietas.ASTRINGENTE,
+                vegetariana: dietas.VEGETARIANA, callback: cb
             });
             
             const s = document.createElement('script');
@@ -370,7 +391,9 @@
                 HIPOSÓDICA: document.getElementById('dietaHipo').value.trim() || platoPrincipal + " (adaptado)",
                 DIABÉTICA: document.getElementById('dietaDiabetica').value.trim() || platoPrincipal + " (adaptado)",
                 CELIACA: document.getElementById('dietaCeliaca').value.trim() || platoPrincipal + " (adaptado)",
-                GÁSTRICA: document.getElementById('dietaGastrica').value.trim() || platoPrincipal + " (adaptado)"
+                GÁSTRICA: document.getElementById('dietaGastrica').value.trim() || platoPrincipal + " (adaptado)",
+                ASTRINGENTE: document.getElementById('dietaAstringente').value.trim() || platoPrincipal + " (adaptado)",
+                VEGETARIANA: document.getElementById('dietaVegetariana').value.trim() || platoPrincipal + " (adaptado)"
             };
             
             msgDiv.className = 'mensaje loading';
@@ -382,16 +405,24 @@
                 delete window[cb]; btn.disabled = false;
                 if (data && data.status === "success") {
                     msgDiv.className = 'mensaje success';
-                    msgDiv.innerHTML = `✅ ¡MENÚ PUBLICADO!<br>🍽️ ${platoPrincipal}<br>🍰 Postre: ${postre || 'No especificado'}<br>🕐 Turno: ${turno === 'MAÑANA' ? 'ALMUERZO' : 'CENA'}`;
-                    ['platoPrincipal','postre','dietaGeneral','dietaHipo','dietaDiabetica','dietaCeliaca','dietaGastrica'].forEach(id => document.getElementById(id).value = '');
+                    msgDiv.innerHTML = `✅ ¡MENÚ PUBLICADO!<br>🍽️ ${platoPrincipal}`;
+                    ['platoPrincipal','postre','dietaGeneral','dietaHipo','dietaDiabetica','dietaCeliaca','dietaGastrica','dietaAstringente','dietaVegetariana'].forEach(id => document.getElementById(id).value = '');
                 } else {
                     msgDiv.className = 'mensaje error';
                     msgDiv.innerHTML = '❌ Error: ' + (data?.message || 'No se pudo publicar');
                 }
             };
             
+            const params = new URLSearchParams({
+                action: 'cargar_menu', turno, platoPrincipal, postre,
+                general: dietas.GENERAL, hiposodica: dietas.HIPOSÓDICA,
+                diabetica: dietas.DIABÉTICA, celiaca: dietas.CELIACA,
+                gastrica: dietas.GÁSTRICA, astringente: dietas.ASTRINGENTE,
+                vegetariana: dietas.VEGETARIANA, callback: cb
+            });
+            
             const s = document.createElement('script');
-            s.src = API + '?' + new URLSearchParams({ action: 'cargar_menu', turno, platoPrincipal, postre, general: dietas.GENERAL, hiposodica: dietas.HIPOSÓDICA, diabetica: dietas.DIABÉTICA, celiaca: dietas.CELIACA, gastrica: dietas.GÁSTRICA, callback: cb }).toString();
+            s.src = API + '?' + params.toString();
             document.body.appendChild(s);
         }
 
