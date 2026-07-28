@@ -46,29 +46,31 @@
         .menu-dietas-detalle { margin-top: 10px; font-size: 0.7rem; color: #555; text-align: left; }
         .menu-dietas-detalle span { display: inline-block; background: rgba(0,0,0,0.05); padding: 3px 8px; border-radius: 4px; margin: 2px; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; }
-        .stat-card { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%); padding: 14px 6px; border-radius: 10px; text-align: center; color: white; }
-        .stat-card .dieta-nombre { font-size: 0.7rem; opacity: 0.9; margin-bottom: 5px; font-weight: bold; }
-        .stat-card .stat-number { font-size: 1.6rem; font-weight: bold; line-height: 1; }
+        .stats-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 15px 0; }
+        .stat-card { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%); padding: 12px 4px; border-radius: 10px; text-align: center; color: white; }
+        .stat-card .dieta-nombre { font-size: 0.65rem; opacity: 0.9; margin-bottom: 4px; font-weight: bold; }
+        .stat-card .stat-number { font-size: 1.3rem; font-weight: bold; line-height: 1; }
         .total-badge { background: var(--blue); color: white; padding: 10px 20px; border-radius: 50px; display: inline-block; font-weight: bold; font-size: 0.95rem; }
         .validacion-section { background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; border: 2px dashed var(--blue); }
         .input-group { display: flex; gap: 8px; margin-top: 10px; }
-        .input-group input { flex: 1; min-width: 0; padding: 14px; font-size: 1.4rem; text-align: center; border: 2px solid var(--blue); border-radius: 10px; font-weight: bold; letter-spacing: 6px; text-transform: uppercase; }
+        .input-group input { flex: 1; min-width: 0; padding: 14px; font-size: 1.4rem; text-align: center; border: 2px solid var(--blue); border-radius: 10px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
         .input-group input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(40,167,69,0.15); }
         .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-transform: uppercase; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
         .btn:hover { opacity: 0.9; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-success { background: var(--green); color: white; }
         .btn-danger { background: var(--red); color: white; }
+        .btn-warning { background: var(--orange); color: white; }
         .btn-outline { background: white; color: var(--blue); border: 2px solid var(--blue); }
-        .btn-sm { padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; }
+        .btn-sm { padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; }
         .btn-block { width: 100%; }
+        .btn-xs { padding: 3px 6px; font-size: 0.65rem; }
         .table-wrapper { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 50vh; -webkit-overflow-scrolling: touch; }
         .table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
         .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .table-scroll::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 900px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 800px; }
         thead { position: sticky; top: 0; z-index: 10; }
         thead th { background: var(--blue); color: white; padding: 10px 8px; text-align: left; font-weight: bold; font-size: 0.75rem; white-space: nowrap; }
         tbody td { padding: 8px; border-bottom: 1px solid var(--border); background: white; white-space: nowrap; }
@@ -82,7 +84,6 @@
         .badge-comida { background: var(--green); color: white; }
         .badge-comida-24 { background: var(--purple); color: white; }
         .badge-celiaca { background: #e74c3c; color: white; }
-        .codigo-cell { font-size: 0.95rem; font-weight: bold; color: var(--blue); letter-spacing: 1px; }
         .empty-state { text-align: center; padding: 30px 15px; color: #999; }
         .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
         .mensaje { margin-top: 10px; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; animation: slideIn 0.3s; }
@@ -96,14 +97,15 @@
         .modal h2 { color: var(--blue); margin-top: 0; text-align: center; }
         .modal input, .modal select { width: 100%; padding: 10px; margin: 6px 0; border: 2px solid var(--border); border-radius: 8px; text-transform: uppercase; font-size: 0.9rem; }
         .modal label { display: block; font-weight: bold; margin-top: 8px; font-size: 0.8rem; color: var(--dark); text-align: left; }
+        .acciones-cell { display: flex; gap: 4px; }
         @media (max-width: 900px) {
-            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .stats-grid { grid-template-columns: repeat(4, 1fr); }
             .toolbar { flex-direction: column; }
             .toolbar input, .toolbar select { width: 100%; }
             .menu-dia-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 500px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
             .card { padding: 15px; }
         }
     </style>
@@ -140,7 +142,7 @@
 
         <div class="card">
             <div class="toolbar">
-                <input type="text" id="buscarInput" placeholder="🔍 BUSCAR POR NOMBRE, DNI, CÓDIGO O SERVICIO..." oninput="filtrarTabla()">
+                <input type="text" id="buscarInput" placeholder="🔍 BUSCAR POR NOMBRE, DNI O SERVICIO..." oninput="filtrarTabla()">
                 <select id="filtroServicio" onchange="filtrarTabla()"><option value="TODOS">🏥 TODOS LOS SERVICIOS</option></select>
                 <span style="font-size: 0.85rem; color: #666;" id="resultadosBusqueda"></span>
             </div>
@@ -151,10 +153,10 @@
             <div class="stats-grid" id="resumenDietas"></div>
             <div style="text-align: center; margin: 12px 0;"><span class="total-badge">🍽️ TOTAL: <span id="totalPendientes">0</span></span></div>
             <div class="validacion-section">
-                <h3>🔍 VALIDAR ENTREGA</h3>
+                <h3>🔍 VALIDAR ENTREGA (por ID)</h3>
                 <div class="input-group">
-                    <input type="text" id="codigoInput" placeholder="CÓDIGO" maxlength="4" autocomplete="off">
-                    <button class="btn btn-primary" onclick="validarCodigo()">✅ VALIDAR</button>
+                    <input type="text" id="codigoInput" placeholder="ID DE REGISTRO" autocomplete="off">
+                    <button class="btn btn-primary" onclick="validarPorId()">✅ VALIDAR</button>
                 </div>
                 <div id="mensajeValidacion" class="mensaje" style="display: none;"></div>
             </div>
@@ -163,7 +165,7 @@
 
         <div class="card">
             <div class="card-header"><h3>📋 ENTREGAS PENDIENTES</h3><span style="font-size: 0.8rem; color: #666;" id="contadorPendientes">0 personas</span></div>
-            <div class="table-wrapper"><div class="table-scroll"><table id="tablaPendientes"><thead><tr><th>🔢 CÓDIGO</th><th>👤 PERSONAL</th><th>🆔 DNI</th><th>🏥 SERVICIO</th><th>⏱️ G.</th><th>🍽️ COMIDA</th><th>📋 DIETA</th><th>✅</th></tr></thead><tbody><tr><td colspan="8"><div class="empty-state"><div class="icon">🍳</div>Cargando...</div></td></tr></tbody></table></div></div>
+            <div class="table-wrapper"><div class="table-scroll"><table id="tablaPendientes"><thead><tr><th>👤 PERSONAL</th><th>🆔 DNI</th><th>🏥 SERVICIO</th><th>⏱️ G.</th><th>🍽️ COMIDA</th><th>📋 DIETA</th><th>⚡ ACCIONES</th></tr></thead><tbody><tr><td colspan="7"><div class="empty-state"><div class="icon">🍳</div>Cargando...</div></td></tr></tbody></table></div></div>
         </div>
 
         <div class="card">
@@ -183,7 +185,40 @@
         <label>🏥 SERVICIO *</label>
         <select id="modalServicio">
             <option value="" disabled selected>SELECCIONE SERVICIO</option>
-            <option value="CAMILLEROS">CAMILLEROS</option><option value="CHOFERES">CHOFERES</option><option value="CIRUGIA GENERAL">CIRUGIA GENERAL</option><option value="CLINICA MEDICA">CLINICA MEDICA</option><option value="CONSIGNA">CONSIGNA</option><option value="EMERGENCIAS MEDICAS">EMERGENCIAS MEDICAS</option><option value="ENFERMERIA">ENFERMERIA</option><option value="HEMOTERAPIA">HEMOTERAPIA</option><option value="KINESIOLOGIA">KINESIOLOGIA</option><option value="LABORATORIO">LABORATORIO</option><option value="MANTENIMIENTO">MANTENIMIENTO</option><option value="QUEMADOS">QUEMADOS</option><option value="QUIROFANO">QUIROFANO</option><option value="RADIOLOGIA">RADIOLOGIA</option><option value="RESIDENTE - CIRUGIA GENERAL">RESIDENTE - CIRUGIA GENERAL</option><option value="RESIDENTE - CIRUGIA VASCULAR">RESIDENTE - CIRUGIA VASCULAR</option><option value="RESIDENTE - CLINICA MEDICA">RESIDENTE - CLINICA MEDICA</option><option value="RESIDENTE - HEMATOLOGIA">RESIDENTE - HEMATOLOGIA</option><option value="RESIDENTE - MEDICINA FAMILIAR">RESIDENTE - MEDICINA FAMILIAR</option><option value="RESIDENTE - RISAM">RESIDENTE - RISAM</option><option value="RESIDENTE - TERAPIA INTENSIVA">RESIDENTE - TERAPIA INTENSIVA</option><option value="RISAMCyA">RISAMCyA</option><option value="SALUD DIGITAL">SALUD DIGITAL</option><option value="SALUD MENTAL">SALUD MENTAL</option><option value="SEGURIDAD">SEGURIDAD</option><option value="SERVICIO SOCIAL">SERVICIO SOCIAL</option><option value="TELEFONIA">TELEFONIA</option><option value="TOMOGRAFIA">TOMOGRAFIA</option><option value="TRAUMATOLOGIA">TRAUMATOLOGIA</option><option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option><option value="UTI I">UTI I</option><option value="UTI II">UTI II</option>
+            <option value="BACTERIOLOGIA">BACTERIOLOGIA</option>
+            <option value="CAMILLEROS">CAMILLEROS</option>
+            <option value="CENTRAL DE DERIVACIONES">CENTRAL DE DERIVACIONES</option>
+            <option value="CHOFERES">CHOFERES</option>
+            <option value="CIRUGIA GENERAL">CIRUGIA GENERAL</option>
+            <option value="CLINICA MEDICA">CLINICA MEDICA</option>
+            <option value="CONSIGNA">CONSIGNA</option>
+            <option value="EMERGENCIAS MEDICAS">EMERGENCIAS MEDICAS</option>
+            <option value="ENFERMERIA">ENFERMERIA</option>
+            <option value="HEMOTERAPIA">HEMOTERAPIA</option>
+            <option value="KINESIOLOGIA">KINESIOLOGIA</option>
+            <option value="LABORATORIO">LABORATORIO</option>
+            <option value="MANTENIMIENTO">MANTENIMIENTO</option>
+            <option value="QUEMADOS">QUEMADOS</option>
+            <option value="QUIROFANO">QUIROFANO</option>
+            <option value="RADIOLOGIA">RADIOLOGIA</option>
+            <option value="RESIDENTE - CIRUGIA GENERAL">RESIDENTE - CIRUGIA GENERAL</option>
+            <option value="RESIDENTE - CIRUGIA VASCULAR">RESIDENTE - CIRUGIA VASCULAR</option>
+            <option value="RESIDENTE - CLINICA MEDICA">RESIDENTE - CLINICA MEDICA</option>
+            <option value="RESIDENTE - HEMATOLOGIA">RESIDENTE - HEMATOLOGIA</option>
+            <option value="RESIDENTE - MEDICINA FAMILIAR">RESIDENTE - MEDICINA FAMILIAR</option>
+            <option value="RESIDENTE - RISAM">RESIDENTE - RISAM</option>
+            <option value="RESIDENTE - TERAPIA INTENSIVA">RESIDENTE - TERAPIA INTENSIVA</option>
+            <option value="RISAMCyA">RISAMCyA</option>
+            <option value="SALUD DIGITAL">SALUD DIGITAL</option>
+            <option value="SALUD MENTAL">SALUD MENTAL</option>
+            <option value="SEGURIDAD">SEGURIDAD</option>
+            <option value="SERVICIO SOCIAL">SERVICIO SOCIAL</option>
+            <option value="TELEFONIA">TELEFONIA</option>
+            <option value="TOMOGRAFIA">TOMOGRAFIA</option>
+            <option value="TRAUMATOLOGIA">TRAUMATOLOGIA</option>
+            <option value="UNIDAD CORONARIA">UNIDAD CORONARIA</option>
+            <option value="UTI I">UTI I</option>
+            <option value="UTI II">UTI II</option>
         </select>
         <label>⏱️ GUARDIA *</label>
         <select id="modalGuardia">
@@ -199,6 +234,8 @@
             <option value="DIABÉTICA">DIABÉTICA</option>
             <option value="CELIACA">CELIACA</option>
             <option value="GÁSTRICA">GÁSTRICA</option>
+            <option value="ASTRINGENTE">ASTRINGENTE</option>
+            <option value="VEGETARIANA">VEGETARIANA</option>
         </select>
         <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;"><button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button><button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button></div>
         <div id="mensajeModal" class="mensaje" style="display: none; margin-top: 12px;"></div>
@@ -260,9 +297,9 @@
             if (data.error) return;
             const conteo = data.conteoDietas || {};
             document.getElementById('resumenDietas').innerHTML = '';
-            ['GENERAL','HIPOSÓDICA','DIABÉTICA','CELIACA','GÁSTRICA'].forEach(d => {
-                const iconos = {'GENERAL':'🍲','HIPOSÓDICA':'🧂','DIABÉTICA':'🍬','CELIACA':'🌾','GÁSTRICA':'🥗'};
-                document.getElementById('resumenDietas').innerHTML += `<div class="stat-card"><div class="dieta-nombre">${iconos[d]} ${d}</div><div class="stat-number">${conteo[d]||0}</div></div>`;
+            ['GENERAL','HIPOSÓDICA','DIABÉTICA','CELIACA','GÁSTRICA','ASTRINGENTE','VEGETARIANA'].forEach(d => {
+                const iconos = {'GENERAL':'🍲','HIPOSÓDICA':'🧂','DIABÉTICA':'🍬','CELIACA':'🌾','GÁSTRICA':'🥗','ASTRINGENTE':'🍌','VEGETARIANA':'🥬'};
+                document.getElementById('resumenDietas').innerHTML += `<div class="stat-card"><div class="dieta-nombre">${iconos[d]} ${d.substring(0,4)}</div><div class="stat-number">${conteo[d]||0}</div></div>`;
             });
             document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
             todosPendientes = data.listaPendientes || [];
@@ -270,7 +307,7 @@
             filtrarTabla();
         };
         const s = document.createElement('script'); s.src = API + '?action=obtener_pendientes&callback=' + cb;
-        s.onerror = () => { document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="8"><div class="empty-state">❌ Error</div></td></tr>'; };
+        s.onerror = () => { document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="7"><div class="empty-state">❌ Error</div></td></tr>'; };
         document.body.appendChild(s);
     }
 
@@ -278,11 +315,11 @@
         const buscar = document.getElementById('buscarInput').value.toUpperCase().trim(), servicioFiltro = document.getElementById('filtroServicio').value;
         let filtrados = todosPendientes;
         if (servicioFiltro !== 'TODOS') filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
-        if (buscar.length >= 1) filtrados = filtrados.filter(p => String(p.nombre||'').toUpperCase().indexOf(buscar) !== -1 || String(p.dni||'').indexOf(buscar) !== -1 || String(p.servicio||'').toUpperCase().indexOf(buscar) !== -1 || String(p.codigo||'').toUpperCase().indexOf(buscar) !== -1);
+        if (buscar.length >= 1) filtrados = filtrados.filter(p => String(p.nombre||'').toUpperCase().indexOf(buscar) !== -1 || String(p.dni||'').indexOf(buscar) !== -1 || String(p.servicio||'').toUpperCase().indexOf(buscar) !== -1);
         document.getElementById('resultadosBusqueda').innerText = (buscar || servicioFiltro !== 'TODOS') ? `Mostrando: ${filtrados.length} de ${todosPendientes.length}` : '';
         const tbody = document.querySelector('#tablaPendientes tbody'); tbody.innerHTML = '';
         if (filtrados.length === 0) {
-            tbody.innerHTML = todosPendientes.length === 0 ? '<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>' : '<tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div>Sin resultados</div></td></tr>';
+            tbody.innerHTML = todosPendientes.length === 0 ? '<tr><td colspan="7"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>' : '<tr><td colspan="7"><div class="empty-state"><div class="icon">🔍</div>Sin resultados</div></td></tr>';
             document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`; return;
         }
         document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
@@ -296,19 +333,35 @@
             if (p.dieta === 'CELIACA') dietaBadge = 'badge-celiaca';
             else if (p.dieta !== 'GENERAL') dietaBadge = 'badge-dieta-especial';
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td><span class="codigo-cell">${p.codigo}</span></td><td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge ${guardiaBadge}">${g}</span></td><td><span class="badge ${comidaBadge}">${c}</span></td><td><span class="badge ${dietaBadge}">${p.dieta||'GENERAL'}</span></td><td><button class="btn btn-success btn-sm" onclick="entregarRapido('${p.codigo}')">✔</button></td>`;
+            tr.innerHTML = `<td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge ${guardiaBadge}">${g}</span></td><td><span class="badge ${comidaBadge}">${c}</span></td><td><span class="badge ${dietaBadge}">${p.dieta||'GENERAL'}</span></td><td class="acciones-cell"><button class="btn btn-success btn-xs" onclick="validarPorIdDirecto('${p.id}')" title="Validar entrega">✔</button><button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" title="Eliminar pedido">✕</button></td>`;
             tbody.appendChild(tr);
         });
     }
 
-    function validarCodigo() {
-        const cod = document.getElementById('codigoInput').value.trim().toUpperCase();
-        if (cod.length !== 4) { mostrarMensaje('mensajeValidacion','error','❌ Código de 4 caracteres'); return; }
+    function validarPorId() {
+        const id = document.getElementById('codigoInput').value.trim();
+        if (!id) { mostrarMensaje('mensajeValidacion','error','❌ Ingrese un ID'); return; }
+        validarPedido(id);
+    }
+    
+    function validarPorIdDirecto(id) {
+        document.getElementById('codigoInput').value = id;
+        validarPedido(id);
+    }
+    
+    function validarPedido(id) {
         const cb = 'v_' + Date.now();
         window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeValidacion','success',`✅ ${d.nombre} | ${d.dieta}`); document.getElementById('codigoInput').value = ''; cargarTodo(); } else { mostrarMensaje('mensajeValidacion','error',`❌ ${d.message}`); } };
-        const s = document.createElement('script'); s.src = API + '?action=validar_codigo&codigo=' + cod + '&callback=' + cb; document.body.appendChild(s);
+        const s = document.createElement('script'); s.src = API + '?action=validar_por_id&id=' + id + '&callback=' + cb; document.body.appendChild(s);
     }
-    function entregarRapido(c) { document.getElementById('codigoInput').value = c; document.getElementById('codigoInput').focus(); validarCodigo(); }
+
+    function eliminarPedido(id, nombre) {
+        if (!confirm(`⚠️ ¿Está seguro de ELIMINAR este pedido?\n\n👤 ${nombre}\n\nEsta acción no se puede revertir.`)) return;
+        const cb = 'del_' + Date.now();
+        window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeValidacion','success','🗑️ Pedido eliminado'); cargarTodo(); } else { mostrarMensaje('mensajeValidacion','error','❌ Error al eliminar'); } };
+        const s = document.createElement('script'); s.src = API + '?action=eliminar_pedido&id=' + id + '&callback=' + cb; document.body.appendChild(s);
+    }
+
     function abrirModalCarga() { document.getElementById('modalCarga').classList.add('active'); }
     function cerrarModalCarga() { document.getElementById('modalCarga').classList.remove('active'); }
     function cargarManual() {
@@ -317,9 +370,9 @@
         if (!d || d.length < 7) { mostrarMensaje('mensajeModal','error','❌ DNI válido'); return; }
         if (!srv) { mostrarMensaje('mensajeModal','error','❌ Seleccione servicio'); return; }
         const tipoComida = g === '24' ? '24HS (AMBAS)' : 'TURNO_ACTUAL';
-        const cod = Math.random().toString(36).substring(2,6).toUpperCase(), cb = 'cm_' + Date.now();
-        window[cb] = function(data) { delete window[cb]; document.body.removeChild(s); if (data && data.status === "success") { mostrarMensaje('mensajeModal','success',`✅ REGISTRADO<br>🔢 Código: <strong>${cod}</strong>`); setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2500); } else { mostrarMensaje('mensajeModal','error','❌ Error'); } };
-        const s = document.createElement('script'); s.src = API + '?' + new URLSearchParams({ action: 'generar_codigo', nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual, codigo: cod, tipoComida: tipoComida, tipo: 'MANUAL', callback: cb }).toString(); document.body.appendChild(s);
+        const cb = 'cm_' + Date.now();
+        window[cb] = function(data) { delete window[cb]; document.body.removeChild(s); if (data && data.status === "success") { mostrarMensaje('mensajeModal','success','✅ REGISTRADO'); setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2000); } else { mostrarMensaje('mensajeModal','error','❌ Error'); } };
+        const s = document.createElement('script'); s.src = API + '?' + new URLSearchParams({ action: 'generar_codigo', nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual, codigo: '', tipoComida: tipoComida, tipo: 'MANUAL', callback: cb }).toString(); document.body.appendChild(s);
     }
     function cerrarTurno() {
         if (!confirm("⚠️ ¿CERRAR TURNO?\n\nLos PENDIENTES se marcarán NO ENTREGADOS.")) return;
@@ -327,7 +380,7 @@
         window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeCierre','success',`✅ ${d.message}`); setTimeout(() => cargarTodo(), 2000); } else { mostrarMensaje('mensajeCierre','error',`❌ ${d.message}`); } };
         const s = document.createElement('script'); s.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + cb; document.body.appendChild(s);
     }
-    document.getElementById('codigoInput').addEventListener('keypress', e => { if (e.key === 'Enter') validarCodigo(); });
+    document.getElementById('codigoInput').addEventListener('keypress', e => { if (e.key === 'Enter') validarPorId(); });
     document.getElementById('codigoInput').focus();
     window.addEventListener('beforeunload', () => clearInterval(intervalo));
 </script>
