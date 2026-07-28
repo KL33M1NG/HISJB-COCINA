@@ -165,7 +165,22 @@
 
         <div class="card">
             <div class="card-header"><h3>📋 ENTREGAS PENDIENTES</h3><span style="font-size: 0.8rem; color: #666;" id="contadorPendientes">0 personas</span></div>
-            <div class="table-wrapper"><div class="table-scroll"><table id="tablaPendientes"><thead><tr><th>👤 PERSONAL</th><th>🆔 DNI</th><th>🏥 SERVICIO</th><th>⏱️ G.</th><th>🍽️ COMIDA</th><th>📋 DIETA</th><th>⚡ ACCIONES</th></tr></thead><tbody><tr><td colspan="7"><div class="empty-state"><div class="icon">🍳</div>Cargando...</div></td></tr></tbody></table></div></div>
+            <div class="table-wrapper"><div class="table-scroll"><table id="tablaPendientes">
+                <thead>
+                    <tr>
+                        <th>⚡ ACCIONES</th>
+                        <th>👤 PERSONAL</th>
+                        <th>🆔 DNI</th>
+                        <th>🏥 SERVICIO</th>
+                        <th>⏱️ G.</th>
+                        <th>🍽️ COMIDA</th>
+                        <th>📋 DIETA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="7"><div class="empty-state"><div class="icon">🍳</div>Cargando...</div></td></tr>
+                </tbody>
+            </table></div></div>
         </div>
 
         <div class="card">
@@ -333,7 +348,7 @@
             if (p.dieta === 'CELIACA') dietaBadge = 'badge-celiaca';
             else if (p.dieta !== 'GENERAL') dietaBadge = 'badge-dieta-especial';
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge ${guardiaBadge}">${g}</span></td><td><span class="badge ${comidaBadge}">${c}</span></td><td><span class="badge ${dietaBadge}">${p.dieta||'GENERAL'}</span></td><td class="acciones-cell"><button class="btn btn-success btn-xs" onclick="validarPorIdDirecto('${p.id}')" title="Validar entrega">✔</button><button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" title="Eliminar pedido">✕</button></td>`;
+            tr.innerHTML = `<td class="acciones-cell"><button class="btn btn-success btn-xs" onclick="validarPorIdDirecto('${p.id}')" title="Validar entrega">✔</button><button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" title="Eliminar pedido">✕</button></td><td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge ${guardiaBadge}">${g}</span></td><td><span class="badge ${comidaBadge}">${c}</span></td><td><span class="badge ${dietaBadge}">${p.dieta||'GENERAL'}</span></td>`;
             tbody.appendChild(tr);
         });
     }
