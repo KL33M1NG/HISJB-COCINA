@@ -282,8 +282,8 @@
     }
 
     function cargarMenuDelDia() {
-        cargarMenuPorTurno('MAÑANA', 'menuAlmuerzo', 'dietasAlmuerzo');
-        cargarMenuPorTurno('NOCHE', 'menuCena', 'dietasCena');
+        cargarMenuPorTurno('M', 'menuAlmuerzo', 'dietasAlmuerzo');
+        cargarMenuPorTurno('N', 'menuCena', 'dietasCena');
     }
     function cargarMenuPorTurno(turno, cardId, dietasId) {
         const cb = 'menuCocina_' + turno + '_' + Date.now();
@@ -302,9 +302,9 @@
                 estadoEl.textContent = '⛔ SIN PUBLICAR'; estadoEl.className = 'menu-estado pendiente'; card.className = 'menu-dia-card no-publicado';
             }
         };
-       const s = document.createElement('script');
-s.src = API + '?action=obtener_menu&turno=' + encodeURIComponent(turno) + '&callback=' + encodeURIComponent(cb);
-document.body.appendChild(s);
+        const s = document.createElement('script');
+        s.src = API + '?action=obtener_menu&turno=' + turno + '&callback=' + encodeURIComponent(cb);
+        document.body.appendChild(s);
     }
 
     function cargarPendientes() {
@@ -323,7 +323,7 @@ document.body.appendChild(s);
             document.getElementById('filtroServicio').innerHTML = '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort().map(s => `<option value="${s}">${s}</option>`).join('');
             filtrarTabla();
         };
-        const s = document.createElement('script'); s.src = API + '?action=obtener_pendientes&callback=' + cb;
+        const s = document.createElement('script'); s.src = API + '?action=obtener_pendientes&callback=' + encodeURIComponent(cb);
         s.onerror = () => { document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="7"><div class="empty-state">❌ Error</div></td></tr>'; };
         document.body.appendChild(s);
     }
@@ -369,14 +369,14 @@ document.body.appendChild(s);
     function validarPedido(id) {
         const cb = 'v_' + Date.now();
         window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeValidacion','success',`✅ ${d.nombre} | ${d.dieta}`); document.getElementById('codigoInput').value = ''; cargarTodo(); } else { mostrarMensaje('mensajeValidacion','error',`❌ ${d.message}`); } };
-        const s = document.createElement('script'); s.src = API + '?action=validar_por_id&id=' + id + '&callback=' + cb; document.body.appendChild(s);
+        const s = document.createElement('script'); s.src = API + '?action=validar_por_id&id=' + id + '&callback=' + encodeURIComponent(cb); document.body.appendChild(s);
     }
 
     function eliminarPedido(id, nombre) {
         if (!confirm(`⚠️ ¿Está seguro de ELIMINAR este pedido?\n\n👤 ${nombre}\n\nEsta acción no se puede revertir.`)) return;
         const cb = 'del_' + Date.now();
         window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeValidacion','success','🗑️ Pedido eliminado'); cargarTodo(); } else { mostrarMensaje('mensajeValidacion','error','❌ Error al eliminar'); } };
-        const s = document.createElement('script'); s.src = API + '?action=eliminar_pedido&id=' + id + '&callback=' + cb; document.body.appendChild(s);
+        const s = document.createElement('script'); s.src = API + '?action=eliminar_pedido&id=' + id + '&callback=' + encodeURIComponent(cb); document.body.appendChild(s);
     }
 
     function abrirModalCarga() { document.getElementById('modalCarga').classList.add('active'); }
@@ -389,13 +389,13 @@ document.body.appendChild(s);
         const tipoComida = g === '24' ? '24HS (AMBAS)' : 'TURNO_ACTUAL';
         const cb = 'cm_' + Date.now();
         window[cb] = function(data) { delete window[cb]; document.body.removeChild(s); if (data && data.status === "success") { mostrarMensaje('mensajeModal','success','✅ REGISTRADO'); setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2000); } else { mostrarMensaje('mensajeModal','error','❌ Error'); } };
-        const s = document.createElement('script'); s.src = API + '?' + new URLSearchParams({ action: 'generar_codigo', nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual, codigo: '', tipoComida: tipoComida, tipo: 'MANUAL', callback: cb }).toString(); document.body.appendChild(s);
+        const s = document.createElement('script'); s.src = API + '?' + new URLSearchParams({ action: 'generar_codigo', nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual === "MAÑANA" ? "M" : "N", codigo: '', tipoComida: tipoComida, tipo: 'MANUAL', callback: cb }).toString(); document.body.appendChild(s);
     }
     function cerrarTurno() {
         if (!confirm("⚠️ ¿CERRAR TURNO?\n\nLos PENDIENTES se marcarán NO ENTREGADOS.")) return;
         const cb = 'ct_' + Date.now();
         window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeCierre','success',`✅ ${d.message}`); setTimeout(() => cargarTodo(), 2000); } else { mostrarMensaje('mensajeCierre','error',`❌ ${d.message}`); } };
-        const s = document.createElement('script'); s.src = API + '?action=cerrar_turno&turno=' + turnoActual + '&callback=' + cb; document.body.appendChild(s);
+        const s = document.createElement('script'); s.src = API + '?action=cerrar_turno&turno=' + (turnoActual === "MAÑANA" ? "M" : "N") + '&callback=' + encodeURIComponent(cb); document.body.appendChild(s);
     }
     document.getElementById('codigoInput').addEventListener('keypress', e => { if (e.key === 'Enter') validarPorId(); });
     document.getElementById('codigoInput').focus();
@@ -403,4 +403,3 @@ document.body.appendChild(s);
 </script>
 </body>
 </html>
-<!-- v20260813 -->
