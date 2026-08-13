@@ -288,6 +288,7 @@
         "CENTRAL DE DERIVACIONES": { pass: "derivaciones", tipo: "normal" },
         "BACTERIOLOGIA": { pass: "bacterio", tipo: "normal" },
         "ESTERILIZACIÓN": { pass: "esteril", tipo: "normal" },
+        "ANESTESISTAS": { pass: "anestesia2026", tipo: "normal" },
         "LINEA 135 - SALUD MENTAL": { pass: "135", tipo: "normal" },
     };
     
@@ -306,9 +307,8 @@
     const turnoActual = (hora < 15) ? "MAÑANA" : "NOCHE";
 
     // ==================== BASE DE DATOS DEL PERSONAL ====================
-    // ⚠️ ESPACIO PARA AGREGAR EL PERSONAL - COPIAR Y PEGAR AQUÍ
     const PERSONAL = [
-        // MEDICOS DE UTI
+                // MEDICOS DE UTI
         { nombre: "CECENARRO MARIA JOSE", dni: "35387764", servicio: "UTI I", dieta: "GENERAL" },
         { nombre: "LEONARDO GUERRERO", dni: "29618423", servicio: "UTI I", dieta: "GENERAL" },
         { nombre: "GRANEROS MARIA NOE", dni: "32201781", servicio: "UTI I", dieta: "GENERAL" },
@@ -960,9 +960,9 @@
         { nombre: "SOSA ARI DANIELA", dni: "41187108", servicio: "LINEA 135 - SALUD MENTAL", dieta: "GENERAL" },
         { nombre: "VEKI EUGENIA SOLEDAD", dni: "28456160", servicio: "LINEA 135 - SALUD MENTAL", dieta: "GENERAL" },
         { nombre: "ZAMPIERI MARIA LAURA", dni: "27921723", servicio: "LINEA 135 - SALUD MENTAL", dieta: "GENERAL" },
-        
-    
-    ];
+       
+   
+   ];
 
     // ==================== FUNCIONES ====================
     function fetchJsonp(action, params = {}) {
@@ -970,6 +970,9 @@
             const cb = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
             window[cb] = function(data) { delete window[cb]; document.body.removeChild(s); resolve(data); };
             const s = document.createElement('script');
+            // Convertir MAÑANA → M, NOCHE → N en todos los parámetros turno
+            if (params.turno === "MAÑANA") params.turno = "M";
+            if (params.turno === "NOCHE") params.turno = "N";
             s.src = API + '?' + new URLSearchParams({ ...params, action, callback: cb }).toString();
             s.onerror = () => { delete window[cb]; reject(new Error('Error')); };
             document.body.appendChild(s);
@@ -1103,7 +1106,6 @@
 
     document.addEventListener('click', (e) => { if (!e.target.closest('.autocomplete-wrapper')) { document.getElementById('autocompleteList').classList.remove('show'); const sl = document.getElementById('superAutocomplete'); if (sl) sl.classList.remove('show'); } });
 
-    // ==================== SOLICITAR COMIDA (SIN CÓDIGO) ====================
     async function solicitarComida() {
         const nombre = document.getElementById('nombre').value.trim().toUpperCase();
         const dni = document.getElementById('dni').value.trim();
@@ -1121,7 +1123,6 @@
         const turnoEnvio = (guardia === '16' || guardia === '20') ? (document.getElementById('comidaElegida').value === 'ALMUERZO' ? 'MAÑANA' : 'NOCHE') : turnoActual;
         
         try {
-            // Verificar duplicado primero
             const dupCheck = await fetchJsonp('verificar_duplicado', { dni, turno: turnoEnvio });
             if (dupCheck.duplicado) {
                 err.innerText = '⚠️ Este DNI ya fue cargado en este turno';
@@ -1203,12 +1204,15 @@
     }
     async function procesarCargaSuper() {
         if (superLista.length === 0) { document.getElementById('superMensaje').innerText = '❌ Lista vacía'; return; }
-        const turno = document.getElementById('superTurno').value, dieta = document.getElementById('superDieta').value, guardia = document.getElementById('superGuardia').value;
+        const turno = document.getElementById('superTurno').value;
+        var turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
+        const dieta = document.getElementById('superDieta').value;
+        const guardia = document.getElementById('superGuardia').value;
         if (!confirm(`¿Procesar ${superLista.length} personas?\nTurno: ${turno}\nDieta: ${dieta}\nGuardia: ${guardia}hs`)) return;
         let ok = 0, err = 0; document.getElementById('superMensaje').innerText = '⏳ Procesando...';
         for (const p of superLista) {
             try { 
-                await fetchJsonp('generar_codigo', { nombre: p.nombre, dni: p.dni, servicio: p.servicio, guardia, dieta: p.dieta === 'CELIACA' ? 'CELIACA' : dieta, turno, codigo: '', tipoComida: guardia === '24' ? '24HS (AMBAS)' : 'TURNO', tipo: 'SUPERVISOR' }); 
+                await fetchJsonp('generar_codigo', { nombre: p.nombre, dni: p.dni, servicio: p.servicio, guardia, dieta: p.dieta === 'CELIACA' ? 'CELIACA' : dieta, turno: turnoEnviar, codigo: '', tipoComida: guardia === '24' ? '24HS (AMBAS)' : 'TURNO', tipo: 'SUPERVISOR' }); 
                 ok++; 
             } catch (e) { err++; }
             await new Promise(r => setTimeout(r, 200));
