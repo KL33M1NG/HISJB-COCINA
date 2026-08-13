@@ -271,9 +271,9 @@
                         resolve(null);
                     }
                 };
-                const s = document.createElement('script');
-                s.src = API + '?action=obtener_menu&turno=' + turno + '&callback=' + cb;
-                document.body.appendChild(s);
+              const s = document.createElement('script');
+s.src = API + '?action=obtener_menu&turno=' + encodeURIComponent(turno) + '&callback=' + encodeURIComponent(cb);
+document.body.appendChild(s);
             });
         }
 
