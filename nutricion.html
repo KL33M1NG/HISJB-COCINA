@@ -77,7 +77,6 @@
         .info-text { font-size: 0.8rem; color: #666; margin-top: 5px; text-transform: none; }
         .header-info { text-align: center; margin-bottom: 20px; color: #666; font-size: 0.9rem; }
         
-        /* Panel de edición */
         .editar-section {
             background: #fff3cd;
             padding: 15px;
@@ -114,13 +113,11 @@
             Publicación de Menú Diario
         </div>
         
-        <!-- ========== VER MENÚ ACTUAL ========== -->
         <button class="btn-warning" onclick="verMenuActual()" style="background: var(--orange); margin-bottom: 15px;">
             👁️ VER MENÚ CARGADO HOY
         </button>
         <div id="menuActualInfo" class="mensaje info" style="display: none;"></div>
         
-        <!-- ========== EDITAR MENÚ ========== -->
         <div class="editar-section" id="editarSection">
             <h3>✏️ EDITAR MENÚ EXISTENTE</h3>
             <p style="font-size: 0.8rem; color: #666; text-align: center;">Modifique los campos que desea corregir</p>
@@ -156,7 +153,6 @@
             <div id="mensajeEditar" class="mensaje"></div>
         </div>
         
-        <!-- ========== NUEVO MENÚ ========== -->
         <h3 style="margin-top: 25px;">🆕 PUBLICAR NUEVO MENÚ</h3>
         
         <label>🍽️ TURNO</label>
@@ -227,7 +223,6 @@
         const fechaStr = fecha.toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         console.log('📅 Fecha actual:', fechaStr);
 
-        // ==================== VER MENÚ ACTUAL ====================
         async function verMenuActual() {
             const infoDiv = document.getElementById('menuActualInfo');
             infoDiv.style.display = 'block';
@@ -262,6 +257,8 @@
         
         function fetchMenu(turno) {
             return new Promise((resolve) => {
+                // Convertir MAÑANA → M, NOCHE → N para evitar problemas con la Ñ
+                var turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
                 const cb = 'verMenu_' + turno + '_' + Date.now();
                 window[cb] = function(data) {
                     delete window[cb]; document.body.removeChild(s);
@@ -271,13 +268,12 @@
                         resolve(null);
                     }
                 };
-              const s = document.createElement('script');
-s.src = API + '?action=obtener_menu&turno=' + encodeURIComponent(turno) + '&callback=' + encodeURIComponent(cb);
-document.body.appendChild(s);
+                const s = document.createElement('script');
+                s.src = API + '?action=obtener_menu&turno=' + turnoEnviar + '&callback=' + encodeURIComponent(cb);
+                document.body.appendChild(s);
             });
         }
 
-        // ==================== CARGAR DATOS PARA EDITAR ====================
         async function cargarDatosEditar() {
             const turno = document.getElementById('editarTurno').value;
             const msgDiv = document.getElementById('mensajeEditar');
@@ -312,9 +308,9 @@ document.body.appendChild(s);
             }
         }
 
-        // ==================== GUARDAR EDICIÓN ====================
         function guardarEdicion() {
             const turno = document.getElementById('editarTurno').value;
+            var turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
             const platoPrincipal = document.getElementById('editarPlato').value.trim();
             const postre = document.getElementById('editarPostre').value.trim();
             const msgDiv = document.getElementById('mensajeEditar');
@@ -354,7 +350,7 @@ document.body.appendChild(s);
             };
             
             const params = new URLSearchParams({
-                action: 'editar_menu', turno, platoPrincipal, postre,
+                action: 'editar_menu', turno: turnoEnviar, platoPrincipal, postre,
                 general: dietas.GENERAL, hiposodica: dietas.HIPOSÓDICA,
                 diabetica: dietas.DIABÉTICA, celiaca: dietas.CELIACA,
                 gastrica: dietas.GÁSTRICA, astringente: dietas.ASTRINGENTE,
@@ -372,9 +368,9 @@ document.body.appendChild(s);
             document.getElementById('mensajeEditar').style.display = 'none';
         }
 
-        // ==================== PUBLICAR NUEVO MENÚ ====================
         function publicarMenu() {
             const turno = document.getElementById('turno').value;
+            var turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
             const platoPrincipal = document.getElementById('platoPrincipal').value.trim();
             const postre = document.getElementById('postre').value.trim();
             const msgDiv = document.getElementById('mensaje');
@@ -414,7 +410,7 @@ document.body.appendChild(s);
             };
             
             const params = new URLSearchParams({
-                action: 'cargar_menu', turno, platoPrincipal, postre,
+                action: 'cargar_menu', turno: turnoEnviar, platoPrincipal, postre,
                 general: dietas.GENERAL, hiposodica: dietas.HIPOSÓDICA,
                 diabetica: dietas.DIABÉTICA, celiaca: dietas.CELIACA,
                 gastrica: dietas.GÁSTRICA, astringente: dietas.ASTRINGENTE,
