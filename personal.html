@@ -983,21 +983,20 @@
         const paramsStr = new URLSearchParams({ ...params, action, callback: cb }).toString();
         script.src = API + '?' + paramsStr;
         
-        // ✅ PRIMERO: Definir el callback
+        // ✅ IMPORTANTE: Definir el callback ANTES de agregar el script al DOM
         window[cb] = function(data) {
             delete window[cb];
             document.body.removeChild(script);
             resolve(data);
         };
         
-        // ✅ LUEGO: Manejar errores
         script.onerror = function() {
             delete window[cb];
             document.body.removeChild(script);
             reject(new Error('Error de conexión'));
         };
         
-        // ✅ FINALMENTE: Agregar al documento
+        // ✅ AHORA agregar el script al DOM
         document.body.appendChild(script);
         
         setTimeout(() => {
