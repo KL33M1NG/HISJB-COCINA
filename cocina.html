@@ -32,7 +32,6 @@
         .turno-bar { background: white; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); flex-wrap: wrap; gap: 8px; }
         .turno-badge { background: var(--blue); color: white; padding: 8px 18px; border-radius: 50px; font-weight: bold; font-size: 0.95rem; white-space: nowrap; }
         .turno-info { color: var(--dark); font-size: 0.8rem; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        
         .menu-dia-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 5px; }
         .menu-dia-card { padding: 18px; border-radius: 12px; text-align: center; border: 3px solid var(--border); }
         .menu-dia-card.publicado { border-color: var(--green); background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); }
@@ -45,7 +44,6 @@
         .menu-estado.pendiente { background: var(--red); color: white; }
         .menu-dietas-detalle { margin-top: 10px; font-size: 0.7rem; color: #555; text-align: left; }
         .menu-dietas-detalle span { display: inline-block; background: rgba(0,0,0,0.05); padding: 3px 8px; border-radius: 4px; margin: 2px; }
-        
         .stats-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 15px 0; }
         .stat-card { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%); padding: 12px 4px; border-radius: 10px; text-align: center; color: white; }
         .stat-card .dieta-nombre { font-size: 0.65rem; opacity: 0.9; margin-bottom: 4px; font-weight: bold; }
@@ -54,22 +52,17 @@
         .validacion-section { background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; border: 2px dashed var(--blue); }
         .input-group { display: flex; gap: 8px; margin-top: 10px; }
         .input-group input { flex: 1; min-width: 0; padding: 14px; font-size: 1.4rem; text-align: center; border: 2px solid var(--blue); border-radius: 10px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
-        .input-group input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(40,167,69,0.15); }
         .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-transform: uppercase; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
         .btn:hover { opacity: 0.9; }
         .btn-primary { background: var(--blue); color: white; }
         .btn-success { background: var(--green); color: white; }
         .btn-danger { background: var(--red); color: white; }
-        .btn-warning { background: var(--orange); color: white; }
         .btn-outline { background: white; color: var(--blue); border: 2px solid var(--blue); }
         .btn-sm { padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; }
         .btn-block { width: 100%; }
         .btn-xs { padding: 3px 6px; font-size: 0.65rem; }
         .table-wrapper { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 50vh; -webkit-overflow-scrolling: touch; }
-        .table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
-        .table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .table-scroll::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 800px; }
         thead { position: sticky; top: 0; z-index: 10; }
         thead th { background: var(--blue); color: white; padding: 10px 8px; text-align: left; font-weight: bold; font-size: 0.75rem; white-space: nowrap; }
@@ -86,8 +79,7 @@
         .badge-celiaca { background: #e74c3c; color: white; }
         .empty-state { text-align: center; padding: 30px 15px; color: #999; }
         .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
-        .mensaje { margin-top: 10px; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; animation: slideIn 0.3s; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .mensaje { margin-top: 10px; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; }
         .mensaje.success { background: #d4edda; color: #155724; border-left: 4px solid var(--green); }
         .mensaje.error { background: #f8d7da; color: #721c24; border-left: 4px solid var(--red); }
         .footer { background: var(--blue); color: white; text-align: center; padding: 15px 20px; font-size: 0.7rem; flex-shrink: 0; }
@@ -101,12 +93,7 @@
         @media (max-width: 900px) {
             .stats-grid { grid-template-columns: repeat(4, 1fr); }
             .toolbar { flex-direction: column; }
-            .toolbar input, .toolbar select { width: 100%; }
             .menu-dia-grid { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 500px) {
-            .stats-grid { grid-template-columns: repeat(3, 1fr); }
-            .card { padding: 15px; }
         }
     </style>
 </head>
@@ -166,20 +153,8 @@
         <div class="card">
             <div class="card-header"><h3>📋 ENTREGAS PENDIENTES</h3><span style="font-size: 0.8rem; color: #666;" id="contadorPendientes">0 personas</span></div>
             <div class="table-wrapper"><div class="table-scroll"><table id="tablaPendientes">
-                <thead>
-                    <tr>
-                        <th>⚡ ACCIONES</th>
-                        <th>👤 PERSONAL</th>
-                        <th>🆔 DNI</th>
-                        <th>🏥 SERVICIO</th>
-                        <th>⏱️ G.</th>
-                        <th>🍽️ COMIDA</th>
-                        <th>📋 DIETA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="7"><div class="empty-state"><div class="icon">🍳</div>Cargando...</div></td></tr>
-                </tbody>
+                <thead><tr><th>⚡ ACCIONES</th><th>👤 PERSONAL</th><th>🆔 DNI</th><th>🏥 SERVICIO</th><th>⏱️ G.</th><th>🍽️ COMIDA</th><th>📋 DIETA</th></tr></thead>
+                <tbody><tr><td colspan="7"><div class="empty-state"><div class="icon">🍳</div>Cargando...</div></td></tr></tbody>
             </table></div></div>
         </div>
 
@@ -236,22 +211,9 @@
             <option value="UTI II">UTI II</option>
         </select>
         <label>⏱️ GUARDIA *</label>
-        <select id="modalGuardia">
-            <option value="12">12 HORAS</option>
-            <option value="16">16 HORAS</option>
-            <option value="20">20 HORAS</option>
-            <option value="24">24 HORAS (AMBAS COMIDAS)</option>
-        </select>
+        <select id="modalGuardia"><option value="12">12 HORAS</option><option value="16">16 HORAS</option><option value="20">20 HORAS</option><option value="24">24 HORAS (AMBAS COMIDAS)</option></select>
         <label>🍽️ DIETA *</label>
-        <select id="modalDieta">
-            <option value="GENERAL">GENERAL</option>
-            <option value="HIPOSÓDICA">HIPOSÓDICA</option>
-            <option value="DIABÉTICA">DIABÉTICA</option>
-            <option value="CELIACA">CELIACA</option>
-            <option value="GÁSTRICA">GÁSTRICA</option>
-            <option value="ASTRINGENTE">ASTRINGENTE</option>
-            <option value="VEGETARIANA">VEGETARIANA</option>
-        </select>
+        <select id="modalDieta"><option value="GENERAL">GENERAL</option><option value="HIPOSÓDICA">HIPOSÓDICA</option><option value="DIABÉTICA">DIABÉTICA</option><option value="CELIACA">CELIACA</option><option value="GÁSTRICA">GÁSTRICA</option><option value="ASTRINGENTE">ASTRINGENTE</option><option value="VEGETARIANA">VEGETARIANA</option></select>
         <div style="display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap;"><button class="btn btn-success" style="flex: 1;" onclick="cargarManual()">✅ REGISTRAR</button><button class="btn btn-danger" style="flex: 1;" onclick="cerrarModalCarga()">❌ CANCELAR</button></div>
         <div id="mensajeModal" class="mensaje" style="display: none; margin-top: 12px;"></div>
     </div>
@@ -281,16 +243,26 @@
         setTimeout(() => { el.style.display = 'none'; }, 5000);
     }
 
+    // ========== USANDO fetch PARA EVITAR CORB ==========
+    async function fetchData(action, params = {}) {
+        const query = new URLSearchParams({ ...params, action }).toString();
+        const response = await fetch(API + '?' + query);
+        return await response.json();
+    }
+
     function cargarMenuDelDia() {
         cargarMenuPorTurno('M', 'menuAlmuerzo', 'dietasAlmuerzo');
         cargarMenuPorTurno('N', 'menuCena', 'dietasCena');
     }
-    function cargarMenuPorTurno(turno, cardId, dietasId) {
-        const cb = 'menuCocina_' + turno + '_' + Date.now();
-        window[cb] = function(data) {
-            delete window[cb]; document.body.removeChild(s);
+    async function cargarMenuPorTurno(turno, cardId, dietasId) {
+        try {
+            const data = await fetchData('obtener_menu', { turno: turno });
             const card = document.getElementById(cardId);
-            const platoEl = card.querySelector('.menu-plato'), postreEl = card.querySelector('.menu-postre'), estadoEl = card.querySelector('.menu-estado'), dietasEl = document.getElementById(dietasId);
+            const platoEl = card.querySelector('.menu-plato');
+            const postreEl = card.querySelector('.menu-postre');
+            const estadoEl = card.querySelector('.menu-estado');
+            const dietasEl = document.getElementById(dietasId);
+            
             if (data.disponible && data.datos && data.datos.length > 0) {
                 const menu = data.datos[0];
                 platoEl.innerHTML = `🍲 <strong>${menu.platoPrincipal || 'Sin nombre'}</strong>`;
@@ -301,16 +273,13 @@
                 platoEl.innerHTML = '🚫 Menú no publicado'; postreEl.style.display = 'none'; dietasEl.style.display = 'none';
                 estadoEl.textContent = '⛔ SIN PUBLICAR'; estadoEl.className = 'menu-estado pendiente'; card.className = 'menu-dia-card no-publicado';
             }
-        };
-        const s = document.createElement('script');
-        s.src = API + '?action=obtener_menu&turno=' + turno + '&callback=' + encodeURIComponent(cb);
-        document.body.appendChild(s);
+        } catch(e) { console.error('Error:', e); }
     }
 
-    function cargarPendientes() {
-        const cb = 'cocinaCallback_' + Date.now();
-        window[cb] = function(data) {
-            delete window[cb]; document.body.removeChild(s); actualizarFecha();
+    async function cargarPendientes() {
+        try {
+            const data = await fetchData('obtener_pendientes');
+            actualizarFecha();
             if (data.error) return;
             const conteo = data.conteoDietas || {};
             document.getElementById('resumenDietas').innerHTML = '';
@@ -322,14 +291,12 @@
             todosPendientes = data.listaPendientes || [];
             document.getElementById('filtroServicio').innerHTML = '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort().map(s => `<option value="${s}">${s}</option>`).join('');
             filtrarTabla();
-        };
-        const s = document.createElement('script'); s.src = API + '?action=obtener_pendientes&callback=' + encodeURIComponent(cb);
-        s.onerror = () => { document.querySelector('#tablaPendientes tbody').innerHTML = '<tr><td colspan="7"><div class="empty-state">❌ Error</div></td></tr>'; };
-        document.body.appendChild(s);
+        } catch(e) { console.error('Error:', e); }
     }
 
     function filtrarTabla() {
-        const buscar = document.getElementById('buscarInput').value.toUpperCase().trim(), servicioFiltro = document.getElementById('filtroServicio').value;
+        const buscar = document.getElementById('buscarInput').value.toUpperCase().trim();
+        const servicioFiltro = document.getElementById('filtroServicio').value;
         let filtrados = todosPendientes;
         if (servicioFiltro !== 'TODOS') filtrados = filtrados.filter(p => (p.servicio || 'SIN SERVICIO') === servicioFiltro);
         if (buscar.length >= 1) filtrados = filtrados.filter(p => String(p.nombre||'').toUpperCase().indexOf(buscar) !== -1 || String(p.dni||'').indexOf(buscar) !== -1 || String(p.servicio||'').toUpperCase().indexOf(buscar) !== -1);
@@ -350,52 +317,57 @@
             if (p.dieta === 'CELIACA') dietaBadge = 'badge-celiaca';
             else if (p.dieta !== 'GENERAL') dietaBadge = 'badge-dieta-especial';
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="acciones-cell"><button class="btn btn-success btn-xs" onclick="validarPorIdDirecto('${p.id}')" title="Validar entrega">✔</button><button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" title="Eliminar pedido">✕</button></td><td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge ${guardiaBadge}">${g}</span></td><td><span class="badge ${comidaBadge}">${c}</span></td><td><span class="badge ${dietaBadge}">${p.dieta||'GENERAL'}</span></td>`;
+            tr.innerHTML = `<td class="acciones-cell"><button class="btn btn-success btn-xs" onclick="validarPorIdDirecto('${p.id}')">✔</button><button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}','${p.nombre.replace(/'/g,"\\'")}')">✕</button></td><td>${p.nombre||'N/E'}</td><td>${String(p.dni||'')}</td><td><span class="badge badge-servicio">${p.servicio||'N/E'}</span></td><td><span class="badge ${guardiaBadge}">${g}</span></td><td><span class="badge ${comidaBadge}">${c}</span></td><td><span class="badge ${dietaBadge}">${p.dieta||'GENERAL'}</span></td>`;
             tbody.appendChild(tr);
         });
     }
 
-    function validarPorId() {
+    async function validarPorId() {
         const id = document.getElementById('codigoInput').value.trim();
         if (!id) { mostrarMensaje('mensajeValidacion','error','❌ Ingrese un ID'); return; }
-        validarPedido(id);
+        await validarPedido(id);
     }
-    
-    function validarPorIdDirecto(id) {
+    async function validarPorIdDirecto(id) {
         document.getElementById('codigoInput').value = id;
-        validarPedido(id);
+        await validarPedido(id);
     }
-    
-    function validarPedido(id) {
-        const cb = 'v_' + Date.now();
-        window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeValidacion','success',`✅ ${d.nombre} | ${d.dieta}`); document.getElementById('codigoInput').value = ''; cargarTodo(); } else { mostrarMensaje('mensajeValidacion','error',`❌ ${d.message}`); } };
-        const s = document.createElement('script'); s.src = API + '?action=validar_por_id&id=' + id + '&callback=' + encodeURIComponent(cb); document.body.appendChild(s);
+    async function validarPedido(id) {
+        try {
+            const d = await fetchData('validar_por_id', { id: id });
+            if (d.status === "success") { mostrarMensaje('mensajeValidacion','success',`✅ ${d.nombre} | ${d.dieta}`); document.getElementById('codigoInput').value = ''; cargarTodo(); } else { mostrarMensaje('mensajeValidacion','error',`❌ ${d.message}`); }
+        } catch(e) { mostrarMensaje('mensajeValidacion','error','❌ Error de conexión'); }
     }
-
-    function eliminarPedido(id, nombre) {
-        if (!confirm(`⚠️ ¿Está seguro de ELIMINAR este pedido?\n\n👤 ${nombre}\n\nEsta acción no se puede revertir.`)) return;
-        const cb = 'del_' + Date.now();
-        window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeValidacion','success','🗑️ Pedido eliminado'); cargarTodo(); } else { mostrarMensaje('mensajeValidacion','error','❌ Error al eliminar'); } };
-        const s = document.createElement('script'); s.src = API + '?action=eliminar_pedido&id=' + id + '&callback=' + encodeURIComponent(cb); document.body.appendChild(s);
+    async function eliminarPedido(id, nombre) {
+        if (!confirm(`⚠️ ¿Está seguro de ELIMINAR este pedido?\n\n👤 ${nombre}`)) return;
+        try {
+            const d = await fetchData('eliminar_pedido', { id: id });
+            if (d.status === "success") { mostrarMensaje('mensajeValidacion','success','🗑️ Pedido eliminado'); cargarTodo(); } else { mostrarMensaje('mensajeValidacion','error','❌ Error al eliminar'); }
+        } catch(e) { mostrarMensaje('mensajeValidacion','error','❌ Error de conexión'); }
     }
 
     function abrirModalCarga() { document.getElementById('modalCarga').classList.add('active'); }
     function cerrarModalCarga() { document.getElementById('modalCarga').classList.remove('active'); }
-    function cargarManual() {
-        const n = document.getElementById('modalNombre').value.trim().toUpperCase(), d = document.getElementById('modalDni').value.trim(), srv = document.getElementById('modalServicio').value, g = document.getElementById('modalGuardia').value, die = document.getElementById('modalDieta').value;
+    async function cargarManual() {
+        const n = document.getElementById('modalNombre').value.trim().toUpperCase();
+        const d = document.getElementById('modalDni').value.trim();
+        const srv = document.getElementById('modalServicio').value;
+        const g = document.getElementById('modalGuardia').value;
+        const die = document.getElementById('modalDieta').value;
         if (!n) { mostrarMensaje('mensajeModal','error','❌ Ingrese nombre'); return; }
         if (!d || d.length < 7) { mostrarMensaje('mensajeModal','error','❌ DNI válido'); return; }
         if (!srv) { mostrarMensaje('mensajeModal','error','❌ Seleccione servicio'); return; }
         const tipoComida = g === '24' ? '24HS (AMBAS)' : 'TURNO_ACTUAL';
-        const cb = 'cm_' + Date.now();
-        window[cb] = function(data) { delete window[cb]; document.body.removeChild(s); if (data && data.status === "success") { mostrarMensaje('mensajeModal','success','✅ REGISTRADO'); setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2000); } else { mostrarMensaje('mensajeModal','error','❌ Error'); } };
-        const s = document.createElement('script'); s.src = API + '?' + new URLSearchParams({ action: 'generar_codigo', nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual === "MAÑANA" ? "M" : "N", codigo: '', tipoComida: tipoComida, tipo: 'MANUAL', callback: cb }).toString(); document.body.appendChild(s);
+        try {
+            const data = await fetchData('generar_codigo', { nombre: n, dni: d, servicio: srv, guardia: g, dieta: die, turno: turnoActual === "MAÑANA" ? "M" : "N", codigo: '', tipoComida: tipoComida, tipo: 'MANUAL' });
+            if (data && data.status === "success") { mostrarMensaje('mensajeModal','success','✅ REGISTRADO'); setTimeout(() => { cerrarModalCarga(); cargarTodo(); }, 2000); } else { mostrarMensaje('mensajeModal','error','❌ Error'); }
+        } catch(e) { mostrarMensaje('mensajeModal','error','❌ Error de conexión'); }
     }
-    function cerrarTurno() {
+    async function cerrarTurno() {
         if (!confirm("⚠️ ¿CERRAR TURNO?\n\nLos PENDIENTES se marcarán NO ENTREGADOS.")) return;
-        const cb = 'ct_' + Date.now();
-        window[cb] = function(d) { delete window[cb]; document.body.removeChild(s); if (d.status === "success") { mostrarMensaje('mensajeCierre','success',`✅ ${d.message}`); setTimeout(() => cargarTodo(), 2000); } else { mostrarMensaje('mensajeCierre','error',`❌ ${d.message}`); } };
-        const s = document.createElement('script'); s.src = API + '?action=cerrar_turno&turno=' + (turnoActual === "MAÑANA" ? "M" : "N") + '&callback=' + encodeURIComponent(cb); document.body.appendChild(s);
+        try {
+            const d = await fetchData('cerrar_turno', { turno: turnoActual === "MAÑANA" ? "M" : "N" });
+            if (d.status === "success") { mostrarMensaje('mensajeCierre','success',`✅ ${d.message}`); setTimeout(() => cargarTodo(), 2000); } else { mostrarMensaje('mensajeCierre','error',`❌ ${d.message}`); }
+        } catch(e) { mostrarMensaje('mensajeCierre','error','❌ Error de conexión'); }
     }
     document.getElementById('codigoInput').addEventListener('keypress', e => { if (e.key === 'Enter') validarPorId(); });
     document.getElementById('codigoInput').focus();
