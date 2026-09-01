@@ -971,42 +971,34 @@
         { nombre: "MAZA VERONICA NATALIA DEL VALLE", dni: "28604968", servicio: "RECURSOS HUMANOS", dieta: "GENERAL" },  
     ];
 
-    // ==================== FUNCIONES ====================
-    function fetchJsonp(action, params = {}) {
-        return new Promise((resolve, reject) => {
+        // ==================== FUNCIONES ====================
+    async function fetchJsonp(action, params = {}) {
+        try {
             // Convertir MAÑANA → M, NOCHE → N
             if (params.turno === "MAÑANA") params.turno = "M";
             if (params.turno === "NOCHE") params.turno = "N";
             
-            const cb = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            const script = document.createElement('script');
-            const paramsStr = new URLSearchParams({ ...params, action, callback: cb }).toString();
-            script.src = API + '?' + paramsStr;
+            const query = new URLSearchParams({ ...params, action }).toString();
+            const url = API + '?' + query;
             
-            // ✅ IMPORTANTE: Definir el callback ANTES de agregar el script al DOM
-            window[cb] = function(data) {
-                delete window[cb];
-                document.body.removeChild(script);
-                resolve(data);
-            };
+            console.log('🔄 Llamando a:', url);
             
-            script.onerror = function() {
-                delete window[cb];
-                document.body.removeChild(script);
-                reject(new Error('Error de conexión'));
-            };
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'cors'
+            });
             
-            // ✅ AHORA agregar el script al DOM
-            document.body.appendChild(script);
+            if (!response.ok) {
+                throw new Error('HTTP error ' + response.status);
+            }
             
-            setTimeout(() => {
-                if (window[cb]) {
-                    delete window[cb];
-                    document.body.removeChild(script);
-                    reject(new Error('Timeout'));
-                }
-            }, 15000);
-        });
+            const data = await response.json();
+            console.log('📥 Respuesta:', data);
+            return data;
+        } catch (e) {
+            console.error('❌ Error en fetchJsonp:', e.message);
+            throw e;
+        }
     }
     
     function login() {
