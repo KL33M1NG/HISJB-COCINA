@@ -50,6 +50,201 @@
         }
     </style>
 </head>
+    <script>
+    // ==================== SISTEMA DE MONITOREO ====================
+    const logs = [];
+    const errores = [];
+    const llamadas = [];
+    
+    // Capturar errores de consola
+    const originalError = console.error;
+    console.error = function(...args) {
+        errores.push({
+            tipo: 'console.error',
+            mensaje: args.map(a => String(a)).join(' '),
+            hora: new Date().toLocaleTimeString()
+        });
+        originalError.apply(console, args);
+    };
+    
+    // Capturar errores no capturados
+    window.addEventListener('error', function(e) {
+        errores.push({
+            tipo: 'window.error',
+            mensaje: e.message,
+            archivo: e.filename,
+            linea: e.lineno,
+            hora: new Date().toLocaleTimeString()
+        });
+    });
+    
+    // Capturar errores de promesas
+    window.addEventListener('unhandledrejection', function(e) {
+        errores.push({
+            tipo: 'unhandledrejection',
+            mensaje: String(e.reason),
+            hora: new Date().toLocaleTimeString()
+        });
+    });
+    
+    // Monitorear fetch
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+        const inicio = Date.now();
+        
+        llamadas.push({
+            tipo: 'fetch',
+            url: url,
+            inicio: new Date().toLocaleTimeString()
+        });
+        
+        return originalFetch.apply(this, args)
+            .then(response => {
+                llamadas[llamadas.length - 1].estado = response.status;
+                llamadas[llamadas.length - 1].duracion = Date.now() - inicio + 'ms';
+                return response;
+            })
+            .catch(error => {
+                llamadas[llamadas.length - 1].error = error.message;
+                errores.push({
+                    tipo: 'fetch.error',
+                    mensaje: error.message,
+                    url: url,
+                    hora: new Date().toLocaleTimeString()
+                });
+                throw error;
+            });
+    };
+    
+    // Monitorear scripts dinámicos
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+                if (node.tagName === 'SCRIPT' && node.src) {
+                    const url = node.src;
+                    const inicio = Date.now();
+                    
+                    llamadas.push({
+                        tipo: 'script',
+                        url: url,
+                        inicio: new Date().toLocaleTimeString()
+                    });
+                    
+                    node.addEventListener('load', function() {
+                        const idx = llamadas.findIndex(l => l.url === url && l.tipo === 'script' && !l.estado);
+                        if (idx >= 0) {
+                            llamadas[idx].estado = 'cargado';
+                            llamadas[idx].duracion = Date.now() - inicio + 'ms';
+                        }
+                    });
+                    
+                    node.addEventListener('error', function() {
+                        const idx = llamadas.findIndex(l => l.url === url && l.tipo === 'script' && !l.estado);
+                        if (idx >= 0) {
+                            llamadas[idx].estado = 'ERROR';
+                            errores.push({
+                                tipo: 'script.error',
+                                mensaje: 'No se pudo cargar el script',
+                                url: url,
+                                hora: new Date().toLocaleTimeString()
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    // Función para generar reporte
+    window.generarReporte = function() {
+        const fecha = new Date();
+        const reporte = [];
+        
+        reporte.push('========================================');
+        reporte.push('  REPORTE DE MONITOREO - HISJB NUTRICIÓN');
+        reporte.push('========================================');
+        reporte.push('');
+        reporte.push('📅 Fecha: ' + fecha.toLocaleDateString('es-AR'));
+        reporte.push('🕐 Hora: ' + fecha.toLocaleTimeString('es-AR'));
+        reporte.push('📄 Página: ' + window.location.href);
+        reporte.push('👤 Servicio: ' + (window.currentUser ? window.currentUser.servicio : 'No logueado'));
+        reporte.push('');
+        reporte.push('========================================');
+        reporte.push('  ERRORES (' + errores.length + ')');
+        reporte.push('========================================');
+        
+        if (errores.length === 0) {
+            reporte.push('✅ No se registraron errores');
+        } else {
+            errores.forEach((e, i) => {
+                reporte.push('');
+                reporte.push('--- Error #' + (i + 1) + ' ---');
+                reporte.push('Tipo: ' + e.tipo);
+                reporte.push('Mensaje: ' + e.mensaje);
+                if (e.url) reporte.push('URL: ' + e.url);
+                if (e.linea) reporte.push('Línea: ' + e.linea);
+                reporte.push('Hora: ' + e.hora);
+            });
+        }
+        
+        reporte.push('');
+        reporte.push('========================================');
+        reporte.push('  LLAMADAS A LA API (' + llamadas.length + ')');
+        reporte.push('========================================');
+        
+        if (llamadas.length === 0) {
+            reporte.push('No se registraron llamadas');
+        } else {
+            llamadas.forEach((l, i) => {
+                reporte.push('');
+                reporte.push('--- Llamada #' + (i + 1) + ' ---');
+                reporte.push('Tipo: ' + l.tipo);
+                reporte.push('URL: ' + l.url);
+                reporte.push('Inicio: ' + l.inicio);
+                if (l.estado) reporte.push('Estado: ' + l.estado);
+                if (l.duracion) reporte.push('Duración: ' + l.duracion);
+                if (l.error) reporte.push('Error: ' + l.error);
+            });
+        }
+        
+        // Descargar reporte
+        const blob = new Blob([reporte.join('\n')], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'reporte_' + fecha.toISOString().replace(/[:.]/g, '-') + '.txt';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log('📄 Reporte generado y descargado');
+    };
+    
+    // Botón flotante para generar reporte
+    const btnReporte = document.createElement('button');
+    btnReporte.innerText = '📊 GENERAR REPORTE';
+    btnReporte.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        background: #0056b3;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 50px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    `;
+    btnReporte.onclick = window.generarReporte;
+    document.body.appendChild(btnReporte);
+    
+    console.log('✅ Sistema de monitoreo activado');
+</script>
 <body>
 
 <header>
