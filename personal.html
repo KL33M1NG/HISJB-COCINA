@@ -977,41 +977,46 @@
     
     // Función fetch con timeout y manejo de errores mejorado
     async function fetchJsonp(action, params = {}) {
-        try {
-            // Convertir MAÑANA → M, NOCHE → N
-            if (params.turno === "MAÑANA") params.turno = "M";
-            if (params.turno === "NOCHE") params.turno = "N";
-            
-            const query = new URLSearchParams({ ...params, action }).toString();
-            const url = API + '?' + query;
-            
-            console.log('🔄 Llamando a:', action, params);
-            
-            // Timeout de 8 segundos para evitar esperas largas
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-            
-            const response = await fetch(url, {
-                method: 'GET',
-                mode: 'cors',
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                throw new Error('HTTP error ' + response.status);
-            }
-            
-            const data = await response.json();
-            console.log('📥 Respuesta:', action, data);
-            return data;
-        } catch (e) {
-            console.error('❌ Error en fetchJsonp:', action, e.message);
-            throw e;
+    try {
+        // Convertir MAÑANA → M, NOCHE → N
+        if (params.turno === "MAÑANA") params.turno = "M";
+        if (params.turno === "NOCHE") params.turno = "N";
+        
+        const query = new URLSearchParams({ ...params, action }).toString();
+        const url = API + '?' + query;
+        
+        console.log('🔄 Llamando a:', action, params);
+        
+        // Timeout de 30 segundos (aumentado para evitar abortos)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error('HTTP error ' + response.status);
         }
+        
+        const data = await response.json();
+        console.log('📥 Respuesta:', action, data);
+        return data;
+    } catch (e) {
+        console.error('❌ Error en fetchJsonp:', action, e.message);
+        
+        // Si es un error de aborto, mostramos mensaje más claro
+        if (e.name === 'AbortError') {
+            throw new Error('La solicitud tardó demasiado tiempo. Intente nuevamente.');
+        }
+        
+        throw e;
     }
-    
+}
     // Función para obtener menú con caché
     async function obtenerMenuConCache() {
         const cacheKey = 'hisjb_menu_' + turnoActual;
