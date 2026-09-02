@@ -44,6 +44,8 @@
         #resultado { display: none; }
         .continuar-carga { background: #e8f8f5; padding: 12px; border-radius: 8px; margin: 10px 0; text-align: center; border: 2px dashed var(--green); display: none; }
         .registro-24hs { background: #f3e8ff; padding: 12px; border-radius: 8px; margin: 10px 0; border-left: 5px solid var(--purple); font-size: 0.85rem; color: var(--purple); }
+        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @media (max-width: 500px) {
             .container { padding: 10px; }
             .card { padding: 20px 15px; }
@@ -309,7 +311,7 @@
 
     // ==================== BASE DE DATOS DEL PERSONAL ====================
     const PERSONAL = [
-                // MEDICOS DE UTI
+        // MEDICOS DE UTI
         { nombre: "CECENARRO MARIA JOSE", dni: "35387764", servicio: "UTI I", dieta: "GENERAL" },
         { nombre: "LEONARDO GUERRERO", dni: "29618423", servicio: "UTI I", dieta: "GENERAL" },
         { nombre: "GRANEROS MARIA NOE", dni: "32201781", servicio: "UTI I", dieta: "GENERAL" },
@@ -968,10 +970,12 @@
         { nombre: "SORIA ESTEVEZ, NATALIA PAMELA", dni: "33200761", servicio: "LINEA 135 - SALUD MENTAL", dieta: "GENERAL" },
 
         //RECURSOS HUMANOS
-        { nombre: "MAZA VERONICA NATALIA DEL VALLE", dni: "28604968", servicio: "RECURSOS HUMANOS", dieta: "GENERAL" },  
+        { nombre: "MAZA VERONICA NATALIA DEL VALLE", dni: "28604968", servicio: "RECURSOS HUMANOS", dieta: "GENERAL" }, 
     ];
 
-        // ==================== FUNCIONES ====================
+    // ==================== FUNCIONES OPTIMIZADAS ====================
+    
+    // Función fetch con timeout y manejo de errores mejorado
     async function fetchJsonp(action, params = {}) {
         try {
             // Convertir MAÑANA → M, NOCHE → N
@@ -981,34 +985,80 @@
             const query = new URLSearchParams({ ...params, action }).toString();
             const url = API + '?' + query;
             
-            console.log('🔄 Llamando a:', url);
+            console.log('🔄 Llamando a:', action, params);
+            
+            // Timeout de 8 segundos para evitar esperas largas
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
             
             const response = await fetch(url, {
                 method: 'GET',
-                mode: 'cors'
+                mode: 'cors',
+                signal: controller.signal
             });
+            
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
                 throw new Error('HTTP error ' + response.status);
             }
             
             const data = await response.json();
-            console.log('📥 Respuesta:', data);
+            console.log('📥 Respuesta:', action, data);
             return data;
         } catch (e) {
-            console.error('❌ Error en fetchJsonp:', e.message);
+            console.error('❌ Error en fetchJsonp:', action, e.message);
             throw e;
         }
+    }
+    
+    // Función para obtener menú con caché
+    async function obtenerMenuConCache() {
+        const cacheKey = 'hisjb_menu_' + turnoActual;
+        const cacheTime = localStorage.getItem(cacheKey + '_time');
+        
+        // Si hay caché de menos de 5 minutos, usarla
+        if (cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
+            const cachedMenu = localStorage.getItem(cacheKey);
+            if (cachedMenu) {
+                try {
+                    const menuData = JSON.parse(cachedMenu);
+                    console.log('✅ Usando menú en caché');
+                    return menuData;
+                } catch(e) {
+                    console.log('⚠️ Caché corrupta, consultando servidor');
+                }
+            }
+        }
+        
+        // Consultar al servidor
+        const data = await fetchJsonp('obtener_menu', { turno: turnoActual });
+        
+        // Guardar en caché
+        if (data.disponible && data.datos.length > 0) {
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+            localStorage.setItem(cacheKey + '_time', Date.now());
+        }
+        
+        return data;
     }
     
     function login() {
         const pass = document.getElementById('loginPass').value.trim();
         if (!pass) return;
+        
         let found = null;
         for (const [servicio, data] of Object.entries(PASSWORDS)) {
-            if (data.pass === pass) { found = { servicio, tipo: data.tipo }; break; }
+            if (data.pass === pass) { 
+                found = { servicio, tipo: data.tipo }; 
+                break; 
+            }
         }
-        if (!found) { document.getElementById('loginError').innerText = '❌ Contraseña incorrecta'; return; }
+        
+        if (!found) { 
+            document.getElementById('loginError').innerText = '❌ Contraseña incorrecta'; 
+            return; 
+        }
         
         currentUser = found;
         localStorage.setItem('hisjb_user', JSON.stringify(found));
@@ -1029,7 +1079,15 @@
         document.getElementById('userTipo').innerText = found.tipo === 'supervisor' ? '🔓 SUPERVISOR' : '👤 USUARIO';
         document.getElementById('servicio').value = found.servicio;
         
-        personalServicio = found.tipo === 'supervisor' ? [...PERSONAL] : PERSONAL.filter(p => p.servicio.toUpperCase() === found.servicio.toUpperCase());
+        // Optimización: Filtrar personal solo cuando es necesario
+        if (found.tipo === 'supervisor') {
+            personalServicio = [...PERSONAL];
+        } else {
+            personalServicio = PERSONAL.filter(p => 
+                p.servicio.toUpperCase() === found.servicio.toUpperCase()
+            );
+        }
+        
         document.getElementById('supervisorSection').classList.toggle('hidden', found.tipo !== 'supervisor');
         
         console.log('✅ Personal cargado:', personalServicio.length, 'personas para', found.servicio);
@@ -1058,9 +1116,13 @@
         document.getElementById('continuarCarga').style.display = 'none';
         document.getElementById('info24Resultado').style.display = 'none';
         document.getElementById('formCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Enfocar el campo nombre para agilizar la carga
+        document.getElementById('nombre').focus();
     }
 
-    document.getElementById('loginPass').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+    document.getElementById('loginPass').addEventListener('keypress', (e) => { 
+        if (e.key === 'Enter') login(); 
+    });
 
     function inicializarPanel() {
         document.getElementById('txtTurno').innerText = turnoActual === "MAÑANA" ? "🌅 SERVICIO: ALMUERZO" : "🌙 SERVICIO: CENA";
@@ -1070,18 +1132,34 @@
 
     function actualizarDescripcionDieta() {
         const descripcionSpan = document.getElementById('descripcionDieta');
-        if (!menuDataGlobal) { descripcionSpan.innerText = 'Menú no cargado'; return; }
+        if (!menuDataGlobal) { 
+            descripcionSpan.innerText = 'Menú no cargado'; 
+            return; 
+        }
+        
         try {
             let dietasObj = {};
-            if (menuDataGlobal.dietas && typeof menuDataGlobal.dietas === 'string') dietasObj = JSON.parse(menuDataGlobal.dietas);
+            if (menuDataGlobal.dietas && typeof menuDataGlobal.dietas === 'string') {
+                dietasObj = JSON.parse(menuDataGlobal.dietas);
+            }
+            
             const dietaSeleccionada = document.getElementById('dieta').value;
-            let descripcion = dietasObj[dietaSeleccionada] || menuDataGlobal.platoPrincipal || 'Menú del día';
             const platoBase = menuDataGlobal.platoPrincipal || '';
+            
             descripcionSpan.innerHTML = `<strong>🍲 Plato:</strong> ${platoBase}<br>`;
-            if (dietaSeleccionada !== 'GENERAL' && dietasObj[dietaSeleccionada]) descripcionSpan.innerHTML += `<strong>📝 Adaptación ${dietaSeleccionada}:</strong> ${descripcion}`;
-            else descripcionSpan.innerHTML += `<strong>📝 ${dietaSeleccionada}:</strong> ${descripcion}`;
-            if (menuDataGlobal.postre) descripcionSpan.innerHTML += `<br><strong>🍰 Postre:</strong> ${menuDataGlobal.postre}`;
-        } catch (e) { descripcionSpan.innerText = menuDataGlobal.platoPrincipal || 'Menú del día'; }
+            
+            if (dietaSeleccionada !== 'GENERAL' && dietasObj[dietaSeleccionada]) {
+                descripcionSpan.innerHTML += `<strong>📝 Adaptación ${dietaSeleccionada}:</strong> ${dietasObj[dietaSeleccionada]}`;
+            } else {
+                descripcionSpan.innerHTML += `<strong>📝 ${dietaSeleccionada}:</strong> ${dietasObj[dietaSeleccionada] || platoBase}`;
+            }
+            
+            if (menuDataGlobal.postre) {
+                descripcionSpan.innerHTML += `<br><strong>🍰 Postre:</strong> ${menuDataGlobal.postre}`;
+            }
+        } catch (e) {
+            descripcionSpan.innerText = menuDataGlobal.platoPrincipal || 'Menú del día';
+        }
     }
 
     function cambioGuardia() {
@@ -1092,40 +1170,90 @@
     }
 
     async function validarMenu() {
-        const box = document.getElementById('statusBox'), info = document.getElementById('menuInfo');
-        box.innerText = "🔄 CONSULTANDO..."; box.className = "status cargando";
+        const box = document.getElementById('statusBox');
+        const info = document.getElementById('menuInfo');
+        
+        box.innerHTML = '<span class="loading-spinner"></span> CONSULTANDO...';
+        box.className = "status cargando";
+        
         try {
-            const data = await fetchJsonp('obtener_menu', { turno: turnoActual });
+            const data = await obtenerMenuConCache();
+            
             if (data.disponible && data.datos.length > 0) {
                 menuDataGlobal = data.datos[0];
-                box.innerText = "✅ MENÚ PUBLICADO"; box.className = "status disponible";
+                box.innerText = "✅ MENÚ PUBLICADO"; 
+                box.className = "status disponible";
                 info.innerHTML = `🍲 HOY: <strong>${menuDataGlobal.platoPrincipal || 'Menú del día'}</strong>`;
-                if (menuDataGlobal.postre) { document.getElementById('postreTexto').innerText = menuDataGlobal.postre; document.getElementById('postreInfo').style.display = 'block'; }
+                
+                if (menuDataGlobal.postre) { 
+                    document.getElementById('postreTexto').innerText = menuDataGlobal.postre; 
+                    document.getElementById('postreInfo').style.display = 'block'; 
+                }
+                
                 document.getElementById('camposPersonal').style.display = 'block';
+                actualizarDescripcionDieta();
             } else {
-                box.innerText = "⏳ MENÚ EN PREPARACIÓN"; box.className = "status cargando";
+                box.innerText = "⏳ MENÚ EN PREPARACIÓN"; 
+                box.className = "status cargando";
                 info.innerHTML = "El equipo de nutrición está preparando el menú.";
                 document.getElementById('camposPersonal').style.display = 'none';
             }
-        } catch (e) { box.innerText = "⚠️ ERROR"; box.className = "status cargando"; }
+        } catch (e) { 
+            box.innerText = "⚠️ ERROR DE CONEXIÓN"; 
+            box.className = "status cargando";
+            info.innerHTML = "Intente nuevamente en unos minutos.";
+            console.error('Error al cargar menú:', e);
+        }
     }
 
     function buscarPersonal() {
-        const input = document.getElementById('buscarInput'), lista = document.getElementById('autocompleteList');
+        const input = document.getElementById('buscarInput');
+        const lista = document.getElementById('autocompleteList');
         const query = input.value.toUpperCase().trim();
-        if (query.length < 2) { lista.classList.remove('show'); return; }
-        const filtrados = personalServicio.filter(p => p.nombre.includes(query) || p.dni.includes(query));
-        if (filtrados.length === 0) { lista.classList.remove('show'); return; }
-        lista.innerHTML = filtrados.slice(0, 10).map(p => `<div class="autocomplete-item" onclick="seleccionarPersona('${p.dni}')"><strong>${p.nombre}</strong> | DNI: ${p.dni} | 🍽️ ${p.dieta}</div>`).join('');
+        
+        if (query.length < 2) { 
+            lista.classList.remove('show'); 
+            return; 
+        }
+        
+        // Optimización: Usar includes en lugar de múltiples comparaciones
+        const filtrados = personalServicio.filter(p => 
+            p.nombre.includes(query) || p.dni.includes(query)
+        );
+        
+        if (filtrados.length === 0) { 
+            lista.classList.remove('show'); 
+            return; 
+        }
+        
+        lista.innerHTML = filtrados.slice(0, 10).map(p => 
+            `<div class="autocomplete-item" onclick="seleccionarPersona('${p.dni}')">
+                <strong>${p.nombre}</strong> | DNI: ${p.dni} | 🍽️ ${p.dieta}
+            </div>`
+        ).join('');
+        
         lista.classList.add('show');
     }
 
     function seleccionarPersona(dni) {
         const p = personalServicio.find(x => x.dni === dni);
-        if (p) { document.getElementById('nombre').value = p.nombre; document.getElementById('dni').value = p.dni; document.getElementById('dieta').value = p.dieta; document.getElementById('buscarInput').value = ''; document.getElementById('autocompleteList').classList.remove('show'); }
+        if (p) { 
+            document.getElementById('nombre').value = p.nombre; 
+            document.getElementById('dni').value = p.dni; 
+            document.getElementById('dieta').value = p.dieta; 
+            document.getElementById('buscarInput').value = ''; 
+            document.getElementById('autocompleteList').classList.remove('show'); 
+            actualizarDescripcionDieta();
+        }
     }
 
-    document.addEventListener('click', (e) => { if (!e.target.closest('.autocomplete-wrapper')) { document.getElementById('autocompleteList').classList.remove('show'); const sl = document.getElementById('superAutocomplete'); if (sl) sl.classList.remove('show'); } });
+    document.addEventListener('click', (e) => { 
+        if (!e.target.closest('.autocomplete-wrapper')) { 
+            document.getElementById('autocompleteList').classList.remove('show'); 
+            const sl = document.getElementById('superAutocomplete'); 
+            if (sl) sl.classList.remove('show'); 
+        } 
+    });
 
     async function solicitarComida() {
         const nombre = document.getElementById('nombre').value.trim().toUpperCase();
@@ -1133,18 +1261,40 @@
         const servicio = document.getElementById('servicio').value;
         const guardia = document.getElementById('guardia').value;
         const err = document.getElementById('errorMensaje');
-        err.innerText = '';
-        if (!nombre) { err.innerText = '❌ Ingrese nombre y apellido'; return; }
-        if (!dni || dni.length < 7) { err.innerText = '❌ Ingrese DNI válido'; return; }
-        if ((guardia === '16' || guardia === '20') && !comidaSeleccionada) { err.innerText = '❌ Seleccione Almuerzo o Cena'; return; }
         
-        const btn = document.getElementById('btnAccion'); btn.disabled = true; btn.innerText = "⏳ PROCESANDO...";
+        err.innerText = '';
+        
+        // Validaciones rápidas
+        if (!nombre || nombre.length < 3) { 
+            err.innerText = '❌ Ingrese nombre y apellido válido'; 
+            return; 
+        }
+        
+        if (!dni || dni.length < 7) { 
+            err.innerText = '❌ Ingrese DNI válido'; 
+            return; 
+        }
+        
+        if ((guardia === '16' || guardia === '20') && !comidaSeleccionada) { 
+            err.innerText = '❌ Seleccione Almuerzo o Cena'; 
+            return; 
+        }
+        
+        const btn = document.getElementById('btnAccion'); 
+        btn.disabled = true; 
+        btn.innerHTML = '<span class="loading-spinner"></span> PROCESANDO...';
+        
         const dieta = document.getElementById('dieta').value;
-        const tipoComida = guardia === '24' ? '24HS (AMBAS)' : (guardia === '16' || guardia === '20') ? document.getElementById('comidaElegida').value : 'TURNO';
-        const turnoEnvio = (guardia === '16' || guardia === '20') ? (document.getElementById('comidaElegida').value === 'ALMUERZO' ? 'MAÑANA' : 'NOCHE') : turnoActual;
+        const tipoComida = guardia === '24' ? '24HS (AMBAS)' : 
+                          (guardia === '16' || guardia === '20') ? document.getElementById('comidaElegida').value : 'TURNO';
+        const turnoEnvio = (guardia === '16' || guardia === '20') ? 
+                          (document.getElementById('comidaElegida').value === 'ALMUERZO' ? 'MAÑANA' : 'NOCHE') : 
+                          turnoActual;
         
         try {
+            // Verificar duplicado primero
             const dupCheck = await fetchJsonp('verificar_duplicado', { dni, turno: turnoEnvio });
+            
             if (dupCheck.duplicado) {
                 err.innerText = '⚠️ Este DNI ya fue cargado en este turno';
                 btn.disabled = false;
@@ -1152,6 +1302,7 @@
                 return;
             }
             
+            // Generar código
             const resp = await fetchJsonp('generar_codigo', { 
                 nombre, dni, servicio, guardia, dieta, turno: turnoEnvio,
                 tipoComida, codigo: '', tipo: currentUser.tipo === 'supervisor' ? 'SUPERVISOR' : 'WEB' 
@@ -1170,10 +1321,13 @@
                 }
                 
                 document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.getElementById('continuarCarga').style.display = 'block';
+                
+                // Limpiar campos
                 document.getElementById('nombre').value = '';
                 document.getElementById('dni').value = '';
                 document.getElementById('buscarInput').value = '';
-                document.getElementById('continuarCarga').style.display = 'block';
+                
                 btn.disabled = false;
                 btn.innerText = "🍴 SOLICITAR VIANDA";
             } else {
@@ -1182,86 +1336,244 @@
                 btn.innerText = "🍴 SOLICITAR VIANDA";
             }
         } catch (e) {
-            err.innerText = '❌ Error de conexión';
+            err.innerText = '❌ Error de conexión. Intente nuevamente.';
             btn.disabled = false;
             btn.innerText = "🍴 SOLICITAR VIANDA";
+            console.error('Error en solicitud:', e);
         }
     }
 
     // ==================== SUPERVISOR ====================
-    function abrirModalSupervisor() { document.getElementById('modalSupervisor').style.display = 'flex'; superLista = []; actualizarSuperLista(); cargarServiciosSuperLocal(); }
-    function cerrarModalSuper() { document.getElementById('modalSupervisor').style.display = 'none'; superLista = []; }
-    function cargarServiciosSuperLocal() { const servicios = [...new Set(PERSONAL.map(p => p.servicio))].sort(); document.getElementById('superManualServicio').innerHTML = '<option value="">SELECCIONE SERVICIO</option>' + servicios.map(s => `<option value="${s}">${s}</option>`).join(''); }
+    function abrirModalSupervisor() { 
+        document.getElementById('modalSupervisor').style.display = 'flex'; 
+        superLista = []; 
+        actualizarSuperLista(); 
+        cargarServiciosSuperLocal(); 
+    }
+    
+    function cerrarModalSuper() { 
+        document.getElementById('modalSupervisor').style.display = 'none'; 
+        superLista = []; 
+    }
+    
+    function cargarServiciosSuperLocal() { 
+        const servicios = [...new Set(PERSONAL.map(p => p.servicio))].sort(); 
+        document.getElementById('superManualServicio').innerHTML = '<option value="">SELECCIONE SERVICIO</option>' + 
+            servicios.map(s => `<option value="${s}">${s}</option>`).join(''); 
+    }
+    
     function buscarSuperPersonal() {
-        const input = document.getElementById('superBuscar'), lista = document.getElementById('superAutocomplete'), query = input.value.toUpperCase().trim();
-        if (query.length < 2) { lista.classList.remove('show'); return; }
-        const filtrados = PERSONAL.filter(p => !superLista.some(s => s.dni === p.dni) && (p.nombre.includes(query) || p.dni.includes(query)));
-        if (filtrados.length === 0) { lista.classList.remove('show'); return; }
-        lista.innerHTML = filtrados.slice(0, 8).map(p => `<div class="autocomplete-item" onclick="agregarASuperLista('${p.dni}','${p.nombre.replace(/'/g,"\\'")}','${p.servicio}','${p.dieta}')"><strong>${p.nombre}</strong> | DNI: ${p.dni} | 🏥 ${p.servicio} | 🍽️ ${p.dieta}</div>`).join('');
+        const input = document.getElementById('superBuscar');
+        const lista = document.getElementById('superAutocomplete');
+        const query = input.value.toUpperCase().trim();
+        
+        if (query.length < 2) { 
+            lista.classList.remove('show'); 
+            return; 
+        }
+        
+        const filtrados = PERSONAL.filter(p => 
+            !superLista.some(s => s.dni === p.dni) && 
+            (p.nombre.includes(query) || p.dni.includes(query))
+        );
+        
+        if (filtrados.length === 0) { 
+            lista.classList.remove('show'); 
+            return; 
+        }
+        
+        lista.innerHTML = filtrados.slice(0, 8).map(p => 
+            `<div class="autocomplete-item" onclick="agregarASuperLista('${p.dni}','${p.nombre.replace(/'/g,"\\'")}','${p.servicio}','${p.dieta}')">
+                <strong>${p.nombre}</strong> | DNI: ${p.dni} | 🏥 ${p.servicio} | 🍽️ ${p.dieta}
+            </div>`
+        ).join('');
+        
         lista.classList.add('show');
     }
-    function agregarASuperLista(dni, nombre, servicio, dieta) { if (superLista.some(s => s.dni === dni)) return; superLista.push({ dni, nombre, servicio, dieta }); actualizarSuperLista(); document.getElementById('superBuscar').value = ''; document.getElementById('superAutocomplete').classList.remove('show'); }
+    
+    function agregarASuperLista(dni, nombre, servicio, dieta) { 
+        if (superLista.some(s => s.dni === dni)) return; 
+        superLista.push({ dni, nombre, servicio, dieta }); 
+        actualizarSuperLista(); 
+        document.getElementById('superBuscar').value = ''; 
+        document.getElementById('superAutocomplete').classList.remove('show'); 
+    }
+    
     function agregarManualSuper() {
-        const n = document.getElementById('superManualNombre').value.trim().toUpperCase(), d = document.getElementById('superManualDni').value.trim(), srv = document.getElementById('superManualServicio').value;
-        if (!n || !d || !srv) { alert('Complete todos los campos'); return; }
-        if (superLista.some(s => s.dni === d)) { alert('DNI ya en lista'); return; }
-        superLista.push({ dni: d, nombre: n, servicio: srv, dieta: 'GENERAL' }); actualizarSuperLista();
-        document.getElementById('superManualNombre').value = ''; document.getElementById('superManualDni').value = '';
+        const n = document.getElementById('superManualNombre').value.trim().toUpperCase();
+        const d = document.getElementById('superManualDni').value.trim();
+        const srv = document.getElementById('superManualServicio').value;
+        
+        if (!n || !d || !srv) { 
+            alert('Complete todos los campos'); 
+            return; 
+        }
+        
+        if (superLista.some(s => s.dni === d)) { 
+            alert('DNI ya en lista'); 
+            return; 
+        }
+        
+        superLista.push({ dni: d, nombre: n, servicio: srv, dieta: 'GENERAL' }); 
+        actualizarSuperLista();
+        document.getElementById('superManualNombre').value = ''; 
+        document.getElementById('superManualDni').value = '';
     }
+    
     function actualizarSuperLista() {
-        const c = document.getElementById('superSelected'); document.getElementById('superContador').innerText = superLista.length;
-        c.innerHTML = superLista.length === 0 ? '<span style="color:#999;">👆 Busque y seleccione personal</span>' : superLista.map(p => `<span class="selected-item">${p.nombre} (${p.servicio}) <span class="remove" onclick="removerDeSuperLista('${p.dni}')">✕</span></span>`).join('');
+        const c = document.getElementById('superSelected'); 
+        document.getElementById('superContador').innerText = superLista.length;
+        
+        c.innerHTML = superLista.length === 0 ? 
+            '<span style="color:#999;">👆 Busque y seleccione personal</span>' : 
+            superLista.map(p => 
+                `<span class="selected-item">${p.nombre} (${p.servicio}) 
+                    <span class="remove" onclick="removerDeSuperLista('${p.dni}')">✕</span>
+                </span>`
+            ).join('');
     }
-    function removerDeSuperLista(dni) { superLista = superLista.filter(p => p.dni !== dni); actualizarSuperLista(); }
-    function limpiarSuperLista() { if (!confirm('¿Limpiar toda la lista?')) return; superLista = []; actualizarSuperLista(); }
+    
+    function removerDeSuperLista(dni) { 
+        superLista = superLista.filter(p => p.dni !== dni); 
+        actualizarSuperLista(); 
+    }
+    
+    function limpiarSuperLista() { 
+        if (!confirm('¿Limpiar toda la lista?')) return; 
+        superLista = []; 
+        actualizarSuperLista(); 
+    }
+    
     function cargarServicioCompletoSuper() {
         const servicios = [...new Set(PERSONAL.map(p => p.servicio))].sort();
         const servicio = prompt('Ingrese el nombre del servicio:\n\n' + servicios.join('\n'));
+        
         if (!servicio) return;
-        const personas = PERSONAL.filter(p => p.servicio.toUpperCase().includes(servicio.toUpperCase().trim()));
-        if (personas.length === 0) { alert('Servicio no encontrado'); return; }
-        personas.forEach(p => { if (!superLista.some(s => s.dni === p.dni)) superLista.push({...p}); });
+        
+        const personas = PERSONAL.filter(p => 
+            p.servicio.toUpperCase().includes(servicio.toUpperCase().trim())
+        );
+        
+        if (personas.length === 0) { 
+            alert('Servicio no encontrado'); 
+            return; 
+        }
+        
+        personas.forEach(p => { 
+            if (!superLista.some(s => s.dni === p.dni)) {
+                superLista.push({...p}); 
+            }
+        });
+        
         actualizarSuperLista();
     }
+    
     async function procesarCargaSuper() {
-        if (superLista.length === 0) { document.getElementById('superMensaje').innerText = '❌ Lista vacía'; return; }
+        if (superLista.length === 0) { 
+            document.getElementById('superMensaje').innerText = '❌ Lista vacía'; 
+            return; 
+        }
+        
         const turno = document.getElementById('superTurno').value;
-        var turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
+        const turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
         const dieta = document.getElementById('superDieta').value;
         const guardia = document.getElementById('superGuardia').value;
+        
         if (!confirm(`¿Procesar ${superLista.length} personas?\nTurno: ${turno}\nDieta: ${dieta}\nGuardia: ${guardia}hs`)) return;
-        let ok = 0, err = 0; document.getElementById('superMensaje').innerText = '⏳ Procesando...';
-        for (const p of superLista) {
+        
+        let ok = 0, err = 0; 
+        document.getElementById('superMensaje').innerText = '⏳ Procesando...';
+        
+        // Procesar en lotes de 5 para no saturar
+        for (let i = 0; i < superLista.length; i++) {
+            const p = superLista[i];
             try { 
-                await fetchJsonp('generar_codigo', { nombre: p.nombre, dni: p.dni, servicio: p.servicio, guardia, dieta: p.dieta === 'CELIACA' ? 'CELIACA' : dieta, turno: turnoEnviar, codigo: '', tipoComida: guardia === '24' ? '24HS (AMBAS)' : 'TURNO', tipo: 'SUPERVISOR' }); 
+                await fetchJsonp('generar_codigo', { 
+                    nombre: p.nombre, 
+                    dni: p.dni, 
+                    servicio: p.servicio, 
+                    guardia, 
+                    dieta: p.dieta === 'CELIACA' ? 'CELIACA' : dieta, 
+                    turno: turnoEnviar, 
+                    codigo: '', 
+                    tipoComida: guardia === '24' ? '24HS (AMBAS)' : 'TURNO', 
+                    tipo: 'SUPERVISOR' 
+                }); 
                 ok++; 
-            } catch (e) { err++; }
-            await new Promise(r => setTimeout(r, 200));
+            } catch (e) { 
+                err++; 
+            }
+            
+            // Pequeña pausa para no saturar
+            await new Promise(r => setTimeout(r, 100));
         }
-        document.getElementById('superMensaje').innerText = `✅ ${ok} registrados${err ? ' | ❌ ' + err + ' errores' : ''}`;
-        if (err === 0) { superLista = []; actualizarSuperLista(); }
+        
+        document.getElementById('superMensaje').innerText = 
+            `✅ ${ok} registrados${err ? ' | ❌ ' + err + ' errores' : ''}`;
+        
+        if (err === 0) { 
+            superLista = []; 
+            actualizarSuperLista(); 
+        }
     }
 
     // ==================== ADMIN ====================
     function cargarAdminPanelLocal() {
         const servicios = Object.entries(PASSWORDS).filter(([s]) => s !== 'ADMIN');
-        document.getElementById('adminServiciosList').innerHTML = '<table style="width:100%;font-size:0.85rem;"><tr><th>Servicio</th><th>Contraseña</th><th>Tipo</th></tr>' + servicios.map(([s,d]) => `<tr><td>${s}</td><td>${d.pass}</td><td>${d.tipo}</td></tr>`).join('') + '</table>';
-        document.getElementById('adminNewServicioPersonal').innerHTML = '<option value="">SELECCIONE</option>' + servicios.map(([s]) => `<option value="${s}">${s}</option>`).join('');
+        
+        document.getElementById('adminServiciosList').innerHTML = 
+            '<table style="width:100%;font-size:0.85rem;"><tr><th>Servicio</th><th>Contraseña</th><th>Tipo</th></tr>' + 
+            servicios.map(([s,d]) => `<tr><td>${s}</td><td>${d.pass}</td><td>${d.tipo}</td></tr>`).join('') + 
+            '</table>';
+        
+        document.getElementById('adminNewServicioPersonal').innerHTML = 
+            '<option value="">SELECCIONE</option>' + 
+            servicios.map(([s]) => `<option value="${s}">${s}</option>`).join('');
     }
+    
     function adminAgregarServicio() {
-        const s = document.getElementById('adminNewServicio').value.trim().toUpperCase(), p = document.getElementById('adminNewPass').value.trim(), t = document.getElementById('adminNewTipo').value;
-        if (!s || !p) { document.getElementById('adminServicioMsg').innerText = '❌ Complete todos los campos'; return; }
-        PASSWORDS[s] = { pass: p, tipo: t }; document.getElementById('adminServicioMsg').innerText = '✅ Servicio agregado';
-        document.getElementById('adminNewServicio').value = ''; document.getElementById('adminNewPass').value = ''; cargarAdminPanelLocal();
+        const s = document.getElementById('adminNewServicio').value.trim().toUpperCase();
+        const p = document.getElementById('adminNewPass').value.trim();
+        const t = document.getElementById('adminNewTipo').value;
+        
+        if (!s || !p) { 
+            document.getElementById('adminServicioMsg').innerText = '❌ Complete todos los campos'; 
+            return; 
+        }
+        
+        PASSWORDS[s] = { pass: p, tipo: t }; 
+        document.getElementById('adminServicioMsg').innerText = '✅ Servicio agregado';
+        document.getElementById('adminNewServicio').value = ''; 
+        document.getElementById('adminNewPass').value = ''; 
+        cargarAdminPanelLocal();
     }
+    
     function adminAgregarPersonal() {
-        const n = document.getElementById('adminNewNombre').value.trim().toUpperCase(), d = document.getElementById('adminNewDni').value.trim(), srv = document.getElementById('adminNewServicioPersonal').value, die = document.getElementById('adminNewDieta').value;
-        if (!n || !d || !srv) { document.getElementById('adminPersonalMsg').innerText = '❌ Complete todos los campos'; return; }
-        if (PERSONAL.some(p => p.dni === d)) { document.getElementById('adminPersonalMsg').innerText = '❌ DNI ya existe'; return; }
-        PERSONAL.push({ nombre: n, dni: d, servicio: srv, dieta: die }); document.getElementById('adminPersonalMsg').innerText = `✅ ${n} agregado a ${srv}`;
-        document.getElementById('adminNewNombre').value = ''; document.getElementById('adminNewDni').value = '';
+        const n = document.getElementById('adminNewNombre').value.trim().toUpperCase();
+        const d = document.getElementById('adminNewDni').value.trim();
+        const srv = document.getElementById('adminNewServicioPersonal').value;
+        const die = document.getElementById('adminNewDieta').value;
+        
+        if (!n || !d || !srv) { 
+            document.getElementById('adminPersonalMsg').innerText = '❌ Complete todos los campos'; 
+            return; 
+        }
+        
+        if (PERSONAL.some(p => p.dni === d)) { 
+            document.getElementById('adminPersonalMsg').innerText = '❌ DNI ya existe'; 
+            return; 
+        }
+        
+        PERSONAL.push({ nombre: n, dni: d, servicio: srv, dieta: die }); 
+        document.getElementById('adminPersonalMsg').innerText = `✅ ${n} agregado a ${srv}`;
+        document.getElementById('adminNewNombre').value = ''; 
+        document.getElementById('adminNewDni').value = '';
     }
-    function volverAlPanel() { document.getElementById('adminScreen').classList.add('hidden'); document.getElementById('mainScreen').classList.remove('hidden'); }
+    
+    function volverAlPanel() { 
+        document.getElementById('adminScreen').classList.add('hidden'); 
+        document.getElementById('mainScreen').classList.remove('hidden'); 
+    }
 
     // ==================== INICIALIZACIÓN ====================
     document.getElementById('loginPass').focus();
@@ -1272,21 +1584,37 @@
         document.getElementById('userServicio').innerText = currentUser.servicio;
         document.getElementById('userTipo').innerText = currentUser.tipo === 'supervisor' ? '🔓 SUPERVISOR' : '👤 USUARIO';
         document.getElementById('servicio').value = currentUser.servicio;
-        personalServicio = currentUser.tipo === 'supervisor' ? [...PERSONAL] : PERSONAL.filter(p => p.servicio.toUpperCase() === currentUser.servicio.toUpperCase());
+        
+        personalServicio = currentUser.tipo === 'supervisor' ? 
+            [...PERSONAL] : 
+            PERSONAL.filter(p => p.servicio.toUpperCase() === currentUser.servicio.toUpperCase());
+        
         document.getElementById('supervisorSection').classList.toggle('hidden', currentUser.tipo !== 'supervisor');
+        
         console.log('✅ Sesión restaurada:', currentUser.servicio, '-', personalServicio.length, 'personas');
         inicializarPanel();
     }
     
-    window.login = login; window.logout = logout; window.nuevaCarga = nuevaCarga;
-    window.solicitarComida = solicitarComida; window.cambioGuardia = cambioGuardia;
-    window.buscarPersonal = buscarPersonal; window.seleccionarPersona = seleccionarPersona;
-    window.abrirModalSupervisor = abrirModalSupervisor; window.cerrarModalSuper = cerrarModalSuper;
-    window.buscarSuperPersonal = buscarSuperPersonal; window.agregarASuperLista = agregarASuperLista;
-    window.agregarManualSuper = agregarManualSuper; window.removerDeSuperLista = removerDeSuperLista;
-    window.limpiarSuperLista = limpiarSuperLista; window.cargarServicioCompletoSuper = cargarServicioCompletoSuper;
-    window.procesarCargaSuper = procesarCargaSuper; window.adminAgregarServicio = adminAgregarServicio;
-    window.adminAgregarPersonal = adminAgregarPersonal; window.volverAlPanel = volverAlPanel;
+    // Exponer funciones globalmente
+    window.login = login; 
+    window.logout = logout; 
+    window.nuevaCarga = nuevaCarga;
+    window.solicitarComida = solicitarComida; 
+    window.cambioGuardia = cambioGuardia;
+    window.buscarPersonal = buscarPersonal; 
+    window.seleccionarPersona = seleccionarPersona;
+    window.abrirModalSupervisor = abrirModalSupervisor; 
+    window.cerrarModalSuper = cerrarModalSuper;
+    window.buscarSuperPersonal = buscarSuperPersonal; 
+    window.agregarASuperLista = agregarASuperLista;
+    window.agregarManualSuper = agregarManualSuper; 
+    window.removerDeSuperLista = removerDeSuperLista;
+    window.limpiarSuperLista = limpiarSuperLista; 
+    window.cargarServicioCompletoSuper = cargarServicioCompletoSuper;
+    window.procesarCargaSuper = procesarCargaSuper; 
+    window.adminAgregarServicio = adminAgregarServicio;
+    window.adminAgregarPersonal = adminAgregarPersonal; 
+    window.volverAlPanel = volverAlPanel;
 </script>
 </body>
 </html>
