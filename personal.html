@@ -251,48 +251,49 @@
 <div class="footer">© HOSPITAL SAN JUAN BAUTISTA - SERVICIO DE NUTRICIÓN</div>
 
 <script>
+  <script>
     // ==================== CONFIGURACIÓN ====================
     const API = 'https://script.google.com/macros/s/AKfycbxHD6Iw8b1CY6I-rBPqW4r0OH8VufajI0sxQZDVWnx9yLyWFhIYT2nWv-YeZiGYkwD2/exec';
     const ADMIN_PASS = "HISJBadmin2024";
     
     const PASSWORDS = {
         "ADMIN": { pass: "226452", tipo: "admin" },
-        "ENFERMERIA": { pass: "enfermeria2024", tipo: "supervisor" },
-        "CAMILLEROS": { pass: "camilleros2024", tipo: "supervisor" },
-        "MANTENIMIENTO": { pass: "mante2026", tipo: "supervisor" },
-        "UTI I": { pass: "uti2024", tipo: "normal" },
-        "SALUD DIGITAL": { pass: "saluddigital2024", tipo: "normal" },
-        "UNIDAD CORONARIA": { pass: "uco2024", tipo: "normal" },
-        "SERVICIO SOCIAL": { pass: "social2024", tipo: "normal" },
-        "HEMOTERAPIA": { pass: "hemo2024", tipo: "normal" },
-        "SALUD MENTAL": { pass: "saludmental2024", tipo: "normal" },
-        "RADIOLOGIA": { pass: "radio2024", tipo: "normal" },
-        "RISAMCyA": { pass: "risam2024", tipo: "normal" },
-        "KINESIOLOGIA": { pass: "kine2024", tipo: "normal" },
-        "EMERGENCIAS MEDICAS": { pass: "dem2026", tipo: "normal" },
-        "CLINICA MEDICA": { pass: "dem2026", tipo: "normal" },
-        "RESIDENTE - CLINICA MEDICA": { pass: "resicm2024", tipo: "normal" },
-        "RESIDENTE - MEDICINA FAMILIAR": { pass: "resimf2024", tipo: "normal" },
-        "RESIDENTE - TERAPIA INTENSIVA": { pass: "resiti2024", tipo: "normal" },
-        "RESIDENTE - CIRUGIA GENERAL": { pass: "resicg2024", tipo: "normal" },
-        "RESIDENTE - RISAM": { pass: "resirisam2024", tipo: "normal" },
-        "RESIDENTE - HEMATOLOGIA": { pass: "resihema2024", tipo: "normal" },
-        "RESIDENTE - CIRUGIA VASCULAR": { pass: "resicv2024", tipo: "normal" },
-        "UTI II": { pass: "UTII2026", tipo: "normal" },
-        "CIRUGIA GENERAL": { pass: "CX2026", tipo: "normal" },
-        "TRAUMATOLOGIA": { pass: "tx2026", tipo: "normal" },
-        "QUEMADOS": { pass: "quem2026", tipo: "normal" },
-        "LABORATORIO": { pass: "labo2026", tipo: "normal" },
-        "TELEFONIA": { pass: "urg2026", tipo: "normal" },
-        "QUIROFANO": { pass: "quir2026", tipo: "normal" },
-        "TOMOGRAFIA": { pass: "tomo2026", tipo: "normal" },
-        "CHOFERES": { pass: "choferes", tipo: "normal" },
-        "CENTRAL DE DERIVACIONES": { pass: "derivaciones", tipo: "normal" },
-        "BACTERIOLOGIA": { pass: "bacterio", tipo: "normal" },
-        "ESTERILIZACIÓN": { pass: "esteril", tipo: "normal" },
         "ANESTESISTAS": { pass: "anestesia2026", tipo: "normal" },
+        "BACTERIOLOGIA": { pass: "bacterio", tipo: "normal" },
+        "CAMILLEROS": { pass: "camilleros2024", tipo: "supervisor" },
+        "CENTRAL DE DERIVACIONES": { pass: "derivaciones", tipo: "normal" },
+        "CHOFERES": { pass: "choferes", tipo: "normal" },
+        "CIRUGIA GENERAL": { pass: "CX2026", tipo: "normal" },
+        "CLINICA MEDICA": { pass: "dem2026", tipo: "normal" },
+        "EMERGENCIAS MEDICAS": { pass: "dem2026", tipo: "normal" },
+        "ENFERMERIA": { pass: "enfermeria2024", tipo: "supervisor" },
+        "ESTERILIZACIÓN": { pass: "esteril", tipo: "normal" },
+        "HEMOTERAPIA": { pass: "hemo2024", tipo: "normal" },
+        "KINESIOLOGIA": { pass: "kine2024", tipo: "normal" },
+        "LABORATORIO": { pass: "labo2026", tipo: "normal" },
         "LINEA 135 - SALUD MENTAL": { pass: "135", tipo: "normal" },
+        "MANTENIMIENTO": { pass: "mante2026", tipo: "supervisor" },
+        "QUEMADOS": { pass: "quem2026", tipo: "normal" },
+        "QUIROFANO": { pass: "quir2026", tipo: "normal" },
+        "RADIOLOGIA": { pass: "radio2024", tipo: "normal" },
         "RECURSOS HUMANOS": { pass: "personal", tipo: "normal" },
+        "RESIDENTE - CIRUGIA GENERAL": { pass: "resicg2024", tipo: "normal" },
+        "RESIDENTE - CIRUGIA VASCULAR": { pass: "resicv2024", tipo: "normal" },
+        "RESIDENTE - CLINICA MEDICA": { pass: "resicm2024", tipo: "normal" },
+        "RESIDENTE - HEMATOLOGIA": { pass: "resihema2024", tipo: "normal" },
+        "RESIDENTE - MEDICINA FAMILIAR": { pass: "resimf2024", tipo: "normal" },
+        "RESIDENTE - RISAM": { pass: "resirisam2024", tipo: "normal" },
+        "RESIDENTE - TERAPIA INTENSIVA": { pass: "resiti2024", tipo: "normal" },
+        "RISAMCyA": { pass: "risam2024", tipo: "normal" },
+        "SALUD DIGITAL": { pass: "saluddigital2024", tipo: "normal" },
+        "SALUD MENTAL": { pass: "saludmental2024", tipo: "normal" },
+        "SERVICIO SOCIAL": { pass: "social2024", tipo: "normal" },
+        "TELEFONIA": { pass: "urg2026", tipo: "normal" },
+        "TOMOGRAFIA": { pass: "tomo2026", tipo: "normal" },
+        "TRAUMATOLOGIA": { pass: "tx2026", tipo: "normal" },
+        "UNIDAD CORONARIA": { pass: "uco2024", tipo: "normal" },
+        "UTI I": { pass: "uti2024", tipo: "normal" },
+        "UTI II": { pass: "UTII2026", tipo: "normal" },
     };
     
     const savedUser = localStorage.getItem('hisjb_user');
@@ -311,7 +312,7 @@
 
     // ==================== BASE DE DATOS DEL PERSONAL ====================
     const PERSONAL = [
-        // MEDICOS DE UTI
+           // MEDICOS DE UTI
         { nombre: "CECENARRO MARIA JOSE", dni: "35387764", servicio: "UTI I", dieta: "GENERAL" },
         { nombre: "LEONARDO GUERRERO", dni: "29618423", servicio: "UTI I", dieta: "GENERAL" },
         { nombre: "GRANEROS MARIA NOE", dni: "32201781", servicio: "UTI I", dieta: "GENERAL" },
@@ -971,118 +972,81 @@
 
         //RECURSOS HUMANOS
         { nombre: "MAZA VERONICA NATALIA DEL VALLE", dni: "28604968", servicio: "RECURSOS HUMANOS", dieta: "GENERAL" }, 
+
     ];
 
-    // ==================== FUNCIONES OPTIMIZADAS ====================
-    
-    // Función fetch con timeout y manejo de errores mejorado
+    // ==================== FUNCIÓN FETCH CORREGIDA ====================
     async function fetchJsonp(action, params = {}) {
-    try {
-        // Convertir MAÑANA → M, NOCHE → N
-        if (params.turno === "MAÑANA") params.turno = "M";
-        if (params.turno === "NOCHE") params.turno = "N";
-        
-        const query = new URLSearchParams({ ...params, action }).toString();
-        const url = API + '?' + query;
-        
-        console.log('🔄 Llamando a:', action, params);
-        
-        // Timeout de 30 segundos (aumentado para evitar abortos)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            mode: 'cors',
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error('HTTP error ' + response.status);
+        try {
+            if (params.turno === "MAÑANA") params.turno = "M";
+            if (params.turno === "NOCHE") params.turno = "N";
+            
+            const query = new URLSearchParams({ ...params, action }).toString();
+            const url = API + '?' + query;
+            
+            console.log('🔄 Llamando a:', action, params);
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'cors',
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error('HTTP error ' + response.status);
+            }
+            
+            const data = await response.json();
+            console.log('📥 Respuesta:', action, data);
+            return data;
+        } catch (e) {
+            console.error('❌ Error en fetchJsonp:', action, e.message);
+            if (e.name === 'AbortError') {
+                throw new Error('La solicitud tardó demasiado tiempo. Intente nuevamente.');
+            }
+            throw e;
         }
-        
-        const data = await response.json();
-        console.log('📥 Respuesta:', action, data);
-        return data;
-    } catch (e) {
-        console.error('❌ Error en fetchJsonp:', action, e.message);
-        
-        // Si es un error de aborto, mostramos mensaje más claro
-        if (e.name === 'AbortError') {
-            throw new Error('La solicitud tardó demasiado tiempo. Intente nuevamente.');
-        }
-        
-        throw e;
     }
-}
-    // Función para obtener menú con caché
-   async function obtenerMenuConCache() {
-    const cacheKey = 'hisjb_menu_' + turnoActual;
-    const cacheTime = localStorage.getItem(cacheKey + '_time');
     
-    // Si hay caché de menos de 5 minutos, usarla
-    if (cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
-        const cachedMenu = localStorage.getItem(cacheKey);
-        if (cachedMenu) {
-            try {
-                const menuData = JSON.parse(cachedMenu);
-                console.log('✅ Usando menú en caché');
-                return menuData;
-            } catch(e) {
-                console.log('⚠️ Caché corrupta, consultando servidor');
+    // ==================== FUNCIÓN PARA OBTENER MENÚ ====================
+    async function obtenerMenuConCache() {
+        const cacheKey = 'hisjb_menu_' + turnoActual;
+        const cacheTime = localStorage.getItem(cacheKey + '_time');
+        
+        if (cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
+            const cachedMenu = localStorage.getItem(cacheKey);
+            if (cachedMenu) {
+                try {
+                    const menuData = JSON.parse(cachedMenu);
+                    console.log('✅ Usando menú en caché');
+                    return menuData;
+                } catch(e) {
+                    console.log('⚠️ Caché corrupta, consultando servidor');
+                }
             }
         }
+        
+        try {
+            const data = await fetchJsonp('obtener_menu', { turno: turnoActual });
+            
+            if (data.disponible && data.datos.length > 0) {
+                localStorage.setItem(cacheKey, JSON.stringify(data));
+                localStorage.setItem(cacheKey + '_time', Date.now());
+            }
+            
+            return data;
+        } catch (e) {
+            console.error('❌ Error obteniendo menú:', e);
+            return { disponible: false, datos: [] };
+        }
     }
     
-    try {
-        // Consultar al servidor con timeout de 15 segundos
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-        
-        const query = new URLSearchParams({ turno: turnoActual, action: 'obtener_menu' }).toString();
-        const response = await fetch(API + '?' + query, {
-            method: 'GET',
-            mode: 'cors',
-            signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-            throw new Error('HTTP error ' + response.status);
-        }
-        
-        const data = await response.json();
-        console.log('📥 Respuesta obtener_menu:', data);
-        
-        // Guardar en caché solo si hay menú disponible
-        if (data.disponible && data.datos.length > 0) {
-            localStorage.setItem(cacheKey, JSON.stringify(data));
-            localStorage.setItem(cacheKey + '_time', Date.now());
-        }
-        
-        return data;
-    } catch (e) {
-        console.error('❌ Error en obtenerMenuConCache:', e);
-        
-        // Si no hay conexión, devolver menú no disponible
-        return { disponible: false, datos: [] };
-    }
-}
-        // Consultar al servidor
-        const data = await fetchJsonp('obtener_menu', { turno: turnoActual });
-        
-        // Guardar en caché
-        if (data.disponible && data.datos.length > 0) {
-            localStorage.setItem(cacheKey, JSON.stringify(data));
-            localStorage.setItem(cacheKey + '_time', Date.now());
-        }
-        
-        return data;
-    }
-    
+    // ==================== FUNCIÓN LOGIN ====================
     function login() {
         const pass = document.getElementById('loginPass').value.trim();
         if (!pass) return;
@@ -1119,7 +1083,6 @@
         document.getElementById('userTipo').innerText = found.tipo === 'supervisor' ? '🔓 SUPERVISOR' : '👤 USUARIO';
         document.getElementById('servicio').value = found.servicio;
         
-        // Optimización: Filtrar personal solo cuando es necesario
         if (found.tipo === 'supervisor') {
             personalServicio = [...PERSONAL];
         } else {
@@ -1156,7 +1119,6 @@
         document.getElementById('continuarCarga').style.display = 'none';
         document.getElementById('info24Resultado').style.display = 'none';
         document.getElementById('formCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Enfocar el campo nombre para agilizar la carga
         document.getElementById('nombre').focus();
     }
 
@@ -1210,44 +1172,42 @@
     }
 
     async function validarMenu() {
-    const box = document.getElementById('statusBox');
-    const info = document.getElementById('menuInfo');
-    
-    box.innerHTML = '<span class="loading-spinner"></span> CONSULTANDO...';
-    box.className = "status cargando";
-    
-    try {
-        const data = await obtenerMenuConCache();
+        const box = document.getElementById('statusBox');
+        const info = document.getElementById('menuInfo');
         
-        if (data.disponible && data.datos.length > 0) {
-            menuDataGlobal = data.datos[0];
-            box.innerText = "✅ MENÚ PUBLICADO"; 
-            box.className = "status disponible";
-            info.innerHTML = `🍲 HOY: <strong>${menuDataGlobal.platoPrincipal || 'Menú del día'}</strong>`;
-            
-            if (menuDataGlobal.postre) { 
-                document.getElementById('postreTexto').innerText = menuDataGlobal.postre; 
-                document.getElementById('postreInfo').style.display = 'block'; 
-            }
-            
-            document.getElementById('camposPersonal').style.display = 'block';
-            actualizarDescripcionDieta();
-        } else {
-            // MENÚ NO PUBLICADO AÚN
-            box.innerText = "⏳ MENÚ EN PREPARACIÓN"; 
-            box.className = "status cargando";
-            info.innerHTML = "El equipo de nutrición está preparando el menú.<br>Por favor, espere o consulte más tarde.";
-            document.getElementById('camposPersonal').style.display = 'none';
-        }
-    } catch (e) { 
-        // ERROR DE CONEXIÓN O TIMEOUT
-        box.innerText = "⚠️ MENÚ NO DISPONIBLE"; 
+        box.innerHTML = '<span class="loading-spinner"></span> CONSULTANDO...';
         box.className = "status cargando";
-        info.innerHTML = "No se pudo verificar el menú.<br>Es posible que aún no esté publicado.";
-        document.getElementById('camposPersonal').style.display = 'none';
-        console.error('Error al cargar menú:', e);
+        
+        try {
+            const data = await obtenerMenuConCache();
+            
+            if (data.disponible && data.datos.length > 0) {
+                menuDataGlobal = data.datos[0];
+                box.innerText = "✅ MENÚ PUBLICADO"; 
+                box.className = "status disponible";
+                info.innerHTML = `🍲 HOY: <strong>${menuDataGlobal.platoPrincipal || 'Menú del día'}</strong>`;
+                
+                if (menuDataGlobal.postre) { 
+                    document.getElementById('postreTexto').innerText = menuDataGlobal.postre; 
+                    document.getElementById('postreInfo').style.display = 'block'; 
+                }
+                
+                document.getElementById('camposPersonal').style.display = 'block';
+                actualizarDescripcionDieta();
+            } else {
+                box.innerText = "⏳ MENÚ EN PREPARACIÓN"; 
+                box.className = "status cargando";
+                info.innerHTML = "El equipo de nutrición está preparando el menú.<br>Por favor, espere o consulte más tarde.";
+                document.getElementById('camposPersonal').style.display = 'none';
+            }
+        } catch (e) { 
+            box.innerText = "⚠️ MENÚ NO DISPONIBLE"; 
+            box.className = "status cargando";
+            info.innerHTML = "No se pudo verificar el menú.<br>Es posible que aún no esté publicado.";
+            document.getElementById('camposPersonal').style.display = 'none';
+            console.error('Error al cargar menú:', e);
+        }
     }
-}
 
     function buscarPersonal() {
         const input = document.getElementById('buscarInput');
@@ -1259,7 +1219,6 @@
             return; 
         }
         
-        // Optimización: Usar includes en lugar de múltiples comparaciones
         const filtrados = personalServicio.filter(p => 
             p.nombre.includes(query) || p.dni.includes(query)
         );
@@ -1307,7 +1266,6 @@
         
         err.innerText = '';
         
-        // Validaciones rápidas
         if (!nombre || nombre.length < 3) { 
             err.innerText = '❌ Ingrese nombre y apellido válido'; 
             return; 
@@ -1335,14 +1293,18 @@
                           turnoActual;
         
         try {
-            // Verificar duplicado primero
-            const dupCheck = await fetchJsonp('verificar_duplicado', { dni, turno: turnoEnvio });
-            
-            if (dupCheck.duplicado) {
-                err.innerText = '⚠️ Este DNI ya fue cargado en este turno';
-                btn.disabled = false;
-                btn.innerText = "🍴 SOLICITAR VIANDA";
-                return;
+            // Verificar duplicado (pero no bloquear si falla)
+            try {
+                const dupCheck = await fetchJsonp('verificar_duplicado', { dni, turno: turnoEnvio });
+                
+                if (dupCheck.duplicado) {
+                    err.innerText = '⚠️ Este DNI ya fue cargado en este turno';
+                    btn.disabled = false;
+                    btn.innerText = "🍴 SOLICITAR VIANDA";
+                    return;
+                }
+            } catch (dupError) {
+                console.warn('⚠️ No se pudo verificar duplicado, continuando...', dupError);
             }
             
             // Generar código
@@ -1366,7 +1328,6 @@
                 document.getElementById('resultado').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 document.getElementById('continuarCarga').style.display = 'block';
                 
-                // Limpiar campos
                 document.getElementById('nombre').value = '';
                 document.getElementById('dni').value = '';
                 document.getElementById('buscarInput').value = '';
@@ -1386,7 +1347,7 @@
         }
     }
 
-    // ==================== SUPERVISOR ====================
+    // ==================== FUNCIONES DE SUPERVISOR Y ADMIN ====================
     function abrirModalSupervisor() { 
         document.getElementById('modalSupervisor').style.display = 'flex'; 
         superLista = []; 
@@ -1527,7 +1488,6 @@
         let ok = 0, err = 0; 
         document.getElementById('superMensaje').innerText = '⏳ Procesando...';
         
-        // Procesar en lotes de 5 para no saturar
         for (let i = 0; i < superLista.length; i++) {
             const p = superLista[i];
             try { 
@@ -1547,7 +1507,6 @@
                 err++; 
             }
             
-            // Pequeña pausa para no saturar
             await new Promise(r => setTimeout(r, 100));
         }
         
@@ -1560,7 +1519,6 @@
         }
     }
 
-    // ==================== ADMIN ====================
     function cargarAdminPanelLocal() {
         const servicios = Object.entries(PASSWORDS).filter(([s]) => s !== 'ADMIN');
         
