@@ -1018,24 +1018,59 @@
     }
 }
     // Función para obtener menú con caché
-    async function obtenerMenuConCache() {
-        const cacheKey = 'hisjb_menu_' + turnoActual;
-        const cacheTime = localStorage.getItem(cacheKey + '_time');
-        
-        // Si hay caché de menos de 5 minutos, usarla
-        if (cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
-            const cachedMenu = localStorage.getItem(cacheKey);
-            if (cachedMenu) {
-                try {
-                    const menuData = JSON.parse(cachedMenu);
-                    console.log('✅ Usando menú en caché');
-                    return menuData;
-                } catch(e) {
-                    console.log('⚠️ Caché corrupta, consultando servidor');
-                }
+   async function obtenerMenuConCache() {
+    const cacheKey = 'hisjb_menu_' + turnoActual;
+    const cacheTime = localStorage.getItem(cacheKey + '_time');
+    
+    // Si hay caché de menos de 5 minutos, usarla
+    if (cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
+        const cachedMenu = localStorage.getItem(cacheKey);
+        if (cachedMenu) {
+            try {
+                const menuData = JSON.parse(cachedMenu);
+                console.log('✅ Usando menú en caché');
+                return menuData;
+            } catch(e) {
+                console.log('⚠️ Caché corrupta, consultando servidor');
             }
         }
+    }
+    
+    try {
+        // Consultar al servidor con timeout de 15 segundos
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
         
+        const query = new URLSearchParams({ turno: turnoActual, action: 'obtener_menu' }).toString();
+        const response = await fetch(API + '?' + query, {
+            method: 'GET',
+            mode: 'cors',
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error('HTTP error ' + response.status);
+        }
+        
+        const data = await response.json();
+        console.log('📥 Respuesta obtener_menu:', data);
+        
+        // Guardar en caché solo si hay menú disponible
+        if (data.disponible && data.datos.length > 0) {
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+            localStorage.setItem(cacheKey + '_time', Date.now());
+        }
+        
+        return data;
+    } catch (e) {
+        console.error('❌ Error en obtenerMenuConCache:', e);
+        
+        // Si no hay conexión, devolver menú no disponible
+        return { disponible: false, datos: [] };
+    }
+}
         // Consultar al servidor
         const data = await fetchJsonp('obtener_menu', { turno: turnoActual });
         
@@ -1175,41 +1210,44 @@
     }
 
     async function validarMenu() {
-        const box = document.getElementById('statusBox');
-        const info = document.getElementById('menuInfo');
+    const box = document.getElementById('statusBox');
+    const info = document.getElementById('menuInfo');
+    
+    box.innerHTML = '<span class="loading-spinner"></span> CONSULTANDO...';
+    box.className = "status cargando";
+    
+    try {
+        const data = await obtenerMenuConCache();
         
-        box.innerHTML = '<span class="loading-spinner"></span> CONSULTANDO...';
-        box.className = "status cargando";
-        
-        try {
-            const data = await obtenerMenuConCache();
+        if (data.disponible && data.datos.length > 0) {
+            menuDataGlobal = data.datos[0];
+            box.innerText = "✅ MENÚ PUBLICADO"; 
+            box.className = "status disponible";
+            info.innerHTML = `🍲 HOY: <strong>${menuDataGlobal.platoPrincipal || 'Menú del día'}</strong>`;
             
-            if (data.disponible && data.datos.length > 0) {
-                menuDataGlobal = data.datos[0];
-                box.innerText = "✅ MENÚ PUBLICADO"; 
-                box.className = "status disponible";
-                info.innerHTML = `🍲 HOY: <strong>${menuDataGlobal.platoPrincipal || 'Menú del día'}</strong>`;
-                
-                if (menuDataGlobal.postre) { 
-                    document.getElementById('postreTexto').innerText = menuDataGlobal.postre; 
-                    document.getElementById('postreInfo').style.display = 'block'; 
-                }
-                
-                document.getElementById('camposPersonal').style.display = 'block';
-                actualizarDescripcionDieta();
-            } else {
-                box.innerText = "⏳ MENÚ EN PREPARACIÓN"; 
-                box.className = "status cargando";
-                info.innerHTML = "El equipo de nutrición está preparando el menú.";
-                document.getElementById('camposPersonal').style.display = 'none';
+            if (menuDataGlobal.postre) { 
+                document.getElementById('postreTexto').innerText = menuDataGlobal.postre; 
+                document.getElementById('postreInfo').style.display = 'block'; 
             }
-        } catch (e) { 
-            box.innerText = "⚠️ ERROR DE CONEXIÓN"; 
+            
+            document.getElementById('camposPersonal').style.display = 'block';
+            actualizarDescripcionDieta();
+        } else {
+            // MENÚ NO PUBLICADO AÚN
+            box.innerText = "⏳ MENÚ EN PREPARACIÓN"; 
             box.className = "status cargando";
-            info.innerHTML = "Intente nuevamente en unos minutos.";
-            console.error('Error al cargar menú:', e);
+            info.innerHTML = "El equipo de nutrición está preparando el menú.<br>Por favor, espere o consulte más tarde.";
+            document.getElementById('camposPersonal').style.display = 'none';
         }
+    } catch (e) { 
+        // ERROR DE CONEXIÓN O TIMEOUT
+        box.innerText = "⚠️ MENÚ NO DISPONIBLE"; 
+        box.className = "status cargando";
+        info.innerHTML = "No se pudo verificar el menú.<br>Es posible que aún no esté publicado.";
+        document.getElementById('camposPersonal').style.display = 'none';
+        console.error('Error al cargar menú:', e);
     }
+}
 
     function buscarPersonal() {
         const input = document.getElementById('buscarInput');
