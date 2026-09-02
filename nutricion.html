@@ -53,6 +53,8 @@
         .btn-warning:hover { background: #d35400; }
         .btn-danger { background: var(--red); }
         .btn-danger:hover { background: #c0392b; }
+        .btn-success { background: var(--green); }
+        .btn-success:hover { background: #1e7e34; }
         .dieta-group { 
             background: #f9f9f9; padding: 15px; border-radius: 10px; 
             margin: 20px 0; border-left: 5px solid var(--blue);
@@ -97,6 +99,13 @@
         }
         .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn-group button { flex: 1; }
+        .loading-spinner { 
+            display: inline-block; width: 20px; height: 20px; 
+            border: 3px solid #f3f3f3; border-top: 3px solid var(--blue); 
+            border-radius: 50%; animation: spin 1s linear infinite; 
+            margin-right: 8px; vertical-align: middle;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         @media (max-width: 480px) {
             .card { padding: 20px; }
@@ -223,94 +232,132 @@
         const fechaStr = fecha.toLocaleDateString('es-AR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         console.log('📅 Fecha actual:', fechaStr);
 
+        // ==================== FUNCIÓN FETCH OPTIMIZADA ====================
+        async function fetchData(action, params = {}) {
+            try {
+                // Convertir MAÑANA → M, NOCHE → N para el backend
+                if (params.turno === "MAÑANA") params.turno = "M";
+                if (params.turno === "NOCHE") params.turno = "N";
+                
+                const query = new URLSearchParams({ ...params, action }).toString();
+                const url = API + '?' + query;
+                
+                console.log('🔄 Llamando a:', action, params);
+                
+                // Timeout de 10 segundos
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP error ' + response.status);
+                }
+                
+                const data = await response.json();
+                console.log('📥 Respuesta:', action, data);
+                return data;
+            } catch (e) {
+                console.error('❌ Error en fetchData:', action, e.message);
+                throw e;
+            }
+        }
+
+        // ==================== VER MENÚ ACTUAL ====================
         async function verMenuActual() {
             const infoDiv = document.getElementById('menuActualInfo');
             infoDiv.style.display = 'block';
             infoDiv.className = 'mensaje loading';
-            infoDiv.innerHTML = '⏳ Consultando menús del día...';
+            infoDiv.innerHTML = '<span class="loading-spinner"></span> Consultando menús del día...';
             
-            const almuerzo = await fetchMenu('MAÑANA');
-            const cena = await fetchMenu('NOCHE');
-            
-            let html = '<strong>📅 MENÚS CARGADOS HOY:</strong><br><br>';
-            
-            if (almuerzo) {
-                html += `🌅 <strong>ALMUERZO:</strong> ${almuerzo.platoPrincipal || 'Sin nombre'}`;
-                if (almuerzo.postre) html += `<br>🍰 Postre: ${almuerzo.postre}`;
-                html += '<br><br>';
-            } else {
-                html += '🌅 <strong>ALMUERZO:</strong> ❌ No publicado<br><br>';
+            try {
+                const [almuerzo, cena] = await Promise.all([
+                    fetchData('obtener_menu', { turno: 'MAÑANA' }),
+                    fetchData('obtener_menu', { turno: 'NOCHE' })
+                ]);
+                
+                let html = '<strong>📅 MENÚS CARGADOS HOY:</strong><br><br>';
+                
+                if (almuerzo.disponible && almuerzo.datos.length > 0) {
+                    const menu = almuerzo.datos[0];
+                    html += `🌅 <strong>ALMUERZO:</strong> ${menu.platoPrincipal || 'Sin nombre'}`;
+                    if (menu.postre) html += `<br>🍰 Postre: ${menu.postre}`;
+                    html += '<br><br>';
+                } else {
+                    html += '🌅 <strong>ALMUERZO:</strong> ❌ No publicado<br><br>';
+                }
+                
+                if (cena.disponible && cena.datos.length > 0) {
+                    const menu = cena.datos[0];
+                    html += `🌙 <strong>CENA:</strong> ${menu.platoPrincipal || 'Sin nombre'}`;
+                    if (menu.postre) html += `<br>🍰 Postre: ${menu.postre}`;
+                } else {
+                    html += '🌙 <strong>CENA:</strong> ❌ No publicado';
+                }
+                
+                infoDiv.className = 'mensaje info';
+                infoDiv.innerHTML = html;
+                
+                document.getElementById('editarSection').classList.add('active');
+            } catch (e) {
+                infoDiv.className = 'mensaje error';
+                infoDiv.innerHTML = '❌ Error de conexión. Intente nuevamente.';
             }
-            
-            if (cena) {
-                html += `🌙 <strong>CENA:</strong> ${cena.platoPrincipal || 'Sin nombre'}`;
-                if (cena.postre) html += `<br>🍰 Postre: ${cena.postre}`;
-            } else {
-                html += '🌙 <strong>CENA:</strong> ❌ No publicado';
-            }
-            
-            infoDiv.className = 'mensaje info';
-            infoDiv.innerHTML = html;
-            
-            document.getElementById('editarSection').classList.add('active');
-        }
-        
-        function fetchMenu(turno) {
-            return new Promise((resolve) => {
-                // Convertir MAÑANA → M, NOCHE → N para evitar problemas con la Ñ
-                var turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
-                const cb = 'verMenu_' + turno + '_' + Date.now();
-                window[cb] = function(data) {
-                    delete window[cb]; document.body.removeChild(s);
-                    if (data.disponible && data.datos && data.datos.length > 0) {
-                        resolve(data.datos[0]);
-                    } else {
-                        resolve(null);
-                    }
-                };
-                const s = document.createElement('script');
-                s.src = API + '?action=obtener_menu&turno=' + turnoEnviar + '&callback=' + encodeURIComponent(cb);
-                document.body.appendChild(s);
-            });
         }
 
+        // ==================== CARGAR DATOS PARA EDITAR ====================
         async function cargarDatosEditar() {
             const turno = document.getElementById('editarTurno').value;
             const msgDiv = document.getElementById('mensajeEditar');
+            
             msgDiv.className = 'mensaje loading';
-            msgDiv.innerHTML = '⏳ Cargando datos...';
+            msgDiv.innerHTML = '<span class="loading-spinner"></span> Cargando datos...';
             
-            const menu = await fetchMenu(turno);
-            
-            if (menu) {
-                document.getElementById('editarPlato').value = menu.platoPrincipal || '';
-                document.getElementById('editarPostre').value = menu.postre || '';
+            try {
+                const data = await fetchData('obtener_menu', { turno: turno });
                 
-                try {
-                    const dietasObj = JSON.parse(menu.dietas || '{}');
-                    document.getElementById('editarGeneral').value = dietasObj.GENERAL || '';
-                    document.getElementById('editarHipo').value = dietasObj.HIPOSÓDICA || '';
-                    document.getElementById('editarDiabetica').value = dietasObj.DIABÉTICA || '';
-                    document.getElementById('editarCeliaca').value = dietasObj.CELIACA || '';
-                    document.getElementById('editarGastrica').value = dietasObj.GÁSTRICA || '';
-                    document.getElementById('editarAstringente').value = dietasObj.ASTRINGENTE || '';
-                    document.getElementById('editarVegetariana').value = dietasObj.VEGETARIANA || '';
-                } catch(e) {
-                    document.getElementById('editarGeneral').value = menu.platoPrincipal || '';
+                if (data.disponible && data.datos.length > 0) {
+                    const menu = data.datos[0];
+                    
+                    document.getElementById('editarPlato').value = menu.platoPrincipal || '';
+                    document.getElementById('editarPostre').value = menu.postre || '';
+                    
+                    try {
+                        const dietasObj = JSON.parse(menu.dietas || '{}');
+                        document.getElementById('editarGeneral').value = dietasObj.GENERAL || '';
+                        document.getElementById('editarHipo').value = dietasObj.HIPOSÓDICA || '';
+                        document.getElementById('editarDiabetica').value = dietasObj.DIABÉTICA || '';
+                        document.getElementById('editarCeliaca').value = dietasObj.CELIACA || '';
+                        document.getElementById('editarGastrica').value = dietasObj.GÁSTRICA || '';
+                        document.getElementById('editarAstringente').value = dietasObj.ASTRINGENTE || '';
+                        document.getElementById('editarVegetariana').value = dietasObj.VEGETARIANA || '';
+                    } catch(e) {
+                        // Si no hay dietas específicas, usar el plato principal
+                        document.getElementById('editarGeneral').value = menu.platoPrincipal || '';
+                    }
+                    
+                    menuActualGlobal = menu;
+                    msgDiv.className = 'mensaje success';
+                    msgDiv.innerHTML = '✅ Datos cargados. Modifique y guarde.';
+                } else {
+                    msgDiv.className = 'mensaje error';
+                    msgDiv.innerHTML = '❌ No hay menú publicado para este turno.';
                 }
-                
-                menuActualGlobal = menu;
-                msgDiv.className = 'mensaje success';
-                msgDiv.innerHTML = '✅ Datos cargados. Modifique y guarde.';
-            } else {
+            } catch (e) {
                 msgDiv.className = 'mensaje error';
-                msgDiv.innerHTML = '❌ No hay menú publicado para este turno.';
+                msgDiv.innerHTML = '❌ Error de conexión. Intente nuevamente.';
             }
         }
 
-        function guardarEdicion() {
+        // ==================== GUARDAR EDICIÓN ====================
+        async function guardarEdicion() {
             const turno = document.getElementById('editarTurno').value;
-            var turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
             const platoPrincipal = document.getElementById('editarPlato').value.trim();
             const postre = document.getElementById('editarPostre').value.trim();
             const msgDiv = document.getElementById('mensajeEditar');
@@ -334,32 +381,34 @@
             };
             
             msgDiv.className = 'mensaje loading';
-            msgDiv.innerHTML = '⏳ Guardando cambios...';
+            msgDiv.innerHTML = '<span class="loading-spinner"></span> Guardando cambios...';
             
-            const cb = 'editarMenu_' + Date.now();
-            window[cb] = function(data) {
-                delete window[cb]; document.body.removeChild(s);
+            try {
+                const data = await fetchData('editar_menu', { 
+                    turno: turno, 
+                    platoPrincipal: platoPrincipal, 
+                    postre: postre,
+                    general: dietas.GENERAL, 
+                    hiposodica: dietas.HIPOSÓDICA,
+                    diabetica: dietas.DIABÉTICA, 
+                    celiaca: dietas.CELIACA,
+                    gastrica: dietas.GÁSTRICA, 
+                    astringente: dietas.ASTRINGENTE,
+                    vegetariana: dietas.VEGETARIANA
+                });
+                
                 if (data && data.status === "success") {
                     msgDiv.className = 'mensaje success';
                     msgDiv.innerHTML = `✅ Menú actualizado correctamente.`;
-                    verMenuActual();
+                    setTimeout(() => verMenuActual(), 1000);
                 } else {
                     msgDiv.className = 'mensaje error';
                     msgDiv.innerHTML = '❌ Error: ' + (data?.message || 'No se pudo guardar');
                 }
-            };
-            
-            const params = new URLSearchParams({
-                action: 'editar_menu', turno: turnoEnviar, platoPrincipal, postre,
-                general: dietas.GENERAL, hiposodica: dietas.HIPOSÓDICA,
-                diabetica: dietas.DIABÉTICA, celiaca: dietas.CELIACA,
-                gastrica: dietas.GÁSTRICA, astringente: dietas.ASTRINGENTE,
-                vegetariana: dietas.VEGETARIANA, callback: cb
-            });
-            
-            const s = document.createElement('script');
-            s.src = API + '?' + params.toString();
-            document.body.appendChild(s);
+            } catch (e) {
+                msgDiv.className = 'mensaje error';
+                msgDiv.innerHTML = '❌ Error de conexión. Intente nuevamente.';
+            }
         }
 
         function cancelarEdicion() {
@@ -368,9 +417,9 @@
             document.getElementById('mensajeEditar').style.display = 'none';
         }
 
-        function publicarMenu() {
+        // ==================== PUBLICAR NUEVO MENÚ ====================
+        async function publicarMenu() {
             const turno = document.getElementById('turno').value;
-            var turnoEnviar = (turno === "MAÑANA") ? "M" : "N";
             const platoPrincipal = document.getElementById('platoPrincipal').value.trim();
             const postre = document.getElementById('postre').value.trim();
             const msgDiv = document.getElementById('mensaje');
@@ -393,42 +442,71 @@
             };
             
             msgDiv.className = 'mensaje loading';
-            msgDiv.innerHTML = '⏳ Publicando menú...';
+            msgDiv.innerHTML = '<span class="loading-spinner"></span> Publicando menú...';
             btn.disabled = true;
             
-            const cb = 'nutricionCallback_' + Date.now();
-            window[cb] = function(data) {
-                delete window[cb]; btn.disabled = false;
+            try {
+                const data = await fetchData('cargar_menu', { 
+                    turno: turno, 
+                    platoPrincipal: platoPrincipal, 
+                    postre: postre,
+                    general: dietas.GENERAL, 
+                    hiposodica: dietas.HIPOSÓDICA,
+                    diabetica: dietas.DIABÉTICA, 
+                    celiaca: dietas.CELIACA,
+                    gastrica: dietas.GÁSTRICA, 
+                    astringente: dietas.ASTRINGENTE,
+                    vegetariana: dietas.VEGETARIANA
+                });
+                
+                btn.disabled = false;
+                
                 if (data && data.status === "success") {
                     msgDiv.className = 'mensaje success';
                     msgDiv.innerHTML = `✅ ¡MENÚ PUBLICADO!<br>🍽️ ${platoPrincipal}`;
-                    ['platoPrincipal','postre','dietaGeneral','dietaHipo','dietaDiabetica','dietaCeliaca','dietaGastrica','dietaAstringente','dietaVegetariana'].forEach(id => document.getElementById(id).value = '');
+                    
+                    // Limpiar campos
+                    ['platoPrincipal','postre','dietaGeneral','dietaHipo','dietaDiabetica',
+                     'dietaCeliaca','dietaGastrica','dietaAstringente','dietaVegetariana'
+                    ].forEach(id => document.getElementById(id).value = '');
+                    
+                    // Enfocar el campo de plato para nueva carga
+                    document.getElementById('platoPrincipal').focus();
                 } else {
                     msgDiv.className = 'mensaje error';
                     msgDiv.innerHTML = '❌ Error: ' + (data?.message || 'No se pudo publicar');
                 }
-            };
-            
-            const params = new URLSearchParams({
-                action: 'cargar_menu', turno: turnoEnviar, platoPrincipal, postre,
-                general: dietas.GENERAL, hiposodica: dietas.HIPOSÓDICA,
-                diabetica: dietas.DIABÉTICA, celiaca: dietas.CELIACA,
-                gastrica: dietas.GÁSTRICA, astringente: dietas.ASTRINGENTE,
-                vegetariana: dietas.VEGETARIANA, callback: cb
-            });
-            
-            const s = document.createElement('script');
-            s.src = API + '?' + params.toString();
-            document.body.appendChild(s);
+            } catch (e) {
+                btn.disabled = false;
+                msgDiv.className = 'mensaje error';
+                msgDiv.innerHTML = '❌ Error de conexión. Intente nuevamente.';
+            }
         }
 
+        // ==================== INICIALIZACIÓN ====================
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🍽️ Panel de Nutrición cargado -', fechaStr);
+            
+            // Enter para publicar
             document.getElementById('platoPrincipal').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') { e.preventDefault(); if (!document.getElementById('btnPublicar').disabled) publicarMenu(); }
+                if (e.key === 'Enter') { 
+                    e.preventDefault(); 
+                    if (!document.getElementById('btnPublicar').disabled) publicarMenu(); 
+                }
             });
+            
+            // Enter para editar plato
+            document.getElementById('editarPlato').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') { 
+                    e.preventDefault(); 
+                    guardarEdicion(); 
+                }
+            });
+            
+            console.log('✅ Panel listo para usar');
         });
 
+        // Exponer funciones globalmente
         window.publicarMenu = publicarMenu;
         window.verMenuActual = verMenuActual;
         window.cargarDatosEditar = cargarDatosEditar;
@@ -437,4 +515,3 @@
     </script>
 </body>
 </html>
-<!-- v20260813 -->
