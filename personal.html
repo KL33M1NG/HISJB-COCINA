@@ -1132,28 +1132,62 @@
     }
 
     // ==================== FUNCIÓN VERIFICAR HORARIO ====================
-    function verificarHorario() {
-        const ahora = new Date();
-        const horaActual = ahora.getHours() + (ahora.getMinutes() / 60);
-        const advertenciaDiv = document.getElementById('advertenciaHorario');
-        const horaLimiteSpan = document.getElementById('horaLimite');
-        
-        if (turnoActual === "MAÑANA") {
-            horaLimiteSpan.innerText = "10:30";
-            if (horaActual >= 10.5) {
-                advertenciaDiv.style.display = 'block';
-            } else {
-                advertenciaDiv.style.display = 'none';
-            }
+   function verificarHorario() {
+    const ahora = new Date();
+    const horaActual = ahora.getHours() + (ahora.getMinutes() / 60);
+    const advertenciaDiv = document.getElementById('advertenciaHorario');
+    const horaLimiteSpan = document.getElementById('horaLimite');
+    
+    if (turnoActual === "MAÑANA") {
+        horaLimiteSpan.innerText = "10:30";
+        if (horaActual >= 10.5) {
+            // DESPUÉS del horario límite
+            advertenciaDiv.innerHTML = `
+                ⚠️ <strong>HORARIO DE CARGA SUPERADO</strong><br>
+                El horario límite para seleccionar menú era hasta las <strong>10:30</strong>.<br>
+                Después del horario, <strong>sujeto a disponibilidad de la cocina</strong>.
+            `;
+            advertenciaDiv.style.borderColor = '#ffc107';
+            advertenciaDiv.style.background = '#fff3cd';
+            advertenciaDiv.style.color = '#856404';
+            advertenciaDiv.style.display = 'block';
         } else {
-            horaLimiteSpan.innerText = "18:30";
-            if (horaActual >= 18.5) {
-                advertenciaDiv.style.display = 'block';
-            } else {
-                advertenciaDiv.style.display = 'none';
-            }
+            // ANTES del horario límite
+            advertenciaDiv.innerHTML = `
+                ℹ️ <strong>HORARIO DE CARGA: Hasta las 10:30</strong><br>
+                Tiene tiempo para seleccionar su menú con normalidad.
+            `;
+            advertenciaDiv.style.borderColor = '#17a2b8';
+            advertenciaDiv.style.background = '#d1ecf1';
+            advertenciaDiv.style.color = '#0c5460';
+            advertenciaDiv.style.display = 'block';
+        }
+    } else {
+        horaLimiteSpan.innerText = "18:30";
+        if (horaActual >= 18.5) {
+            // DESPUÉS del horario límite
+            advertenciaDiv.innerHTML = `
+                ⚠️ <strong>HORARIO DE CARGA SUPERADO</strong><br>
+                El horario límite para seleccionar menú era hasta las <strong>18:30</strong>.<br>
+                Después del horario, <strong>sujeto a disponibilidad de la cocina</strong>.
+            `;
+            advertenciaDiv.style.borderColor = '#ffc107';
+            advertenciaDiv.style.background = '#fff3cd';
+            advertenciaDiv.style.color = '#856404';
+            advertenciaDiv.style.display = 'block';
+        } else {
+            // ANTES del horario límite
+            advertenciaDiv.innerHTML = `
+                ℹ️ <strong>HORARIO DE CARGA: Hasta las 18:30</strong><br>
+                Tiene tiempo para seleccionar su menú con normalidad.
+            `;
+            advertenciaDiv.style.borderColor = '#17a2b8';
+            advertenciaDiv.style.background = '#d1ecf1';
+            advertenciaDiv.style.color = '#0c5460';
+            advertenciaDiv.style.display = 'block';
         }
     }
+}
 
     function actualizarDescripcionDieta() {
         const descripcionSpan = document.getElementById('descripcionDieta');
