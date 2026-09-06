@@ -101,11 +101,12 @@
                 <input type="text" id="servicio" readonly style="background: #e9ecef;">
 
                 <label>⏱️ GUARDIA <span style="color: var(--red);">*</span></label>
-                <select id="guardia" onchange="cambioGuardia()">
-                    <option value="12">12 HORAS</option>
-                    <option value="16">16 HORAS</option>
-                    <option value="20">20 HORAS</option>
-                </select>
+<select id="guardia" onchange="cambioGuardia()">
+    <option value="12">12 HORAS</option>
+    <option value="16">16 HORAS</option>
+    <option value="20">20 HORAS</option>
+    <option value="24">24 HORAS</option>
+</select>>
 
                 <div id="comida16" style="display: none; background: #fff9e6; padding: 12px; border-radius: 8px; margin: 10px 0; border: 2px dashed var(--orange);">
                     <label style="color: var(--orange);">🍽️ ¿QUÉ COMIDA DESEA?</label>
@@ -1222,10 +1223,11 @@
     }
 
     function cambioGuardia() {
-        const g = document.getElementById('guardia').value;
-        document.getElementById('comida16').style.display = (g === '16' || g === '20') ? 'block' : 'none';
-        comidaSeleccionada = null;
-    }
+    const g = document.getElementById('guardia').value;
+    document.getElementById('comida16').style.display = (g === '16' || g === '20') ? 'block' : 'none';
+    document.getElementById('info24').style.display = g === '24' ? 'block' : 'none';
+    comidaSeleccionada = g === '24' ? 'AMBAS' : null;
+}
 
     async function validarMenu() {
         const box = document.getElementById('statusBox');
