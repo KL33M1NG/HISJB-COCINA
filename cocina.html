@@ -64,11 +64,12 @@
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .table-wrapper { border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 50vh; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 800px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 900px; }
         thead { position: sticky; top: 0; z-index: 10; }
         thead th { background: var(--blue); color: white; padding: 10px 8px; text-align: left; font-weight: bold; font-size: 0.75rem; white-space: nowrap; }
         tbody td { padding: 8px; border-bottom: 1px solid var(--border); background: white; white-space: nowrap; }
         tbody tr:hover td { background: #e8f0fe; }
+        tbody tr.selected td { background: #e8f0fe !important; }
         .badge { display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
         .badge-dieta { background: var(--blue); color: white; }
         .badge-dieta-especial { background: var(--orange); color: white; }
@@ -106,10 +107,85 @@
             z-index: 999;
         }
         .updating-indicator.active { display: flex; align-items: center; }
+
+        /* ===== CHECKBOXES PARA SELECCIÓN MÚLTIPLE ===== */
+        .checkbox-cell { width: 40px; text-align: center; }
+        .checkbox-cell input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--blue); }
+
+        /* ===== BARRA DE ACCIONES MASIVAS ===== */
+        .acciones-masivas {
+            display: none;
+            background: var(--blue);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .acciones-masivas.active { display: flex; }
+        .acciones-masivas .contador-sel { font-weight: bold; font-size: 0.9rem; }
+        .acciones-masivas button { padding: 8px 14px; font-size: 0.8rem; }
+
+        /* ===== CONTADOR DE ENTREGAS ===== */
+        .contador-entregas {
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: var(--shadow);
+        }
+        .contador-entregas .contador-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 90px;
+        }
+        .contador-entregas .contador-item .label {
+            font-size: 0.65rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .contador-entregas .contador-item .numero {
+            font-size: 1.8rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .contador-entregas .contador-item .numero small {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .contador-entregas .divisor {
+            width: 1px;
+            height: 40px;
+            background: rgba(255,255,255,0.3);
+        }
+        .contador-entregas .contador-item.entregados .numero { color: #a8e6a3; }
+        .contador-entregas .contador-item.pendientes .numero { color: #ffd970; }
+
         @media (max-width: 900px) {
             .stats-grid { grid-template-columns: repeat(4, 1fr); }
             .toolbar { flex-direction: column; }
             .menu-dia-grid { grid-template-columns: 1fr; }
+            .contador-entregas { flex-wrap: wrap; }
+            .contador-entregas .divisor { display: none; }
+            .contador-entregas .contador-item { min-width: 60px; flex: 1 1 30%; }
+            .contador-entregas .contador-item .numero { font-size: 1.4rem; }
+        }
+        @media (max-width: 500px) {
+            .contador-entregas .contador-item .label { font-size: 0.55rem; }
+            .contador-entregas .contador-item .numero { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -129,6 +205,34 @@
             <span class="turno-badge" id="turnoBadge">🍽️ CARGANDO...</span>
             <span class="turno-info">📅 <span id="fechaActual"></span> | 🕐 <strong id="horaActualizacion"></strong></span>
             <button class="btn btn-outline btn-sm" onclick="cargarTodo()">🔄 ACTUALIZAR</button>
+        </div>
+
+        <!-- CONTADOR DE ENTREGAS EN TIEMPO REAL -->
+        <div class="contador-entregas" id="contadorEntregas">
+            <div class="contador-item">
+                <span class="label">📦 TOTAL DEL DÍA</span>
+                <span class="numero" id="contadorTotal">0</span>
+            </div>
+            <div class="divisor"></div>
+            <div class="contador-item">
+                <span class="label">🌅 TURNO MAÑANA</span>
+                <span class="numero" id="contadorManana">0</span>
+            </div>
+            <div class="divisor"></div>
+            <div class="contador-item">
+                <span class="label">🌙 TURNO TARDE</span>
+                <span class="numero" id="contadorTarde">0</span>
+            </div>
+            <div class="divisor"></div>
+            <div class="contador-item entregados">
+                <span class="label">✅ ENTREGADOS</span>
+                <span class="numero" id="contadorEntregados">0</span>
+            </div>
+            <div class="divisor"></div>
+            <div class="contador-item pendientes">
+                <span class="label">⏳ PENDIENTES</span>
+                <span class="numero" id="contadorPendientesGlobal">0</span>
+            </div>
         </div>
 
         <div class="menu-dia-grid" id="menuDiaGrid">
@@ -173,9 +277,29 @@
 
         <div class="card">
             <div class="card-header"><h3>📋 ENTREGAS PENDIENTES</h3><span style="font-size: 0.8rem; color: #666;" id="contadorPendientes">0 personas</span></div>
+            
+            <!-- ACCIONES MASIVAS -->
+            <div class="acciones-masivas" id="accionesMasivas">
+                <span class="contador-sel">✅ <span id="numSeleccionados">0</span> seleccionados</span>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-success btn-sm" onclick="validarSeleccionados()">✅ VALIDAR SELECCIONADOS</button>
+                    <button class="btn btn-danger btn-sm" onclick="eliminarSeleccionados()">🗑️ ELIMINAR SELECCIONADOS</button>
+                    <button class="btn btn-outline btn-sm" style="background: white; color: var(--blue);" onclick="limpiarSeleccion()">❌ LIMPIAR</button>
+                </div>
+            </div>
+
             <div class="table-wrapper"><div class="table-scroll"><table id="tablaPendientes">
-                <thead><tr><th>⚡ ACCIONES</th><th>👤 PERSONAL</th><th>🆔 DNI</th><th>🏥 SERVICIO</th><th>⏱️ G.</th><th>🍽️ COMIDA</th><th>📋 DIETA</th></tr></thead>
-                <tbody><tr><td colspan="7"><div class="empty-state"><div class="icon">🍳</div><span class="loading-spinner"></span> Cargando...</div></td></tr></tbody>
+                <thead><tr>
+                    <th class="checkbox-cell"><input type="checkbox" id="checkTodos" onclick="toggleTodos()" title="Seleccionar todos"></th>
+                    <th>⚡ ACCIONES</th>
+                    <th>👤 PERSONAL</th>
+                    <th>🆔 DNI</th>
+                    <th>🏥 SERVICIO</th>
+                    <th>⏱️ G.</th>
+                    <th>🍽️ COMIDA</th>
+                    <th>📋 DIETA</th>
+                </tr></thead>
+                <tbody><tr><td colspan="8"><div class="empty-state"><div class="icon">🍳</div><span class="loading-spinner"></span> Cargando...</div></td></tr></tbody>
             </table></div></div>
         </div>
 
@@ -248,6 +372,8 @@
     const turnoTexto = turnoActual === "MAÑANA" ? "🌅 ALMUERZO" : "🌙 CENA";
     let todosPendientes = [];
     let actualizando = false;
+    let seleccionados = new Set();
+    let filtroServicioActual = 'TODOS';
     
     document.getElementById('turnoBadge').innerHTML = `🍽️ ${turnoTexto}`;
     actualizarFecha();
@@ -258,7 +384,6 @@
             const query = new URLSearchParams({ ...params, action }).toString();
             const url = API + '?' + query;
             
-            // Timeout de 8 segundos
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000);
             
@@ -284,16 +409,16 @@
     
     // ==================== CARGA PRINCIPAL ====================
     async function cargarTodo() {
-        if (actualizando) return; // Evitar múltiples actualizaciones simultáneas
+        if (actualizando) return;
         
         actualizando = true;
         mostrarIndicadorActualizacion(true);
         
         try {
-            // Cargar menú y pendientes en paralelo
             await Promise.all([
                 cargarMenuDelDia(),
-                cargarPendientes()
+                cargarPendientes(),
+                actualizarContadorEntregas()
             ]);
         } catch (e) {
             console.error('Error en cargarTodo:', e);
@@ -329,7 +454,6 @@
     // ==================== MENÚ DEL DÍA ====================
     async function cargarMenuDelDia() {
         try {
-            // Cargar ambos turnos en paralelo
             const [menuAlmuerzo, menuCena] = await Promise.all([
                 fetchData('obtener_menu', { turno: 'M' }),
                 fetchData('obtener_menu', { turno: 'N' })
@@ -417,11 +541,26 @@
             document.getElementById('totalPendientes').innerText = data.totalPendientes || 0;
             todosPendientes = data.listaPendientes || [];
             
-            // Actualizar filtro de servicios
+            // Actualizar filtro de servicios MANTENIENDO la selección actual
             const serviciosUnicos = [...new Set(todosPendientes.map(p => p.servicio || 'SIN SERVICIO'))].sort();
-            document.getElementById('filtroServicio').innerHTML = 
+            const selectFiltro = document.getElementById('filtroServicio');
+            const valorActual = selectFiltro.value;
+            
+            selectFiltro.innerHTML = 
                 '<option value="TODOS">🏥 TODOS LOS SERVICIOS</option>' + 
                 serviciosUnicos.map(s => `<option value="${s}">${s}</option>`).join('');
+            
+            // Restaurar el filtro seleccionado
+            if (valorActual && [...selectFiltro.options].some(o => o.value === valorActual)) {
+                selectFiltro.value = valorActual;
+            } else if (filtroServicioActual && [...selectFiltro.options].some(o => o.value === filtroServicioActual)) {
+                selectFiltro.value = filtroServicioActual;
+            }
+            
+            // Limpiar seleccionados que ya no existen
+            const idsActuales = new Set(todosPendientes.map(p => String(p.id)));
+            seleccionados = new Set([...seleccionados].filter(id => idsActuales.has(id)));
+            actualizarAccionesMasivas();
             
             filtrarTabla();
         } catch (e) {
@@ -432,6 +571,9 @@
     function filtrarTabla() {
         const buscar = document.getElementById('buscarInput').value.toUpperCase().trim();
         const servicioFiltro = document.getElementById('filtroServicio').value;
+        
+        // Guardar filtro actual
+        filtroServicioActual = servicioFiltro;
         
         let filtrados = todosPendientes;
         
@@ -456,8 +598,8 @@
         
         if (filtrados.length === 0) {
             tbody.innerHTML = todosPendientes.length === 0 ? 
-                '<tr><td colspan="7"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>' : 
-                '<tr><td colspan="7"><div class="empty-state"><div class="icon">🔍</div>Sin resultados</div></td></tr>';
+                '<tr><td colspan="8"><div class="empty-state"><div class="icon">✅</div>¡No hay pedidos pendientes!</div></td></tr>' : 
+                '<tr><td colspan="8"><div class="empty-state"><div class="icon">🔍</div>Sin resultados</div></td></tr>';
             document.getElementById('contadorPendientes').innerText = `${todosPendientes.length} personas`; 
             return;
         }
@@ -465,7 +607,6 @@
         document.getElementById('contadorPendientes').innerText = 
             `${todosPendientes.length} personas (${filtrados.length} mostrados)`;
         
-        // Ordenar alfabéticamente
         filtrados.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
         
         filtrados.forEach(p => {
@@ -484,8 +625,17 @@
             if (p.dieta === 'CELIACA') dietaBadge = 'badge-celiaca';
             else if (p.dieta !== 'GENERAL') dietaBadge = 'badge-dieta-especial';
             
+            const isSelected = seleccionados.has(String(p.id));
+            
             const tr = document.createElement('tr');
+            if (isSelected) tr.classList.add('selected');
+            
             tr.innerHTML = `
+                <td class="checkbox-cell">
+                    <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                           onclick="toggleSeleccion('${p.id}')" 
+                           data-id="${p.id}">
+                </td>
                 <td class="acciones-cell">
                     <button class="btn btn-success btn-xs" onclick="validarPorIdDirecto('${p.id}')" title="Validar entrega">✔</button>
                     <button class="btn btn-danger btn-xs" onclick="eliminarPedido('${p.id}','${p.nombre.replace(/'/g,"\\'")}')" title="Eliminar pedido">✕</button>
@@ -499,9 +649,214 @@
             `;
             tbody.appendChild(tr);
         });
+        
+        actualizarCheckTodos();
     }
     
-    // ==================== VALIDACIÓN ====================
+    // ==================== SELECCIÓN MÚLTIPLE ====================
+    function toggleSeleccion(id) {
+        const idStr = String(id);
+        if (seleccionados.has(idStr)) {
+            seleccionados.delete(idStr);
+        } else {
+            seleccionados.add(idStr);
+        }
+        
+        const checkboxes = document.querySelectorAll('#tablaPendientes tbody input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            const tr = cb.closest('tr');
+            if (String(cb.dataset.id) === idStr) {
+                cb.checked = seleccionados.has(idStr);
+                if (seleccionados.has(idStr)) {
+                    tr.classList.add('selected');
+                } else {
+                    tr.classList.remove('selected');
+                }
+            }
+        });
+        
+        actualizarAccionesMasivas();
+        actualizarCheckTodos();
+    }
+    
+    function toggleTodos() {
+        const checkTodos = document.getElementById('checkTodos');
+        const checkboxes = document.querySelectorAll('#tablaPendientes tbody input[type="checkbox"]');
+        
+        if (checkTodos.checked) {
+            checkboxes.forEach(cb => {
+                const id = String(cb.dataset.id);
+                seleccionados.add(id);
+                cb.checked = true;
+                cb.closest('tr').classList.add('selected');
+            });
+        } else {
+            checkboxes.forEach(cb => {
+                const id = String(cb.dataset.id);
+                seleccionados.delete(id);
+                cb.checked = false;
+                cb.closest('tr').classList.remove('selected');
+            });
+        }
+        
+        actualizarAccionesMasivas();
+    }
+    
+    function actualizarCheckTodos() {
+        const checkTodos = document.getElementById('checkTodos');
+        const checkboxes = document.querySelectorAll('#tablaPendientes tbody input[type="checkbox"]');
+        
+        if (checkboxes.length === 0) {
+            checkTodos.checked = false;
+            checkTodos.indeterminate = false;
+            return;
+        }
+        
+        const seleccionadosVisibles = [...checkboxes].filter(cb => cb.checked).length;
+        
+        if (seleccionadosVisibles === 0) {
+            checkTodos.checked = false;
+            checkTodos.indeterminate = false;
+        } else if (seleccionadosVisibles === checkboxes.length) {
+            checkTodos.checked = true;
+            checkTodos.indeterminate = false;
+        } else {
+            checkTodos.checked = false;
+            checkTodos.indeterminate = true;
+        }
+    }
+    
+    function actualizarAccionesMasivas() {
+        const barra = document.getElementById('accionesMasivas');
+        const contador = document.getElementById('numSeleccionados');
+        
+        contador.innerText = seleccionados.size;
+        
+        if (seleccionados.size > 0) {
+            barra.classList.add('active');
+        } else {
+            barra.classList.remove('active');
+        }
+    }
+    
+    function limpiarSeleccion() {
+        seleccionados.clear();
+        document.querySelectorAll('#tablaPendientes tbody input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+            cb.closest('tr').classList.remove('selected');
+        });
+        document.getElementById('checkTodos').checked = false;
+        document.getElementById('checkTodos').indeterminate = false;
+        actualizarAccionesMasivas();
+    }
+    
+    // ==================== ACCIONES MASIVAS ====================
+    async function validarSeleccionados() {
+        if (seleccionados.size === 0) return;
+        
+        if (!confirm(`¿Validar ${seleccionados.size} pedido(s) como ENTREGADOS?`)) return;
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span> Procesando...';
+        
+        let ok = 0, err = 0;
+        
+        for (const id of seleccionados) {
+            try {
+                const d = await fetchData('validar_por_id', { id: id });
+                if (d.status === "success") ok++;
+                else err++;
+            } catch (e) {
+                err++;
+            }
+            await new Promise(r => setTimeout(r, 100));
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = '✅ VALIDAR SELECCIONADOS';
+        
+        if (ok > 0) {
+            mostrarMensaje('mensajeValidacion','success',`✅ ${ok} validado(s)${err > 0 ? ` | ❌ ${err} error(es)` : ''}`);
+        } else {
+            mostrarMensaje('mensajeValidacion','error','❌ No se pudo validar ningún pedido');
+        }
+        
+        seleccionados.clear();
+        actualizarAccionesMasivas();
+        await cargarTodo();
+    }
+    
+    async function eliminarSeleccionados() {
+        if (seleccionados.size === 0) return;
+        
+        if (!confirm(`⚠️ ¿ELIMINAR ${seleccionados.size} pedido(s)?\n\nEsta acción no se puede deshacer.`)) return;
+        
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span> Procesando...';
+        
+        let ok = 0, err = 0;
+        
+        for (const id of seleccionados) {
+            try {
+                const d = await fetchData('eliminar_pedido', { id: id });
+                if (d.status === "success") ok++;
+                else err++;
+            } catch (e) {
+                err++;
+            }
+            await new Promise(r => setTimeout(r, 100));
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = '🗑️ ELIMINAR SELECCIONADOS';
+        
+        if (ok > 0) {
+            mostrarMensaje('mensajeValidacion','success',`🗑️ ${ok} eliminado(s)${err > 0 ? ` | ❌ ${err} error(es)` : ''}`);
+        } else {
+            mostrarMensaje('mensajeValidacion','error','❌ No se pudo eliminar ningún pedido');
+        }
+        
+        seleccionados.clear();
+        actualizarAccionesMasivas();
+        await cargarTodo();
+    }
+    
+    // ==================== CONTADOR DE ENTREGAS ====================
+    async function actualizarContadorEntregas() {
+        try {
+            const data = await fetchData('obtener_estadisticas_hoy');
+            
+            if (data && data.status === 'success') {
+                document.getElementById('contadorTotal').innerText = data.total || 0;
+                document.getElementById('contadorManana').innerText = data.manana || 0;
+                document.getElementById('contadorTarde').innerText = data.tarde || 0;
+                document.getElementById('contadorEntregados').innerText = data.entregados || 0;
+                document.getElementById('contadorPendientesGlobal').innerText = data.pendientes || 0;
+            } else {
+                // Fallback con datos locales
+                calcularContadorLocal();
+            }
+        } catch (e) {
+            console.error('Error actualizando contador:', e);
+            calcularContadorLocal();
+        }
+    }
+    
+    function calcularContadorLocal() {
+        const total = todosPendientes.length;
+        const manana = todosPendientes.filter(p => p.turno === 'MAÑANA').length;
+        const tarde = todosPendientes.filter(p => p.turno === 'NOCHE').length;
+        
+        document.getElementById('contadorTotal').innerText = total;
+        document.getElementById('contadorManana').innerText = manana;
+        document.getElementById('contadorTarde').innerText = tarde;
+        document.getElementById('contadorEntregados').innerText = 0;
+        document.getElementById('contadorPendientesGlobal').innerText = total;
+    }
+    
+    // ==================== VALIDACIÓN INDIVIDUAL ====================
     async function validarPorId() {
         const id = document.getElementById('codigoInput').value.trim();
         if (!id) { 
@@ -545,6 +900,8 @@
             
             if (d.status === "success") { 
                 mostrarMensaje('mensajeValidacion','success','🗑️ Pedido eliminado'); 
+                seleccionados.delete(String(id));
+                actualizarAccionesMasivas();
                 await cargarTodo(); 
             } else { 
                 mostrarMensaje('mensajeValidacion','error','❌ Error al eliminar'); 
@@ -608,7 +965,6 @@
                 setTimeout(() => { 
                     cerrarModalCarga(); 
                     cargarTodo(); 
-                    // Limpiar campos
                     document.getElementById('modalNombre').value = '';
                     document.getElementById('modalDni').value = '';
                 }, 1000); 
@@ -654,7 +1010,6 @@
         if (e.key === 'Enter') validarPorId(); 
     });
     
-    // Atajo de teclado para búsqueda
     document.getElementById('buscarInput').addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             e.target.value = '';
@@ -662,13 +1017,10 @@
         }
     });
     
-    // Enfocar el campo de código al cargar
     document.getElementById('codigoInput').focus();
     
-    // Actualización automática optimizada (30 segundos en lugar de 20)
     let intervalo = setInterval(cargarTodo, 30000);
     
-    // Pausar actualización cuando la pestaña no está visible
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             clearInterval(intervalo);
@@ -680,7 +1032,6 @@
     
     window.addEventListener('beforeunload', () => clearInterval(intervalo));
     
-    // Carga inicial
     cargarTodo();
 </script>
 </body>
