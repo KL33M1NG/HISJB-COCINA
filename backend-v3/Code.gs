@@ -117,14 +117,13 @@ function v3Personal_(sesion) {
   }).map(function(r){return {id:String(r[0]),nombre:String(r[1]),servicio:String(r[2]),dieta:String(r[3]||'GENERAL')};})};
 }
 function v3FechaClave_(valor, zonaHoraria) {
-  // Sheets puede entregar una celda de fecha como Date aunque se haya escrito "yyyy-MM-dd".
-  // Evitar String(Date), ya que devuelve "Fri Nov..." y rompe la deduplicación.
+  // Sheets puede devolver Date aunque el valor se haya escrito como texto ISO.
   if (valor instanceof Date && !isNaN(valor.getTime())) {
     return Utilities.formatDate(valor, zonaHoraria, 'yyyy-MM-dd');
   }
   var s = String(valor == null ? '' : valor).trim();
-  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) return s;
-  var es = /^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/.exec(s);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var es = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
   if (es) return es[3] + '-' + es[2] + '-' + es[1];
   throw Error('Fecha inválida en Pedidos_V3: ' + s);
 }
