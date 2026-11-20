@@ -3,7 +3,7 @@
 > **NO instalar sobre el Apps Script de producción**. Este código es una base experimental. Su integración con GitHub Pages y su seguridad todavía requieren revisión antes de usar personal real.
 
 ## Estado de la integración
-- **Integración HtmlService de pruebas disponible**: `PersonalV3.html` y `CocinaV3.html` usan `google.script.run` con las operaciones autorizadas de `Code.gs`. **Todavía no fue probado por el usuario en navegador ni habilitado para producción**. Guía: [INTEGRACION-HTMLSERVICE.md](./INTEGRACION-HTMLSERVICE.md).
+- **Integración HtmlService de pruebas disponible**: `AccesoV3.html` es el ingreso único por contraseña y dirige a las vistas de Personal o Cocina/Nutrición mediante `google.script.run` y roles de `Code.gs`. `PersonalV3.html` y `CocinaV3.html` se mantienen como referencias iniciales. **Todavía no fue probado por el usuario en navegador ni habilitado para producción**. Guías: [ACCESO-SOLO-CLAVE.md](./ACCESO-SOLO-CLAVE.md) e [INTEGRACION-HTMLSERVICE.md](./INTEGRACION-HTMLSERVICE.md).
 - Implementados en `Code.gs`: login por servicio, roles WEB/SUPERVISOR/COCINA/NUTRICION/ADMIN, consulta de nómina **del propio servicio**, registro de una o varias personas, dos pedidos (MAÑANA/NOCHE) para guardias de 24 h, detección de repetidos en el servidor bajo `LockService`, entrega y reversión con auditoría.
 - **Pendiente:** prueba de la interfaz en navegador, pruebas de concurrencia, controles antiabuso, edición de menú con permisos de Nutrición, migración de nómina y puesta en producción. El HTML de GitHub Pages sigue siendo demostrativo.
 - El HTML dentro de `versiones/v3/` sigue siendo **solo demostración local**: no tiene clave de acceso y **no utiliza este archivo**.
