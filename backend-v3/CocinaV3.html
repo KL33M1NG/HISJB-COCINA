@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><base target="_top"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cocina y Nutrición · V3 (pruebas)</title><style>:root{--navy:#102943;--blue:#1562a4;--bg:#f3f7fb;--border:#dce6ef;--ink:#1b3147;--muted:#617388;--good:#136f4b;--bad:#a13838}*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.48 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}header{background:var(--navy);color:white;padding:17px max(4%,16px)}header strong{font-size:21px}header a{color:#d8ecff;text-decoration:none;margin-right:17px}main{width:min(1100px,100%);margin:auto;padding:24px 16px 55px}.card{background:white;border:1px solid var(--border);border-radius:15px;padding:20px;margin:15px 0;box-shadow:0 3px 12px #112b4510}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.between{justify-content:space-between}h1{font-size:26px;margin:12px 0 4px}h2{font-size:19px;margin:0 0 13px}.muted,small{color:var(--muted)}label{display:block;font-weight:600;margin:9px 0 5px}input,select,button{font:inherit;border:1px solid #bacad8;border-radius:9px;padding:10px;max-width:100%}input:not([type=checkbox]),select{background:#fff;color:var(--ink)}input[type=search]{width:100%}button{background:var(--blue);border:0;color:white;font-weight:600;cursor:pointer}button.secondary{background:#e8f1f9;color:#125389}button:disabled{opacity:.55;cursor:not-allowed}.hide{display:none!important}.notice{padding:12px 14px;border-radius:9px;background:#fff3d5;color:#76521a}.status{min-height:23px;margin-top:13px;font-weight:600}.error{color:var(--bad)}.ok{color:var(--good)}.pill{font-size:12px;background:#e7f1fc;color:#175b96;border-radius:99px;padding:5px 10px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}.metric{background:#ecf3fa;padding:13px;border-radius:10px;text-align:center}.metric b{font-size:24px;display:block}.order{display:flex;align-items:center;gap:12px;justify-content:space-between;border-top:1px solid var(--border);padding:13px 2px}.order.done{background:#fff1f1}.order .details{flex:1}.order .details b{display:block}.order small{display:block}.order .pill{display:inline-block;margin-top:5px}.order.done .pill{background:#fbe1e1;color:#9d3434}.inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.inputs input,.inputs select{width:100%}.actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}#loginBox{max-width:520px;margin:30px auto}@media(max-width:650px){h1{font-size:23px}.card{padding:15px}.order{align-items:flex-start}.order button{min-width:86px}.metrics{gap:4px}.metric{padding:8px}}</style></head><body>
+<header><div class="row between"><strong>HISJB · Cocina y Nutrición V3</strong><nav><a href="?page=personal" target="_top">Registro de personal</a></nav></div></header>
+<main><div class="notice"><b>ENTORNO DE PRUEBAS.</b> Pedidos ficticios en Sheets V3. No utilizar con personal ni datos reales.</div>
+<section class="card" id="loginBox"><h1>Ingresar a gestión</h1><p class="muted">Usá la cuenta de Cocina o Nutrición de pruebas.</p>
+<form id="loginForm"><label for="servicio">Servicio</label><input id="servicio" required autocomplete="username" placeholder="COCINA o NUTRICION">
+<label for="clave">Contraseña</label><input id="clave" type="password" required autocomplete="current-password">
+<div class="actions"><button id="loginButton" type="submit">Ingresar</button></div></form><p id="loginMsg" class="status" role="status"></p></section>
+<section id="panel" class="hide">
+<div class="row between"><div><h1>Panel de viandas</h1><p class="muted" id="identity"></p></div><button class="secondary" id="logout">Cerrar sesión</button></div>
+<section class="card"><div class="inputs"><div><label for="turno">Comida</label><select id="turno"><option value="MAÑANA">Almuerzo</option><option value="NOCHE">Cena</option></select></div><div><label for="estado">Estado</label><select id="estado"><option value="TODOS">Todos</option><option value="PENDIENTE">Pendientes</option><option value="ENTREGADO">Entregados</option></select></div></div>
+<div class="metrics"><div class="metric"><b id="total">0</b>Total</div><div class="metric"><b id="pending">0</b>Pendientes</div><div class="metric"><b id="done">0</b>Entregados</div></div><div class="actions"><button class="secondary" id="refresh">Actualizar pedidos</button></div></section>
+<section class="card"><h2>Entrega de viandas</h2><input type="search" id="buscar" placeholder="Buscar trabajador o servicio" aria-label="Buscar pedidos">
+<p class="muted" id="hint"></p><div id="list"></div><p id="workMsg" class="status" role="status"></p></section>
+<section class="card"><h2>Nutrición · Menú del día</h2><p class="muted">La edición del menú todavía no está conectada a Sheets. Este panel permanece en modo consulta hasta implementar autorización y guardado en servidor. La versión estable continúa operando por separado.</p></section>
+</section></main>
+<script>
+(function(){
+'use strict';
+const el=id=>document.getElementById(id);
+let auth=null,orders=[],busy=false;
+function msg(id,text,error){const x=el(id);x.textContent=text;x.className='status '+(error?'error':'ok')}
+function rpc(data){return new Promise((resolve,reject)=>{google.script.run.withSuccessHandler(v=>{if(v&&v.status==='error')reject(Error(v.message||'Error'));else resolve(v)}).withFailureHandler(err=>reject(Error(err&&err.message||'Fallo de conexión'))).v3UiCall(data)})}
+function updateButtons(){el('loginButton').disabled=busy;el('refresh').disabled=busy;el('turno').disabled=busy}
+function clear(){auth=null;orders=[];el('clave').value='';el('panel').classList.add('hide');el('loginBox').classList.remove('hide')}
+async function load(){if(!auth)return;busy=true;updateButtons();msg('workMsg','Cargando pedidos...',false);
+try{const r=await rpc({accion:'listado',token:auth.token,turno:el('turno').value});orders=r.pedidos||[];render();msg('workMsg','Datos actualizados.',false)}
+catch(e){msg('workMsg',e.message,true);if(e.message.includes('Sesión'))clear()}
+finally{busy=false;updateButtons()}}
+function render(){
+const q=el('buscar').value.trim().toLocaleLowerCase('es');
+el('total').textContent=orders.length;el('pending').textContent=orders.filter(p=>p.estado==='PENDIENTE').length;el('done').textContent=orders.filter(p=>p.estado==='ENTREGADO').length;
+const list=el('list');list.replaceChildren();
+const visible=orders.filter(p=>(el('estado').value==='TODOS'||p.estado===el('estado').value)&&(p.nombre+' '+p.servicio).toLocaleLowerCase('es').includes(q))
+.sort((a,b)=>(a.estado==='ENTREGADO')-(b.estado==='ENTREGADO'));
+if(!visible.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='No hay pedidos para esta selección.';list.append(empty)}
+for(const order of visible){
+const wrapper=document.createElement('div');wrapper.className='order'+(order.estado==='ENTREGADO'?' done':'');
+const body=document.createElement('div');body.className='details';const name=document.createElement('b'),detail=document.createElement('small'),tag=document.createElement('span');
+name.textContent=order.nombre;detail.textContent=order.servicio+' · Guardia '+order.guardia+' h · Dieta '+order.dieta;
+tag.className='pill';tag.textContent=order.estado;body.append(name,detail,tag);
+wrapper.append(body);
+if(auth&&['COCINA','ADMIN'].includes(auth.rol)){
+const button=document.createElement('button');button.className=order.estado==='ENTREGADO'?'secondary':'';
+button.textContent=order.estado==='ENTREGADO'?'Revertir':'Entregar';button.disabled=busy||!['PENDIENTE','ENTREGADO'].includes(order.estado);
+button.addEventListener('click',async()=>{
+const revertir=order.estado==='ENTREGADO';if(!confirm((revertir?'¿Revertir entrega':'¿Marcar como entregado')+' de '+order.nombre+'?'))return;
+busy=true;updateButtons();button.disabled=true;msg('workMsg','Actualizando...',false);
+try{await rpc({accion:'entrega',token:auth.token,id:order.id,revertir});await load();msg('workMsg','Estado de entrega actualizado.',false)}
+catch(e){msg('workMsg',e.message,true);busy=false;updateButtons();render()}
+});
+wrapper.append(button)
+}
+list.append(wrapper)
+}
+el('hint').textContent=auth&&auth.rol==='NUTRICION'?'Cuenta Nutrición: consulta de pedidos, sin permisos de entrega.':'Los pedidos entregados se muestran abajo en rojo y pueden revertirse.';
+}
+el('loginForm').addEventListener('submit',async ev=>{
+ev.preventDefault();if(busy)return;busy=true;updateButtons();msg('loginMsg','Verificando acceso...',false);
+try{const r=await rpc({accion:'login',servicio:el('servicio').value,clave:el('clave').value});auth={token:r.token,rol:r.rol,servicio:r.servicio};el('clave').value='';
+if(!['COCINA','NUTRICION','ADMIN'].includes(auth.rol))throw Error('Cuenta sin acceso al panel de gestión');
+el('identity').textContent=auth.servicio+' · '+auth.rol;el('loginBox').classList.add('hide');el('panel').classList.remove('hide');msg('loginMsg','',false);busy=false;await load()
+}catch(e){clear();msg('loginMsg',e.message,true)}finally{busy=false;updateButtons()}
+});
+el('turno').addEventListener('change',load);el('estado').addEventListener('change',render);el('buscar').addEventListener('input',render);el('refresh').addEventListener('click',load);
+el('logout').addEventListener('click',async()=>{const token=auth&&auth.token;clear();if(token){try{await rpc({accion:'logout',token})}catch(e){}}});
+})();
+</script></body></html>
