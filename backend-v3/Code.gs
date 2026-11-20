@@ -76,7 +76,7 @@ function v3Planilla_() {
   return SpreadsheetApp.openById(id);
 }
 
-function v3HojasIniciales() {
+function v3HojasIniciales_() {
   var ss = v3Planilla_();
   var specs = {};
   specs[V3.personal] = ['ID_PERSONAL','NOMBRE','SERVICIO','DIETA','ACTIVO'];
