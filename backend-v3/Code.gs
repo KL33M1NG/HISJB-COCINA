@@ -20,10 +20,8 @@ function v3Salida_(obj) {
  * Solo desplegar en el proyecto de PRUEBAS.
  */
 function doGet(e) {
-  var page = e && e.parameter && e.parameter.page === 'cocina' ? 'cocina' : 'personal';
-  var template = HtmlService.createTemplateFromFile(
-    page === 'cocina' ? 'CocinaV3' : 'PersonalV3'
-  );
+  var page = 'acceso';
+  var template = HtmlService.createTemplateFromFile('AccesoV3');
   template.page = page;
   return template.evaluate().setTitle('HISJB · Cocina V3 — PRUEBAS')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -105,6 +103,13 @@ function v3ProvisionarCuenta_(servicio, rol, clave) {
   var pepper = props.getProperty(V3.secretProp);
   if (!pepper) {pepper = Utilities.getUuid()+Utilities.getUuid();props.setProperty(V3.secretProp,pepper);}
   var cuentas = JSON.parse(props.getProperty(V3.cuentasProp) || '{}');
+  // En el acceso sin usuario cada contraseña debe identificar UN solo servicio.
+  Object.keys(cuentas).forEach(function(nombre) {
+    var actual = cuentas[nombre];
+    if (nombre !== servicio && v3Hash_(actual.salt+':'+clave+':'+pepper) === actual.hash) {
+      throw Error('Esta contraseña ya pertenece a otro servicio');
+    }
+  });
   var salt = Utilities.getUuid();
   cuentas[servicio] = {rol:rol, salt:salt, hash:v3Hash_(salt+':'+clave+':'+pepper)};
   props.setProperty(V3.cuentasProp,JSON.stringify(cuentas));
@@ -119,16 +124,28 @@ function v3Norm_(s) {
   return String(s || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
 function v3Login_(p) {
-  var servicio = v3Norm_(p.servicio);
+  // La pantalla principal solicita SOLO la clave. El servidor identifica rol y servicio.
+  // Un servicio opcional solo se acepta por compatibilidad con pruebas internas existentes.
+  var solicitado = v3Norm_(p && p.servicio);
+  var clave = String(p && p.clave || '');
+  if (!clave) throw Error('Credenciales incorrectas');
   var cuentas = JSON.parse(PropertiesService.getScriptProperties().getProperty(V3.cuentasProp) || '{}');
-  var cuenta = cuentas[servicio];
-  if (!cuenta) throw Error('Credenciales incorrectas');
   var pepper = PropertiesService.getScriptProperties().getProperty(V3.secretProp);
-  if (v3Hash_(cuenta.salt+':'+String(p.clave || '')+':'+pepper) !== cuenta.hash) throw Error('Credenciales incorrectas');
+  if (!pepper) throw Error('Credenciales incorrectas');
+  var coincidencias = [];
+  Object.keys(cuentas).forEach(function(nombre) {
+    var c = cuentas[nombre];
+    if (c && c.salt && c.hash && v3Hash_(c.salt+':'+clave+':'+pepper) === c.hash) {
+      coincidencias.push({servicio:nombre,rol:c.rol});
+    }
+  });
+  // Si hay claves iguales entre servicios, no se permite acceder ambiguamente.
+  if (coincidencias.length !== 1) throw Error('Credenciales incorrectas');
+  var cuenta = coincidencias[0];
+  if (solicitado && solicitado !== cuenta.servicio) throw Error('Credenciales incorrectas');
   var token = Utilities.getUuid() + Utilities.getUuid();
-  var sesion = {servicio:servicio,rol:cuenta.rol};
-  CacheService.getScriptCache().put('v3:'+token,JSON.stringify(sesion),V3.sesionMinutos*60);
-  return {status:'success', token:token, servicio:servicio, rol:cuenta.rol, expiraMinutos:V3.sesionMinutos};
+  CacheService.getScriptCache().put('v3:'+token,JSON.stringify(cuenta),V3.sesionMinutos*60);
+  return {status:'success',token:token,servicio:cuenta.servicio,rol:cuenta.rol,expiraMinutos:V3.sesionMinutos};
 }
 function v3Sesion_(token) {
   if (!/^[a-f\d-]{72}$/.test(String(token || ''))) throw Error('Sesión inválida');
