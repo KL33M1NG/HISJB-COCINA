@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><base target="_top"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal · Cocina V3 (pruebas)</title><style>
+:root{--navy:#102943;--blue:#1562a4;--bg:#f3f7fb;--border:#dce6ef;--ink:#1b3147;--muted:#617388;--good:#136f4b;--bad:#a13838}*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.48 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}header{background:var(--navy);color:white;padding:17px max(4%,16px)}header strong{font-size:21px}header a{color:#d8ecff;text-decoration:none;margin-right:17px}main{width:min(1050px,100%);margin:auto;padding:24px 16px 55px}.card{background:white;border:1px solid var(--border);border-radius:15px;padding:20px;margin:15px 0;box-shadow:0 3px 12px #112b4510}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.between{justify-content:space-between}h1{font-size:26px;margin:12px 0 4px}h2{font-size:19px;margin:0 0 13px}.muted,small{color:var(--muted)}label{display:block;font-weight:600;margin:9px 0 5px}input,select,button{font:inherit;border:1px solid #bacad8;border-radius:9px;padding:10px;max-width:100%}input:not([type=checkbox]),select{background:#fff;color:var(--ink)}input[type=search]{width:100%}button{background:var(--blue);border:0;color:white;font-weight:600;cursor:pointer}button.secondary{background:#e8f1f9;color:#125389}button:disabled{opacity:.55;cursor:not-allowed}.hide{display:none!important}.notice{padding:12px 14px;border-radius:9px;background:#fff3d5;color:#76521a}.status{min-height:23px;margin-top:13px;font-weight:600}.error{color:var(--bad)}.ok{color:var(--good)}.pill{font-size:12px;background:#e7f1fc;color:#175b96;border-radius:99px;padding:5px 10px}.person{padding:11px 3px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center}.person input{width:19px;height:19px;accent-color:var(--blue)}.person span{flex:1}.person small{display:block}.inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}.inputs input,.inputs select{width:100%}.actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.right{margin-left:auto}#loginBox{max-width:520px;margin:30px auto}@media(max-width:650px){header .row{align-items:flex-start}h1{font-size:23px}.card{padding:15px}.actions button{flex:1}}
+</style></head>
+<body>
+<header><div class="row between"><strong>HISJB · Registro de personal V3</strong><nav><a href="?page=cocina" target="_top">Panel Cocina</a></nav></div></header>
+<main>
+<div class="notice"><b>ENTORNO DE PRUEBAS.</b> Solo utilizar personal ficticio. Esta página guarda pedidos en la planilla V3 de pruebas.</div>
+<section class="card" id="loginBox">
+<h1>Ingresar por servicio</h1><p class="muted">Utilizá el servicio y la contraseña asignada a tu rol. El servicio determina qué nómina podés consultar.</p>
+<form id="loginForm"><label for="servicio">Servicio</label><input id="servicio" autocomplete="username" required placeholder="Ej.: ENFERMERIA">
+<label for="clave">Contraseña</label><input id="clave" type="password" autocomplete="current-password" required>
+<div class="actions"><button id="loginButton" type="submit">Ingresar</button></div></form><p class="status" id="loginMsg" role="status"></p>
+</section>
+<section class="hide" id="work">
+<div class="row between"><div><h1>Registrar viandas</h1><p class="muted" id="identity"></p></div><button class="secondary" id="logout">Cerrar sesión</button></div>
+<section class="card"><h2>Seleccioná la guardia</h2><div class="inputs"><div><label for="guardia">Duración</label><select id="guardia"><option value="12">12 horas</option><option value="16">16 horas</option><option value="20">20 horas</option><option value="24">24 horas — almuerzo y cena</option></select></div><div><label for="turno">Comida</label><select id="turno"><option value="MAÑANA">Almuerzo</option><option value="NOCHE">Cena</option></select></div></div><p class="muted" id="guardiaNota"></p></section>
+<section class="card"><div class="row between"><h2>Personal habilitado</h2><span class="pill" id="selectionCount">0 seleccionados</span></div>
+<input type="search" id="buscar" placeholder="Buscar por nombre…" aria-label="Buscar personal">
+<div class="actions" id="bulk"><button class="secondary" id="all" type="button">Seleccionar todo</button><button class="secondary" id="none" type="button">Limpiar selección</button></div>
+<div id="people"></div><p id="workMsg" class="status" role="status"></p>
+<button id="register" type="button" disabled>Registrar viandas</button></section>
+</section>
+</main>
+<script>
+(function(){
+'use strict';
+const el=id=>document.getElementById(id);
+let auth=null,people=[],chosen=new Set(),busy=false;
+function msg(id,text,error){let node=el(id);node.textContent=text;node.className='status '+(error?'error':'ok')}
+function rpc(data){return new Promise((resolve,reject)=>{google.script.run.withSuccessHandler(v=>{if(v&&v.status==='error')reject(Error(v.message||'Error'));else resolve(v)}).withFailureHandler(err=>reject(Error(err&&err.message||'Fallo de conexión'))).v3UiCall(data)})}
+function lock(value){busy=value;el('register').disabled=value||!chosen.size;el('loginButton').disabled=value}
+function clear(){auth=null;people=[];chosen.clear();el('clave').value='';el('work').classList.add('hide');el('loginBox').classList.remove('hide')}
+function allowed(){return auth&&['WEB','SUPERVISOR','ADMIN'].includes(auth.rol)}
+function render(){
+ const q=el('buscar').value.toLocaleLowerCase('es').trim(),panel=el('people');panel.replaceChildren();
+ for(const p of people.filter(x=>x.nombre.toLocaleLowerCase('es').includes(q))){
+ const label=document.createElement('label');label.className='person';const input=document.createElement('input');input.type='checkbox';input.checked=chosen.has(p.id);input.disabled=busy;
+ input.addEventListener('change',()=>{if(auth.rol==='WEB')chosen.clear();if(input.checked)chosen.add(p.id);else chosen.delete(p.id);render()});
+ const span=document.createElement('span'),name=document.createElement('b'),detail=document.createElement('small');name.textContent=p.nombre;detail.textContent=p.servicio+' · Dieta: '+p.dieta;span.append(name,detail);label.append(input,span);panel.append(label);
+ }
+ if(!panel.childNodes.length){const empty=document.createElement('p');empty.className='muted';empty.textContent='No se encontraron trabajadores para esta búsqueda.';panel.append(empty)}
+ el('selectionCount').textContent=chosen.size+' seleccionados';el('bulk').classList.toggle('hide',auth&&auth.rol==='WEB');el('register').disabled=busy||!chosen.size;
+}
+el('loginForm').addEventListener('submit',async ev=>{
+ ev.preventDefault();if(busy)return;lock(true);msg('loginMsg','Verificando acceso...',false);
+ try{const data=await rpc({accion:'login',servicio:el('servicio').value,clave:el('clave').value});auth={token:data.token,rol:data.rol,servicio:data.servicio};el('clave').value='';
+ if(!allowed())throw Error('Esta cuenta no tiene permisos para registrar personal');
+ const r=await rpc({accion:'personal',token:auth.token});people=r.personas||[];chosen.clear();
+ el('identity').textContent=auth.servicio+' · Modalidad '+auth.rol;el('loginBox').classList.add('hide');el('work').classList.remove('hide');msg('loginMsg','',false);render()
+ }catch(e){clear();msg('loginMsg',e.message,true)}finally{lock(false)}
+});
+el('guardia').addEventListener('change',()=>{el('turno').disabled=el('guardia').value==='24';el('guardiaNota').textContent=el('guardia').value==='24'?'La guardia de 24 horas crea dos pedidos independientes: almuerzo y cena.':'Se registrará solamente la comida seleccionada.'});
+el('guardia').dispatchEvent(new Event('change'));
+el('buscar').addEventListener('input',render);
+el('all').addEventListener('click',()=>{if(!auth||auth.rol==='WEB')return;const q=el('buscar').value.toLocaleLowerCase('es').trim();people.filter(p=>p.nombre.toLocaleLowerCase('es').includes(q)).forEach(p=>chosen.add(p.id));render()});
+el('none').addEventListener('click',()=>{chosen.clear();render()});
+el('register').addEventListener('click',async()=>{
+ if(busy||!auth||!chosen.size)return;
+ const ids=[...chosen],guardia=el('guardia').value,turno=el('turno').value;
+ const detalle=guardia==='24'?'almuerzo Y cena':'la comida seleccionada';
+ if(!confirm('¿Registrar '+ids.length+' trabajador(es) para '+detalle+'?'))return;
+ lock(true);msg('workMsg','Registrando...',false);
+ try{const r=await rpc({accion:'registrar',token:auth.token,ids,guardia,turno});msg('workMsg','Pedidos creados: '+r.creados+' · Ya registrados: '+(r.duplicados||[]).length,false);chosen.clear();render()}
+ catch(e){msg('workMsg',e.message,true)}finally{lock(false)}
+});
+el('logout').addEventListener('click',async()=>{const token=auth&&auth.token;clear();if(token){try{await rpc({accion:'logout',token})}catch(e){}}});
+})();
+</script></body></html>
