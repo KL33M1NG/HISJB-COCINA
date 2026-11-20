@@ -14,26 +14,60 @@ function v3Salida_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function doPost(e) {
+/**
+ * Interfaz V3: HtmlService + google.script.run (mismo proyecto).
+ * No se transmiten claves en URLs ni se utiliza JSONP/CORS entre orígenes.
+ * Solo desplegar en el proyecto de PRUEBAS.
+ */
+function doGet(e) {
+  var page = e && e.parameter && e.parameter.page === 'cocina' ? 'cocina' : 'personal';
+  var template = HtmlService.createTemplateFromFile(
+    page === 'cocina' ? 'CocinaV3' : 'PersonalV3'
+  );
+  template.page = page;
+  return template.evaluate().setTitle('HISJB · Cocina V3 — PRUEBAS')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function v3UiCall(p) {
   try {
-    if (!e || !e.postData || !e.postData.contents) throw Error('Solicitud vacía');
-    var p = JSON.parse(e.postData.contents);
+    if (!p || typeof p !== 'object') throw Error('Solicitud no válida');
     var accion = String(p.accion || '');
-    if (accion === 'login') return v3Salida_(v3Login_(p));
+    if (accion === 'login') return v3Login_(p);
+    if (accion === 'logout') {
+      v3CerrarSesion_(p.token);
+      return {status:'success'};
+    }
     var sesion = v3Sesion_(p.token);
-    if (accion === 'personal') return v3Salida_(v3Personal_(sesion));
-    if (accion === 'registrar') return v3Salida_(v3Registrar_(sesion, p));
-    if (accion === 'listado') return v3Salida_(v3Listado_(sesion, p));
-    if (accion === 'entrega') return v3Salida_(v3Entrega_(sesion, p));
+    if (accion === 'personal') return v3Personal_(sesion);
+    if (accion === 'registrar') return v3Registrar_(sesion,p);
+    if (accion === 'listado') return v3Listado_(sesion,p);
+    if (accion === 'entrega') return v3Entrega_(sesion,p);
     throw Error('Acción no permitida');
   } catch (err) {
-    return v3Salida_({status:'error', message:String(err.message || err)});
+    // No devolver trazas ni detalles del servidor al navegador.
+    var m = String(err && err.message || '');
+    var conocidos = [
+      'Credenciales incorrectas','Sesión inválida','Sesión vencida: volver a ingresar',
+      'Acceso denegado','Permiso insuficiente','Selección inválida',
+      'WEB admite un registro por operación','Guardia no válida',
+      'Comida inválida','Trabajador no habilitado','Trabajador de otro servicio: acceso denegado',
+      'Sistema ocupado, reintentar','Sistema ocupado','Turno inválido',
+      'Solo Cocina puede validar o revertir','Estado incompatible','Pedido inexistente',
+      'Acción no permitida'
+    ];
+    return {status:'error',message:conocidos.indexOf(m)>=0?m:'No fue posible completar la operación'};
   }
 }
 
-// Solo para una prueba de conectividad; no admite cambios ni devuelve datos del personal.
-function doGet(e) {
-  return v3Salida_({status:'ok', entorno:'V3_PRUEBAS', conectado:true});
+function v3CerrarSesion_(token) {
+  v3Sesion_(token);
+  CacheService.getScriptCache().remove('v3:'+token);
+}
+
+/** API externa deshabilitada: usar exclusivamente la interfaz HtmlService de pruebas. */
+function doPost(e) {
+  return v3Salida_({status:'error',message:'Utilizar la interfaz web de pruebas'});
 }
 
 function v3Planilla_() {
@@ -62,7 +96,7 @@ function v3HojasIniciales() {
  * rol = WEB, SUPERVISOR, COCINA, NUTRICION o ADMIN.
  * WEB y SUPERVISOR deben usar el servicio exacto que aparece en Personal_V3.
  */
-function v3ProvisionarCuenta(servicio, rol, clave) {
+function v3ProvisionarCuenta_(servicio, rol, clave) {
   servicio = v3Norm_(servicio);
   rol = v3Norm_(rol);
   if (!['WEB','SUPERVISOR','COCINA','NUTRICION','ADMIN'].includes(rol)) throw Error('Rol incorrecto');
