@@ -102,3 +102,32 @@ function pruebasClaveUnicaV3_(claveEnfermeria, claveTrauma, claveCocina) {
   }
   Logger.log('RESULTADO: 4/4 pruebas de login sin servicio');
 }
+
+/**
+ * Regresión de carga manual y claves de duplicados (sin escritura).
+ * Puede ejecutarse desde Apps Script sin contraseñas.
+ */
+function pruebasManualSoloLecturaV3() {
+  var claveA=v3PedidoClave_('Pérez Juan','ENFERMERIA','MAÑANA');
+  var claveB=v3PedidoClave_('  PEREZ   JUAN  ','ENFERMERIA','MANANA');
+  if(claveA!==claveB) throw Error('Normalización de identidad manual incorrecta');
+  if(v3PedidoClave_('Pérez Juan','TRAUMATOLOGIA','MAÑANA')===claveA)
+    throw Error('La identidad de otro servicio no debe coincidir');
+  if(v3PedidoClave_('Pérez Juan','ENFERMERIA','NOCHE')===claveA)
+    throw Error('Las comidas distintas no deben coincidir');
+
+  var cocina={rol:'COCINA',servicio:'COCINA'};
+  var web={rol:'WEB',servicio:'TRAUMATOLOGIA'};
+  function debeRechazar(sesion) {
+    try {
+      v3RegistrarManual_(sesion,{nombre:'Pérez Juan',categoria:'SEGURIDAD',guardia:'12',turno:'MAÑANA'});
+      throw Error('FALLO: se autorizó una carga manual sin permisos');
+    } catch(e) {
+      if(String(e.message).indexOf('FALLO')===0) throw e;
+      if(String(e.message)!=='Permiso insuficiente') throw e;
+    }
+  }
+  debeRechazar(cocina);
+  debeRechazar(web);
+  Logger.log('OK: 5/5 pruebas de normalización y autorización manual (solo lectura)');
+}
