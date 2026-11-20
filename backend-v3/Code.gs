@@ -150,7 +150,7 @@ function v3Registrar_(sesion,p) {
       if (!r || !String(r[1]).trim() || v3Norm_(r[4])==='NO' || v3Norm_(r[4])==='FALSE') throw Error('Trabajador no habilitado');
       if (sesion.rol!=='ADMIN' && v3Norm_(r[2])!==sesion.servicio) throw Error('Trabajador de otro servicio: acceso denegado');
       turnos.forEach(function(t){
-        var key=id+'|'+t;
+        var key=id+'|'+v3Norm_(t);
         if (existentes.has(key)){repetidos.push({id:id,turno:t});return;}
         existentes.add(key);
         insertar.push([Utilities.getUuid(),hoy,t,id,String(r[1]),String(r[2]),guardia,String(r[3]||'GENERAL'),'PENDIENTE','',sesion.rol==='WEB'?'WEB':'SUPERVISOR',lote]);
@@ -166,7 +166,7 @@ function v3Listado_(sesion,p) {
   var turno=String(p.turno||'MAÑANA').toUpperCase();
   if (!['MAÑANA','NOCHE'].includes(turno)) throw Error('Turno inválido');
   var ss=v3Planilla_(),hoy=v3Hoy_(ss);
-  var rows=v3Rows_(ss.getSheetByName(V3.pedidos)).filter(function(r){return v3FechaClave_(r[1],ss.getSpreadsheetTimeZone())===hoy&&v3Norm_(r[2])===turno;});
+  var rows=v3Rows_(ss.getSheetByName(V3.pedidos)).filter(function(r){return v3FechaClave_(r[1],ss.getSpreadsheetTimeZone())===hoy&&v3Norm_(r[2])===v3Norm_(turno);});
   return {status:'success',pedidos:rows.map(function(r){return {id:r[0],nombre:r[4],servicio:r[5],guardia:r[6],dieta:r[7],estado:r[8],hora:r[9] ? String(r[9]) : ''};})};
 }
 function v3Entrega_(sesion,p) {
