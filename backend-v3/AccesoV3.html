@@ -30,7 +30,7 @@ button:disabled{opacity:.55;cursor:not-allowed}label{display:block;font-weight:6
 .metric b{display:block;font-size:24px}
 .order{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);padding:14px 4px}
 .order.done{background:#fff0f0}.order .pill{display:inline-block;margin-top:5px}
-.order.done .pill{background:#fadddd;color:#973535}.order>div{flex:1}
+.order.done .pill{background:#fadddd;color:#973535}.order>div{flex:1}.order.historical{opacity:.68;background:#fff6df}.warning{display:inline-block;margin:5px 0 0;background:#ffe4b7;color:#805107;padding:4px 8px;border-radius:8px;font-size:12px}.manualHint{color:var(--muted);font-size:13px}
 @media(max-width:600px){.card{padding:15px}.metrics{gap:4px}.metric{padding:9px}.actions button{flex:1}h1{font-size:22px}}
 </style></head>
 <body><header><strong>HISJB · Sistema de viandas V3</strong></header>
@@ -56,6 +56,15 @@ button:disabled{opacity:.55;cursor:not-allowed}label{display:block;font-weight:6
 <div class="actions" id="bulkActions"><button class="secondary" id="selectAll" type="button">Seleccionar todo</button><button class="secondary" id="selectNone" type="button">Limpiar selección</button></div>
 <div id="people"></div><p id="personalMsg" class="status" role="status"></p>
 <button id="submitPeople" disabled>Registrar selección</button></div>
+<div class="card hide" id="manualPanel"><h2>Carga manual sin DNI</h2>
+<p class="manualHint">Para policías, seguridad y residentes que no aparecen en la nómina. Solo supervisores. Cada solicitud queda asociada a tu servicio y se registra en la auditoría.</p>
+<form id="manualForm">
+<div class="grid"><div><label for="manualName">Apellido y nombre</label><input id="manualName" maxlength="100" placeholder="Ej.: Pérez Juan" required></div>
+<div><label for="manualCategory">Categoría</label><select id="manualCategory"><option value="POLICIA">Policía</option><option value="SEGURIDAD">Seguridad</option><option value="RESIDENTE">Residente</option></select></div>
+<div><label for="manualDiet">Dieta</label><select id="manualDiet"><option value="GENERAL">General</option><option value="HIPOSODICA">Hiposódica</option><option value="CELIACA">Celíaca</option><option value="VEGETARIANA">Vegetariana</option><option value="DIABETICA">Diabética</option></select></div></div>
+<p class="muted">Se utilizarán la guardia y la comida seleccionadas arriba. Para 24 horas se crearán almuerzo y cena.</p>
+<button type="submit" id="submitManual">Registrar persona sin DNI</button></form><p class="status" id="manualMsg" role="status"></p>
+</div>
 </section>
 <section id="managementPanel" class="hide">
 <div class="card"><h2>Pedidos del día</h2><div class="grid">
@@ -77,7 +86,7 @@ let session=null,roster=[],chosen=new Set(),orders=[],busy=false;
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('refresh').disabled=v}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v}
 function logoutLocal(){session=null;chosen.clear();roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
 function isPersonal(){return session&&['WEB','SUPERVISOR','ADMIN'].includes(session.rol)}
 function isManagement(){return session&&['COCINA','NUTRICION','ADMIN'].includes(session.rol)}
@@ -91,6 +100,7 @@ if(!isPersonal()&&!isManagement())throw Error('Cuenta sin acceso habilitado');
 if(isPersonal()&&(!isManagement()||session.rol==='SUPERVISOR'||session.rol==='WEB')){
 const response=await rpc({accion:'personal',token:session.token});
 roster=response.personas||[];chosen.clear();show('personalPanel',true);show('managementPanel',false);
+show('manualPanel',session.rol==='SUPERVISOR'||session.rol==='ADMIN');
 $('heading').textContent='Registro de viandas';$('who').textContent='Servicio: '+session.servicio+' · Modalidad: '+session.rol;
 renderPeople()
 }else{
@@ -122,6 +132,19 @@ const all=$('shift').value==='24';$('meal').disabled=all;
 $('shiftHint').textContent=all?'Guardia de 24 horas: se registran almuerzo y cena por separado.':'Se registra únicamente la comida seleccionada.'
 });
 $('shift').dispatchEvent(new Event('change'));
+$('manualForm').addEventListener('submit',async ev=>{
+ev.preventDefault();if(!session||busy||!['SUPERVISOR','ADMIN'].includes(session.rol))return;
+const nombre=$('manualName').value.trim(),categoria=$('manualCategory').value,dieta=$('manualDiet').value;
+const guardia=$('shift').value,turno=$('meal').value;
+if(!confirm('¿Registrar a '+nombre+' ('+categoria+') para '+(guardia==='24'?'almuerzo y cena':'la comida elegida')+'?'))return;
+loading(true);note('manualMsg','Registrando...',false);
+try{
+ const r=await rpc({accion:'registrarManual',token:session.token,nombre,categoria,dieta,guardia,turno,servicio:session.servicio});
+ note('manualMsg','Pedidos creados: '+r.creados+' · Duplicados evitados: '+(r.duplicados||[]).length,false);
+ if(r.creados>0)$('manualName').value='';
+}catch(e){note('manualMsg',e.message,true)}
+finally{loading(false)}
+});
 $('submitPeople').addEventListener('click',async()=>{
 if(!session||busy||!chosen.size)return;
 const ids=[...chosen],guardia=$('shift').value,turno=$('meal').value;
@@ -143,11 +166,20 @@ $('delivered').textContent=orders.filter(x=>x.estado==='ENTREGADO').length;list.
 const display=orders.filter(x=>(state==='TODOS'||x.estado===state)&&(x.nombre+' '+x.servicio).toLocaleLowerCase('es').includes(q))
 .sort((a,b)=>(a.estado==='ENTREGADO')-(b.estado==='ENTREGADO'));
 for(const order of display){
-const row=document.createElement('div');row.className='order'+(order.estado==='ENTREGADO'?' done':'');
+const row=document.createElement('div');row.className='order'+(order.estado==='ENTREGADO'?' done':'')+(order.duplicado?' historical':'');
 const wrap=document.createElement('div'),name=document.createElement('b'),detail=document.createElement('small'),pill=document.createElement('span');
 name.textContent=order.nombre;detail.textContent=order.servicio+' · Guardia '+order.guardia+' h · Dieta '+order.dieta;
-pill.className='pill';pill.textContent=order.estado;wrap.append(name,detail,pill);row.append(wrap);
-if(session&&['COCINA','ADMIN'].includes(session.rol)){
+pill.className='pill';pill.textContent=order.estado;wrap.append(name,detail,pill);
+if(order.grupoDuplicado){
+ const warn=document.createElement('div');warn.className='warning';
+ warn.textContent=order.duplicado?'Duplicado histórico · entrega bloqueada':'Existen registros repetidos para esta comida';
+ wrap.append(warn);
+}
+if(order.tipo&&order.tipo.indexOf('MANUAL:')===0){
+ const origen=document.createElement('small');origen.textContent='Carga manual · '+order.tipo.slice(7);wrap.append(origen);
+}
+row.append(wrap);
+if(session&&['COCINA','ADMIN'].includes(session.rol)&&!order.duplicado){
 const btn=document.createElement('button');btn.className=order.estado==='ENTREGADO'?'secondary':'';
 const revertir=order.estado==='ENTREGADO';btn.textContent=revertir?'Revertir':'Entregar';btn.disabled=busy;
 btn.addEventListener('click',async()=>{
@@ -159,7 +191,7 @@ catch(e){note('managementMsg',e.message,true);loading(false);renderOrders()}
 list.append(row)
 }
 if(!display.length){const p=document.createElement('p');p.className='muted';p.textContent='No hay pedidos para el filtro seleccionado.';list.append(p)}
-$('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: consulta habilitada, entrega deshabilitada.':'Pendientes arriba; entregados abajo en rojo, con opción de revertir.';
+$('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: consulta habilitada, entrega deshabilitada.':'Pendientes arriba; entregados abajo. Los duplicados históricos se señalan y no admiten una segunda entrega.';
 }
 $('filterMeal').addEventListener('change',loadOrders);
 $('filterState').addEventListener('change',renderOrders);
