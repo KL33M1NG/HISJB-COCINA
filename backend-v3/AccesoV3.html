@@ -106,7 +106,7 @@ $('exit').addEventListener('click',async()=>{let token=session&&session.token;lo
 function renderPeople(){
 const q=$('searchPerson').value.trim().toLocaleLowerCase('es'),list=$('people');list.replaceChildren();
 for(const p of roster.filter(x=>x.nombre.toLocaleLowerCase('es').includes(q))){
-const row=document.createElement('label');row.className='person',c=document.createElement('input');c.type='checkbox';c.checked=chosen.has(p.id);c.disabled=busy;
+const row=document.createElement('label');row.className='person';const c=document.createElement('input');c.type='checkbox';c.checked=chosen.has(p.id);c.disabled=busy;
 c.addEventListener('change',()=>{if(session.rol==='WEB')chosen.clear();if(c.checked)chosen.add(p.id);else chosen.delete(p.id);renderPeople()});
 const span=document.createElement('span'),name=document.createElement('b'),sub=document.createElement('small');
 name.textContent=p.nombre;sub.textContent='Dieta: '+p.dieta;span.append(name,sub);row.append(c,span);list.append(row)
