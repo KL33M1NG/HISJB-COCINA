@@ -192,7 +192,7 @@ function v3Hoy_(ss) {return Utilities.formatDate(new Date(),ss.getSpreadsheetTim
  * de largo plazo: personas homónimas requieren revisión manual.
  */
 function v3NombreClave_(v) {
-  return v3Norm_(v).replace(/\\s+/g,' ').trim();
+  return v3Norm_(v).replace(/\s+/g,' ').trim();
 }
 function v3PedidoClave_(nombre,servicio,turno) {
   return v3Norm_(servicio)+'|'+v3NombreClave_(nombre)+'|'+v3Norm_(turno);
@@ -251,8 +251,8 @@ function v3Registrar_(sesion,p) {
  */
 function v3RegistrarManual_(sesion,p) {
   if(!['SUPERVISOR','ADMIN'].includes(sesion.rol)) throw Error('Permiso insuficiente');
-  var nombre=String(p.nombre||'').trim().replace(/\\s+/g,' ');
-  if(nombre.length<5 || nombre.length>100 || !/^[\\p{L}\\p{M} .'-]+$/u.test(nombre) || nombre.split(' ').length<2) throw Error('Nombre inválido');
+  var nombre=String(p.nombre||'').trim().replace(/\s+/g,' ');
+  if(nombre.length<5 || nombre.length>100 || !/^[\p{L}\p{M} .'-]+$/u.test(nombre) || nombre.split(' ').length<2) throw Error('Nombre inválido');
   var categoria=v3Norm_(p.categoria);
   if(!['POLICIA','SEGURIDAD','RESIDENTE'].includes(categoria)) throw Error('Categoría inválida');
   var dieta=v3Norm_(p.dieta||'GENERAL');
