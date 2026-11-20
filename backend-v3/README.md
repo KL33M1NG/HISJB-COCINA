@@ -3,8 +3,9 @@
 > **NO instalar sobre el Apps Script de producción**. Este código es una base experimental. Su integración con GitHub Pages y su seguridad todavía requieren revisión antes de usar personal real.
 
 ## Estado de la integración
+- **Integración HtmlService de pruebas disponible**: `PersonalV3.html` y `CocinaV3.html` usan `google.script.run` con las operaciones autorizadas de `Code.gs`. **Todavía no fue probado por el usuario en navegador ni habilitado para producción**. Guía: [INTEGRACION-HTMLSERVICE.md](./INTEGRACION-HTMLSERVICE.md).
 - Implementados en `Code.gs`: login por servicio, roles WEB/SUPERVISOR/COCINA/NUTRICION/ADMIN, consulta de nómina **del propio servicio**, registro de una o varias personas, dos pedidos (MAÑANA/NOCHE) para guardias de 24 h, detección de repetidos en el servidor bajo `LockService`, entrega y reversión con auditoría.
-- **Pendiente:** conectar el HTML a este backend, probar autenticación y transportes entre GitHub Pages y Apps Script, pruebas de permisos y concurrencia, migración de nómina (con controles de calidad) y puesta en producción.
+- **Pendiente:** prueba de la interfaz en navegador, pruebas de concurrencia, controles antiabuso, edición de menú con permisos de Nutrición, migración de nómina y puesta en producción. El HTML de GitHub Pages sigue siendo demostrativo.
 - El HTML dentro de `versiones/v3/` sigue siendo **solo demostración local**: no tiene clave de acceso y **no utiliza este archivo**.
 - El código NO contiene datos de trabajadores ni contraseñas.
 
@@ -13,13 +14,13 @@
 2. Crear un **proyecto nuevo de Apps Script** vinculado a esa hoja de pruebas; no reemplazar el Apps Script vigente.
 3. Copiar `Code.gs` en el proyecto nuevo.
 4. Desde *Configuración del proyecto → Propiedades de la secuencia de comandos*, agregar `HISJB_V3_TEST_SHEET_ID` con el ID de **la hoja nueva**.
-5. Ejecutar desde el editor `v3HojasIniciales()` una sola vez para crear las pestañas `Personal_V3`, `Pedidos_V3` y `Auditoria_V3`.
+5. Ejecutar desde una función auxiliar del editor que llame a `v3HojasIniciales_()` una sola vez para crear las pestañas `Personal_V3`, `Pedidos_V3` y `Auditoria_V3`.
 6. Completar `Personal_V3` con **datos ficticios**, encabezados exactos: `ID_PERSONAL`, `NOMBRE`, `SERVICIO`, `DIETA`, `ACTIVO`. Usar IDs únicos, `SI` en ACTIVO y un servicio que coincida con el acceso creado.
-7. Crear cuentas **solo dentro del proyecto privado**, invocando `v3ProvisionarCuenta('ENFERMERIA', 'SUPERVISOR', claveLargaDePrueba)` desde una función temporal privada; eliminar esa función temporal tras ejecutarla. Nunca subir contraseñas a GitHub. Configurar también cuentas diferentes para Cocina y otros servicios.
+7. Crear cuentas **solo dentro del proyecto privado**, invocando `v3ProvisionarCuenta_('ENFERMERIA', 'SUPERVISOR', claveLargaDePrueba)` desde una función auxiliar temporal en el editor privado; eliminar esa función temporal tras ejecutarla. Nunca subir contraseñas a GitHub. Configurar también cuentas diferentes para Cocina y otros servicios.
 8. Configurar el acceso web en entorno de prueba y estudiar cómo exponer el frontend con autenticación sin poner tokens en URL ni permitir consultas públicas de nómina. **No cambiar la URL de producción**.
 
 ## Importante: GitHub Pages + Apps Script
-GitHub Pages es un sitio estático: no protege endpoints ni puede guardar claves privadas. El script debe validar **cada** operación, sin confiar en `servicio` o `tipo` recibidos del navegador. Las llamadas `fetch` desde GitHub Pages hacia Apps Script pueden presentar limitaciones CORS/redirección; este backend usa JSON POST y no debe darse por conectado hasta elegir y probar el mecanismo de comunicación. Evitar usar JSONP o parámetros GET para contraseñas/tokens. Una alternativa a evaluar es servir la interfaz operativa desde `HtmlService` del propio Apps Script y dejar GitHub Pages como portal/selector visual, o usar un backend HTTPS con CORS y sesiones adecuados.
+GitHub Pages es un sitio estático: no protege endpoints ni puede guardar claves privadas. El script debe validar **cada** operación, sin confiar en `servicio` o `tipo` recibidos del navegador. Las llamadas `fetch` desde GitHub Pages hacia Apps Script pueden presentar limitaciones CORS/redirección. Para el entorno de pruebas se adoptó HtmlService con `google.script.run`, y se deshabilitó el POST JSON anterior. Evitar usar JSONP o parámetros GET para contraseñas/tokens. La interfaz operativa de pruebas se sirve desde `HtmlService` del propio Apps Script; GitHub Pages queda como portal/selector visual y demo.
 
 ## Reglas de negocio
 - `WEB`: registra una persona por solicitud, solo de su servicio.
