@@ -30,7 +30,7 @@ function ejecutarPruebasPermisos() {
 ```
 
 3. Ejecutar `ejecutarPruebasPermisos` una sola vez.
-4. Resultado esperado: **11/11 OK**. No debe añadirse ninguna fila a `Pedidos_V3`. Puede observarse también la pestaña `Auditoria_V3` para asegurarse de que no se registraron operaciones de entrega.
+4. Resultado esperado: **12/12 OK**. No debe añadirse ninguna fila a `Pedidos_V3`. Puede observarse también la pestaña `Auditoria_V3` para asegurarse de que no se registraron operaciones de entrega.
 5. Eliminar la función temporal con contraseñas al terminar. No publicar contraseñas ni tokens en GitHub ni en el chat.
 
 **Límite de la prueba:** verifica permisos de funciones internas, no autentica todavía solicitudes de navegadores. Antes de producción se requieren pruebas de autenticación remota, sesiones, revocación, permisos de menú y comunicación entre GitHub Pages y Apps Script.
