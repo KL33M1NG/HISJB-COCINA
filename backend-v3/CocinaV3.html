@@ -26,7 +26,7 @@ function clear(){auth=null;orders=[];el('clave').value='';el('panel').classList.
 async function load(){if(!auth)return;busy=true;updateButtons();msg('workMsg','Cargando pedidos...',false);
 try{const r=await rpc({accion:'listado',token:auth.token,turno:el('turno').value});orders=r.pedidos||[];render();msg('workMsg','Datos actualizados.',false)}
 catch(e){msg('workMsg',e.message,true);if(e.message.includes('Sesión'))clear()}
-finally{busy=false;updateButtons()}}
+finally{busy=false;updateButtons();if(auth)render()}}
 function render(){
 const q=el('buscar').value.trim().toLocaleLowerCase('es');
 el('total').textContent=orders.length;el('pending').textContent=orders.filter(p=>p.estado==='PENDIENTE').length;el('done').textContent=orders.filter(p=>p.estado==='ENTREGADO').length;
