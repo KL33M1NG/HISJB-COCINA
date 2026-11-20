@@ -116,6 +116,18 @@ function v3Personal_(sesion) {
     return v3Norm_(r[4]) !== 'NO' && v3Norm_(r[4]) !== 'FALSE' && (sesion.rol==='ADMIN' || v3Norm_(r[2])===sesion.servicio);
   }).map(function(r){return {id:String(r[0]),nombre:String(r[1]),servicio:String(r[2]),dieta:String(r[3]||'GENERAL')};})};
 }
+function v3FechaClave_(valor, zonaHoraria) {
+  // Sheets puede entregar una celda de fecha como Date aunque se haya escrito "yyyy-MM-dd".
+  // Evitar String(Date), ya que devuelve "Fri Nov..." y rompe la deduplicación.
+  if (valor instanceof Date && !isNaN(valor.getTime())) {
+    return Utilities.formatDate(valor, zonaHoraria, 'yyyy-MM-dd');
+  }
+  var s = String(valor == null ? '' : valor).trim();
+  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) return s;
+  var es = /^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/.exec(s);
+  if (es) return es[3] + '-' + es[2] + '-' + es[1];
+  throw Error('Fecha inválida en Pedidos_V3: ' + s);
+}
 function v3Hoy_(ss) {return Utilities.formatDate(new Date(),ss.getSpreadsheetTimeZone(),'yyyy-MM-dd');}
 
 function v3Registrar_(sesion,p) {
@@ -132,7 +144,7 @@ function v3Registrar_(sesion,p) {
     var ss=v3Planilla_(), personal=ss.getSheetByName(V3.personal), pedidos=ss.getSheetByName(V3.pedidos);
     var roster = new Map(v3Rows_(personal).map(function(r){return [String(r[0]),r];}));
     var existentes = new Set(),hoy=v3Hoy_(ss);
-    v3Rows_(pedidos).forEach(function(r){if(String(r[1])===hoy && v3Norm_(r[8])!=='ANULADO') existentes.add(String(r[3])+'|'+String(r[2]));});
+    v3Rows_(pedidos).forEach(function(r){if(v3FechaClave_(r[1], ss.getSpreadsheetTimeZone())===hoy && v3Norm_(r[8])!=='ANULADO') existentes.add(String(r[3]).trim()+'|'+v3Norm_(r[2]));});
     var ids=[...new Set(p.ids.map(String))],insertar=[],repetidos=[],turnos=guardia==='24'?['MAÑANA','NOCHE']:[turno],lote=Utilities.getUuid();
     ids.forEach(function(id){
       var r=roster.get(id);
@@ -155,7 +167,7 @@ function v3Listado_(sesion,p) {
   var turno=String(p.turno||'MAÑANA').toUpperCase();
   if (!['MAÑANA','NOCHE'].includes(turno)) throw Error('Turno inválido');
   var ss=v3Planilla_(),hoy=v3Hoy_(ss);
-  var rows=v3Rows_(ss.getSheetByName(V3.pedidos)).filter(function(r){return String(r[1])===hoy&&String(r[2])===turno;});
+  var rows=v3Rows_(ss.getSheetByName(V3.pedidos)).filter(function(r){return v3FechaClave_(r[1],ss.getSpreadsheetTimeZone())===hoy&&v3Norm_(r[2])===turno;});
   return {status:'success',pedidos:rows.map(function(r){return {id:r[0],nombre:r[4],servicio:r[5],guardia:r[6],dieta:r[7],estado:r[8],hora:r[9] ? String(r[9]) : ''};})};
 }
 function v3Entrega_(sesion,p) {
