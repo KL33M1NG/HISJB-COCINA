@@ -76,3 +76,29 @@ function pruebasPermisosV3_(enfermeria, trauma, cocina) {
   }
   return resultados;
 }
+/**
+ * Probar acceso SOLO POR CONTRASEÑA, sin escribir datos.
+ * Recibe las claves desde una función temporal PRIVADA, nunca desde GitHub.
+ */
+function pruebasClaveUnicaV3_(claveEnfermeria, claveTrauma, claveCocina) {
+  var casos = [
+    {clave:claveEnfermeria, servicio:'ENFERMERIA',rol:'SUPERVISOR'},
+    {clave:claveTrauma, servicio:'TRAUMATOLOGIA',rol:'WEB'},
+    {clave:claveCocina, servicio:'COCINA',rol:'COCINA'}
+  ];
+  casos.forEach(function(c) {
+    var login = v3Login_({clave:c.clave});
+    if (login.servicio !== c.servicio || login.rol !== c.rol) {
+      throw Error('El acceso por contraseña no identificó correctamente ' + c.servicio);
+    }
+    Logger.log('OK: clave única identificó ' + login.servicio + ' (' + login.rol + ')');
+    v3CerrarSesion_(login.token);
+  });
+  try {
+    v3Login_({clave:'CLAVE_INCORRECTA_V3_000000000000'});
+    throw Error('FALLO: aceptó una contraseña incorrecta');
+  } catch(e) {
+    if (String(e.message).indexOf('FALLO') === 0) throw e;
+  }
+  Logger.log('RESULTADO: 4/4 pruebas de login sin servicio');
+}
