@@ -150,3 +150,22 @@ function v3ValidacionIntegralV3_(){
  Logger.log('V3 PRUEBAS: respaldo privado y copia aislada de restauración verificados (inventario).');
  return {status:r.status,verificado:r.verificado,simulacroVerificado:r.simulacroVerificado};
 }
+
+/** Punto visible en el editor; bloqueado salvo autorización privada de un solo uso. */
+function v3EjecutarMantenimientoV3(){
+ v3ExigirProyectoRespaldoV3_();
+ var prop='HISJB_V3_EJECUCION_MANUAL',props=PropertiesService.getScriptProperties();
+ var lock=LockService.getScriptLock();
+ if(!lock.tryLock(30000))throw Error('Sistema ocupado');
+ var modo;
+ try{
+  modo=props.getProperty(prop);
+  if(modo!=='VALIDAR'&&modo!=='PROGRAMAR')throw Error('Mantenimiento no autorizado desde la configuración privada del proyecto');
+  // Consumir antes de iniciar: no se puede repetir desde otra ejecución.
+  props.deleteProperty(prop);
+ }finally{lock.releaseLock();}
+ if(modo==='VALIDAR')return v3ValidacionIntegralV3_();
+ var resultado=v3InstalarRespaldoDiarioV3_();
+ Logger.log(resultado);
+ return resultado;
+}
