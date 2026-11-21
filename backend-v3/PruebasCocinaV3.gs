@@ -1,0 +1,40 @@
+/**
+ * HISJB Cocina V3 — Regresión sin escritura / sin contraseñas.
+ * Ejecutar pruebasCocinaSoloLecturaV3 desde Apps Script DE PRUEBAS.
+ */
+function pruebasCocinaSoloLecturaV3() {
+  var passed=0;
+  function ok(nombre,condicion){if(!condicion)throw Error('FALLO: '+nombre);passed++;Logger.log('OK: '+nombre);}
+  function denegar(nombre,fn,fragmento) {
+    var denied=false;
+    try{fn();}catch(e){denied=String(e.message).indexOf(fragmento)>=0}
+    ok(nombre,denied);
+  }
+  var supervisor={rol:'SUPERVISOR',servicio:'ENFERMERIA'},cocina={rol:'COCINA',servicio:'COCINA'};
+  denegar('Supervisor no puede cerrar turno',function(){
+    v3CerrarTurno_(supervisor,{turno:'MAÑANA'});
+  },'Solo Cocina puede cerrar turnos');
+  denegar('Supervisor no puede entregar por lote',function(){
+    v3EntregaLote_(supervisor,{ids:['TEST']});
+  },'Solo Cocina puede validar o revertir');
+  denegar('Nutrición no puede cerrar turno',function(){
+    v3CerrarTurno_({rol:'NUTRICION',servicio:'NUTRICION'},{turno:'MAÑANA'});
+  },'Solo Cocina puede cerrar turnos');
+  denegar('Validación rechaza un turno inválido',function(){
+    v3TurnoCanonico_('INEXISTENTE');
+  },'Turno inválido');
+  var f=[
+    ['id1','2026-11-21','MAÑANA','A','Persona Uno','ENFERMERIA','12','GENERAL','ENTREGADO'],
+    ['id2','2026-11-21','MAÑANA','A','Persona Uno','ENFERMERIA','12','GENERAL','PENDIENTE'],
+    ['id3','2026-11-21','MAÑANA','B','Persona Dos','SEGURIDAD','12','CELIACA','PENDIENTE'],
+    ['id4','2026-11-21','NOCHE','B','Persona Dos','SEGURIDAD','12','CELIACA','PENDIENTE']
+  ];
+  var resumen=v3EstadisticasTurno_(f,'MAÑANA');
+  ok('Almuerzo deduplica filas históricas',resumen.total===2&&resumen.duplicadosHistoricos===1);
+  ok('Resumen conserva prioridad a entregado',resumen.entregados===1&&resumen.pendientes===1);
+  ok('Dietas por pedido único',resumen.dietas.GENERAL.entregados===1&&resumen.dietas.CELIACA.pendientes===1);
+  ok('Cenas no se mezclan con almuerzos',v3EstadisticasTurno_(f,'NOCHE').total===1);
+  var estado=v3EstadoTurno_(cocina,{turno:'MAÑANA'});
+  ok('Consulta de estado protegida funciona',estado.status==='success'&&estado.resumen.total>=0);
+  Logger.log('RESULTADO: '+passed+'/9 pruebas Cocina V3 (sin escritura)');
+}
