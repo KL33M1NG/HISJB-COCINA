@@ -51,6 +51,8 @@ function v3UiCall(p) {
     if (accion === 'importarNomina') return v3ImportarNomina_(sesion,p);
     if (accion === 'entregaLote') return v3EntregaLote_(sesion,p);
     if (accion === 'cerrarTurno') return v3CerrarTurno_(sesion,p);
+    if (accion === 'diagnosticarCierre') return v3DiagnosticarCierre_(sesion,p);
+    if (accion === 'reconciliarCierre') return v3ReconciliarCierre_(sesion,p);
     if (accion === 'guardarMenu') return v3GuardarMenu_(sesion,p);
     if (accion === 'guardarAviso') return v3GuardarAviso_(sesion,p);
     throw Error('Acción no permitida');
@@ -66,6 +68,8 @@ function v3UiCall(p) {
       'Solo Cocina puede validar o revertir','Estado incompatible','Pedido inexistente',
       'El turno ya está cerrado','Solo Cocina puede cerrar turnos',
       'Confirmación de cierre incorrecta','El turno cambió: actualizá el resumen antes de cerrar',
+      'Solo Administración puede revisar cierres','Solo Administración puede reparar cierres',
+      'No existe un cierre para este turno','Las cifras del cierre no coinciden: revisión manual obligatoria',
       'La selección incluye pedidos repetidos','Solo se pueden entregar pedidos de hoy',
       'Rango de fechas inválido','Rango máximo: 91 días',
       'Solo Administración puede importar personal','La importación admite de 1 a 150 personas',
