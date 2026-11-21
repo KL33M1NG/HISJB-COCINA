@@ -47,6 +47,7 @@ function v3UiCall(p) {
     if (accion === 'menus') return v3MenusHoy_(sesion);
     if (accion === 'resumenCocina') return v3ResumenCocina_(sesion);
     if (accion === 'estadoTurno') return v3EstadoTurno_(sesion,p);
+    if (accion === 'historialCierres') return v3HistorialCierres_(sesion,p);
     if (accion === 'entregaLote') return v3EntregaLote_(sesion,p);
     if (accion === 'cerrarTurno') return v3CerrarTurno_(sesion,p);
     if (accion === 'guardarMenu') return v3GuardarMenu_(sesion,p);
@@ -65,6 +66,7 @@ function v3UiCall(p) {
       'El turno ya está cerrado','Solo Cocina puede cerrar turnos',
       'Confirmación de cierre incorrecta','El turno cambió: actualizá el resumen antes de cerrar',
       'La selección incluye pedidos repetidos','Solo se pueden entregar pedidos de hoy',
+      'Rango de fechas inválido','Rango máximo: 91 días',
       'Acción no permitida','Nombre inválido','Categoría inválida',
       'La persona ya está en la nómina; seleccionála desde el listado',
       'Dieta inválida','Servicio inválido','Turno inválido','Plato principal obligatorio',
