@@ -40,7 +40,17 @@ button:disabled{opacity:.55;cursor:not-allowed}label{display:block;font-weight:6
 #deliveryActions{margin-top:8px}
 @media(max-width:620px){.fast-deliver{min-width:95px}.fast-batch button{flex:1}}
 .close-warning{background:#fff5dc;border:1px solid #ecc77a;padding:13px;border-radius:10px;color:#765008}
-.close-button{background:#cf303e} .multi{background:#0c7e5a}.order input[type=checkbox]{width:20px;height:20px;accent-color:#0864b2}.order.closed{background:#f5edf0}.summary-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.summary-list>div{background:#f0f5fa;padding:12px;border-radius:9px;text-align:center}.summary-list b{display:block;font-size:21px}
+.close-button{background:#cf303e} .multi{background:#0c7e5a}.order input[type=checkbox]{width:20px;height:20px;accent-color:#0864b2}.order.closed{background:#f5edf0}.summary-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+.history-line{border:1px solid var(--line);padding:14px;border-radius:12px;margin:12px 0;background:#fcfdff}
+.history-line summary{cursor:pointer;font-weight:650;color:#135aa0}
+.history-dates{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.history-dates>div{flex:1;min-width:145px}.history-dates input{width:100%}
+.history-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px;margin:14px 0}
+.history-stats>div{background:#eef4fc;border-radius:10px;padding:12px;text-align:center}
+.history-stats b{display:block;font-size:23px;color:#145b9b}
+.history-breakdown{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-top:15px}
+.history-breakdown h4{margin:0 0 9px}
+.history-breakdown p{font-size:13px;margin:6px 0;border-bottom:1px solid var(--line);padding-bottom:5px}.summary-list>div{background:#f0f5fa;padding:12px;border-radius:9px;text-align:center}.summary-list b{display:block;font-size:21px}
 .alerta-publica{margin-top:18px;padding:15px 18px;background:#fff3cd;color:#785119;border:1px solid #ffdd85;border-radius:11px;white-space:pre-wrap;overflow-wrap:anywhere}
 .menu-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:13px 0}
 .menu-card{border:1px solid #d9e6f1;border-radius:13px;padding:17px;background:#f9fbfe;min-width:0}
@@ -119,6 +129,15 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 <p class="close-warning">⚠️ El cierre marca los pedidos pendientes como <b>NO ENTREGADOS</b> y bloquea nuevas inscripciones, entregas y reversiones del turno seleccionado. No afecta la otra comida. Esta operación no se puede revertir desde el panel.</p>
 <div class="summary-list" id="closeSummary"></div><div class="grid"><div><h3>Por servicio</h3><div id="closeServices" class="muted"></div></div><div><h3>Por dieta</h3><div id="closeDiets" class="muted"></div></div></div><div class="actions"><button class="secondary" id="previewClose">Actualizar vista previa</button><button class="close-button" id="closeTurn">Cerrar turno seleccionado</button></div>
 <p class="status" id="closeMsg" role="status"></p></div>
+<div class="card" id="historyPanel">
+<div class="row between"><h2>📅 Historial de cierres y estadísticas</h2><span class="pill">Cocina · Nutrición</span></div>
+<p class="muted">Consultá los cierres de días anteriores sin abrir Google Sheets. Los informes están disponibles después de cerrar cada turno.</p>
+<div class="history-dates"><div><label for="historyFrom">Desde</label><input type="date" id="historyFrom"></div>
+<div><label for="historyTo">Hasta</label><input type="date" id="historyTo"></div>
+<button type="button" id="searchHistory" class="secondary">🔎 Consultar historial</button></div>
+<div class="history-stats" id="historyStats"></div>
+<div id="historyEntries"></div><p id="historyMsg" class="status" role="status"></p>
+</div>
 <div class="card hide" id="nutritionEditor"><h2>📝 Nutrición · Publicar o modificar menú</h2>
 <p class="muted">Los menús se pueden modificar en cualquier momento por una emergencia. Cada actualización crea una nueva versión para hoy y queda auditada.</p>
 <form id="menuForm"><div class="grid">
@@ -156,7 +175,7 @@ const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','previewClose'].forEach(id=>$(id).disabled=v)}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','previewClose','searchHistory'].forEach(id=>$(id).disabled=v)}
 function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
 
 async function loadDailyAlert(){
@@ -270,8 +289,9 @@ renderPeople()
 show('personalPanel',false);show('managementPanel',true);
 show('nutritionEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
 await refreshMenus();
+historyDefaults();
 $('heading').textContent='Cocina y Nutrición';$('who').textContent='Sector: '+session.servicio+' · Rol: '+session.rol;
-await loadOrders()
+await loadOrders();await loadHistory()
 }
 show('access',false);show('workspace',true);note('accessMsg','',false)
 }catch(err){logoutLocal();note('accessMsg',err.message,true)}
@@ -389,6 +409,67 @@ if(!display.length){const p=document.createElement('p');p.className='muted';p.te
 $('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: consulta habilitada, entrega deshabilitada.':'Seleccionar todos toma solo los pendientes del servicio y la búsqueda actuales. Los entregados van abajo, con opción de revertir.';
 }
 
+
+function historyDateToday(){
+ const d=new Date(),parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Argentina/Buenos_Aires',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);
+ const part=key=>parts.find(x=>x.type===key).value;
+ return part('year')+'-'+part('month')+'-'+part('day');
+}
+function historyDefaults(){
+ const to=historyDateToday(),d=new Date(to+'T00:00:00Z');
+ d.setUTCDate(d.getUTCDate()-29);
+ $('historyTo').value=to;$('historyFrom').value=d.toISOString().slice(0,10);
+}
+function historyStat(label,value){
+ const div=document.createElement('div'),b=document.createElement('b');
+ b.textContent=String(value);div.append(b,document.createTextNode(label));return div;
+}
+function historyDetails(title,data){
+ const section=document.createElement('div'),h=document.createElement('h4');
+ h.textContent=title;section.append(h);
+ const keys=Object.keys(data||{}).sort((a,b)=>a.localeCompare(b,'es'));
+ if(!keys.length){const p=document.createElement('p');p.textContent='Sin datos registrados';section.append(p);}
+ keys.forEach(k=>{
+  const x=data[k],p=document.createElement('p');
+  p.textContent=k+' · '+(Number(x.total)||0)+' pedidos · '+(Number(x.entregados)||0)+
+    ' entregados · '+(Number(x.noEntregados)||0)+' no entregados';
+  section.append(p)
+ });return section;
+}
+function renderHistory(data){
+ const stats=$('historyStats'),list=$('historyEntries');stats.replaceChildren();list.replaceChildren();
+ const total=data.resumen||{};
+ [['Turnos cerrados',total.turnosCerrados||0],['Viandas',total.total||0],
+ ['Almuerzos',total.almuerzos||0],['Cenas',total.cenas||0],
+ ['Entregados',total.entregados||0],['No entregados',total.noEntregados||0],
+ ['Duplicados excluidos',total.duplicados||0]].forEach(([label,value])=>stats.append(historyStat(label,value)));
+ const records=data.registros||[];
+ if(!records.length){const p=document.createElement('p');p.className='muted';p.textContent='No hay turnos cerrados dentro del período seleccionado.';list.append(p);return;}
+ records.forEach(r=>{
+  const item=document.createElement('details');item.className='history-line';
+  const summary=document.createElement('summary');
+  summary.textContent=r.fecha+' · '+(r.turno==='MAÑANA'?'🍽️ Almuerzo':'🌙 Cena')+
+    ' · '+r.total+' pedidos · '+r.entregados+' entregados · '+r.noEntregados+' no entregados';
+  item.append(summary);
+  const meta=document.createElement('p');meta.className='muted';
+  meta.textContent='Cierre: '+r.fechaCierre+' · Sector responsable: '+r.responsable+
+    ' · Duplicados históricos excluidos: '+r.duplicados;item.append(meta);
+  const breakdown=document.createElement('div');breakdown.className='history-breakdown';
+  breakdown.append(historyDetails('Por servicio',r.servicios),historyDetails('Por dieta',r.dietas));
+  item.append(breakdown);list.append(item)
+ });
+}
+async function loadHistory(){
+ if(!session||!isManagement()||busy)return;
+ loading(true);note('historyMsg','Consultando cierres...',false);
+ try{
+  const r=await rpc({accion:'historialCierres',token:session.token,desde:$('historyFrom').value,hasta:$('historyTo').value});
+  renderHistory(r);note('historyMsg',r.registros.length+' turno(s) cerrado(s) en el período.',false);
+ }catch(e){note('historyMsg',e.message,true)}
+ finally{loading(false)}
+}
+$('searchHistory').addEventListener('click',loadHistory);
+
 function canManage(){return session&&['COCINA','ADMIN'].includes(session.rol)}
 function pendingVisible(){
  const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),sector=$('serviceFilter').value,estado=$('filterState').value;
@@ -452,7 +533,7 @@ $('closeTurn').addEventListener('click',async()=>{
   const r=await rpc({accion:'cerrarTurno',token:session.token,turno,
    confirmacion:entered,totalEsperado:turnoEstado.resumen.total,
    pendientesEsperados:turnoEstado.resumen.pendientes});
-  await loadOrders();
+  await loadOrders();await loadHistory();
   note('closeMsg','Turno cerrado. Entregados: '+r.resumen.entregados+
     ' · No entregados: '+r.resumen.noEntregados,false);
  }catch(e){note('closeMsg',e.message,true)}
