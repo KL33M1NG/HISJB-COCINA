@@ -31,6 +31,8 @@ button:disabled{opacity:.55;cursor:not-allowed}label{display:block;font-weight:6
 .order{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);padding:14px 4px}
 .order.done{background:#fff0f0}.order .pill{display:inline-block;margin-top:5px}
 .order.done .pill{background:#fadddd;color:#973535}.order>div{flex:1}
+.close-warning{background:#fff5dc;border:1px solid #ecc77a;padding:13px;border-radius:10px;color:#765008}
+.close-button{background:#cf303e} .multi{background:#0c7e5a}.order input[type=checkbox]{width:20px;height:20px;accent-color:#0864b2}.order.closed{background:#f5edf0}.summary-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.summary-list>div{background:#f0f5fa;padding:12px;border-radius:9px;text-align:center}.summary-list b{display:block;font-size:21px}
 .alerta-publica{margin-top:18px;padding:15px 18px;background:#fff3cd;color:#785119;border:1px solid #ffdd85;border-radius:11px;white-space:pre-wrap;overflow-wrap:anywhere}
 .menu-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:13px 0}
 .menu-card{border:1px solid #d9e6f1;border-radius:13px;padding:17px;background:#f9fbfe;min-width:0}
@@ -92,12 +94,22 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 <div class="card"><h2>🍽️ Menús publicados</h2><div id="kitchenMenus" class="menu-cards"></div></div>
 <div class="card"><h2>Pedidos del día</h2><div class="grid">
 <div><label for="filterMeal">Comida</label><select id="filterMeal"><option value="MAÑANA">Almuerzo</option><option value="NOCHE">Cena</option></select></div>
-<div><label for="filterState">Estado</label><select id="filterState"><option value="TODOS">Todos</option><option value="PENDIENTE">Pendientes</option><option value="ENTREGADO">Entregados</option></select></div>
+<div><label for="filterState">Estado</label><select id="filterState"><option value="TODOS">Todos</option><option value="PENDIENTE">Pendientes</option><option value="ENTREGADO">Entregados</option><option value="NO_ENTREGADO">No entregados</option></select></div>
 </div><div class="metrics"><div class="metric"><b id="total">0</b>Total</div><div class="metric"><b id="pending">0</b>Pendientes</div><div class="metric"><b id="delivered">0</b>Entregados</div></div>
 <button id="refresh" class="secondary">Actualizar pedidos</button>
+<p class="muted" id="turnoState"></p>
 <h3>📋 Pendientes por dieta (comida seleccionada)</h3><div id="dietBadges" class="diet-badges"></div></div>
-<div class="card"><h2>Entrega de viandas</h2><input id="searchOrder" type="search" placeholder="Buscar por persona o servicio…">
-<p class="muted" id="managementHint"></p><div id="orders"></div><p class="status" id="managementMsg" role="status"></p></div>
+<div class="card"><h2>✅ Entrega de viandas</h2>
+<div class="grid"><div><label for="searchOrder">Buscar por nombre, ID o servicio</label><input id="searchOrder" type="search" placeholder="Nombre, ID de registro o servicio…"></div>
+<div><label for="serviceFilter">Filtrar servicio</label><select id="serviceFilter"><option value="">Todos los servicios</option></select></div></div>
+<div class="actions" id="deliveryActions"><input id="orderId" placeholder="ID exacto del pedido" aria-label="ID exacto del pedido" style="flex:1;min-width:190px"><button id="deliverById">Validar por ID</button></div>
+<p class="muted" id="managementHint"></p>
+<div class="actions" id="batchActions"><button class="secondary" id="selectVisible">Seleccionar pendientes visibles</button><button class="secondary" id="clearSelected">Limpiar selección</button><button class="multi" id="deliverSelected">Entregar seleccionados (0)</button></div>
+<div id="orders"></div><p class="status" id="managementMsg" role="status"></p></div>
+<div class="card" id="closePanel"><h2>🔒 Cerrar turno y generar estadísticas</h2>
+<p class="close-warning">⚠️ El cierre marca los pedidos pendientes como <b>NO ENTREGADOS</b> y bloquea nuevas inscripciones, entregas y reversiones del turno seleccionado. No afecta la otra comida. Esta operación no se puede revertir desde el panel.</p>
+<div class="summary-list" id="closeSummary"></div><div class="actions"><button class="secondary" id="previewClose">Actualizar vista previa</button><button class="close-button" id="closeTurn">Cerrar turno seleccionado</button></div>
+<p class="status" id="closeMsg" role="status"></p></div>
 <div class="card hide" id="nutritionEditor"><h2>📝 Nutrición · Publicar o modificar menú</h2>
 <p class="muted">Los menús se pueden modificar en cualquier momento por una emergencia. Cada actualización crea una nueva versión para hoy y queda auditada.</p>
 <form id="menuForm"><div class="grid">
@@ -129,14 +141,14 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let session=null,roster=[],chosen=new Set(),orders=[],busy=false,menus={MAÑANA:null,NOCHE:null};
+let session=null,roster=[],chosen=new Set(),orders=[],busy=false,chosenOrders=new Set(),turnoEstado=null,menus={MAÑANA:null,NOCHE:null};
 const DIETS=['GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA'];
 const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',CELIACA:'Celíaca',GASTRICA:'Gástrica',ASTRINGENTE:'Astringente',VEGETARIANA:'Vegetariana'};
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v}
-function logoutLocal(){session=null;chosen.clear();roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','previewClose'].forEach(id=>$(id).disabled=v)}
+function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
 
 async function loadDailyAlert(){
  try{
@@ -299,20 +311,38 @@ catch(e){note('personalMsg',e.message,true)}finally{loading(false)}
 });
 async function loadOrders(){
 if(!session)return;loading(true);note('managementMsg','Cargando pedidos...',false);
-try{const r=await rpc({accion:'listado',token:session.token,turno:$('filterMeal').value});orders=r.pedidos||[];await refreshSummary();await refreshMenus();note('managementMsg','Lista actualizada',false)}
+try{const r=await rpc({accion:'listado',token:session.token,turno:$('filterMeal').value});orders=r.pedidos||[];
+chosenOrders.clear();await refreshTurnStatus();await refreshSummary();await refreshMenus();note('managementMsg','Lista actualizada',false)}
 catch(e){note('managementMsg',e.message,true);if(e.message.includes('Sesión'))logoutLocal()}
 finally{loading(false);if(session){renderOrders();renderDietBadges()}}
 }
 function renderOrders(){
-const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),state=$('filterState').value,list=$('orders');
+const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),state=$('filterState').value,list=$('orders'),sector=$('serviceFilter').value;
+const sectors=[...new Set(orders.map(o=>String(o.servicio)))].sort((a,b)=>a.localeCompare(b,'es'));
+const select=$('serviceFilter');
+for(const el of [...select.options].slice(1))el.remove();
+for(const svc of sectors){const opt=document.createElement('option');opt.value=svc;opt.textContent=svc;select.append(opt)}
+select.value=sectors.includes(sector)?sector:'';
+const closed=!!(turnoEstado&&turnoEstado.cierre),canDeliver=session&&['COCINA','ADMIN'].includes(session.rol);
+show('deliveryActions',canDeliver&&!closed);show('batchActions',canDeliver&&!closed);show('closePanel',canDeliver);
+$('orderId').disabled=closed;
+$('turnoState').textContent=closed?'🔒 Turno CERRADO: '+turnoEstado.cierre.fechaCierre+' · No se admiten nuevas operaciones.':'Turno abierto para registrar y entregar viandas.';
+$('deliverSelected').textContent='Entregar seleccionados ('+chosenOrders.size+')';
+$('deliverSelected').disabled=busy||closed||!chosenOrders.size;
 $('total').textContent=orders.length;$('pending').textContent=orders.filter(x=>x.estado==='PENDIENTE').length;
 $('delivered').textContent=orders.filter(x=>x.estado==='ENTREGADO').length;list.replaceChildren();
-const display=orders.filter(x=>(state==='TODOS'||x.estado===state)&&(x.nombre+' '+x.servicio).toLocaleLowerCase('es').includes(q))
+const display=orders.filter(x=>(state==='TODOS'||x.estado===state)&&(!sector||x.servicio===sector)&&(x.nombre+' '+x.servicio+' '+x.id).toLocaleLowerCase('es').includes(q))
 .sort((a,b)=>(a.estado==='ENTREGADO')-(b.estado==='ENTREGADO'));
 for(const order of display){
-const row=document.createElement('div');row.className='order'+(order.estado==='ENTREGADO'?' done':'')+(order.duplicado?' historical':'');
+const row=document.createElement('div');row.className='order'+(order.estado==='ENTREGADO'?' done':'')+(order.duplicado?' historical':'')+(order.estado==='NO_ENTREGADO'?' closed':'');
+if(canDeliver&&!closed&&order.estado==='PENDIENTE'&&!order.duplicado){
+ const check=document.createElement('input');check.type='checkbox';check.checked=chosenOrders.has(order.id);
+ check.setAttribute('aria-label','Seleccionar '+order.nombre);
+ check.addEventListener('change',()=>{if(check.checked)chosenOrders.add(order.id);else chosenOrders.delete(order.id);renderOrders()});
+ row.append(check);
+}
 const wrap=document.createElement('div'),name=document.createElement('b'),detail=document.createElement('small'),pill=document.createElement('span');
-name.textContent=order.nombre;detail.textContent=order.servicio+' · Guardia '+order.guardia+' h · Dieta '+order.dieta;
+name.textContent=order.nombre;detail.textContent=order.servicio+' · Guardia '+order.guardia+' h · Dieta '+order.dieta+' · ID: '+order.id;
 pill.className='pill';pill.textContent=order.estado;wrap.append(name,detail,pill);
 if(order.grupoDuplicado){
  const warn=document.createElement('div');warn.className='warning';
@@ -323,7 +353,7 @@ if(order.tipo&&order.tipo.indexOf('MANUAL:')===0){
  const origen=document.createElement('small');origen.textContent='Carga manual · '+order.tipo.slice(7);wrap.append(origen);
 }
 row.append(wrap);
-if(session&&['COCINA','ADMIN'].includes(session.rol)&&!order.duplicado){
+if(canDeliver&&!closed&&!order.duplicado&&['ENTREGADO','PENDIENTE'].includes(order.estado)){
 const btn=document.createElement('button');btn.className=order.estado==='ENTREGADO'?'secondary':'';
 const revertir=order.estado==='ENTREGADO';btn.textContent=revertir?'Revertir':'Entregar';btn.disabled=busy;
 btn.addEventListener('click',async()=>{
@@ -337,6 +367,74 @@ list.append(row)
 if(!display.length){const p=document.createElement('p');p.className='muted';p.textContent='No hay pedidos para el filtro seleccionado.';list.append(p)}
 $('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: consulta habilitada, entrega deshabilitada.':'Pendientes arriba; entregados abajo. Los duplicados históricos se señalan y no admiten una segunda entrega.';
 }
+
+function canManage(){return session&&['COCINA','ADMIN'].includes(session.rol)}
+function pendingVisible(){
+ const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),sector=$('serviceFilter').value;
+ return orders.filter(o=>o.estado==='PENDIENTE'&&!o.duplicado&&(!sector||o.servicio===sector)&&
+  (o.nombre+' '+o.servicio+' '+o.id).toLocaleLowerCase('es').includes(q))
+}
+async function refreshTurnStatus(){
+ if(!session||!isManagement())return;
+ turnoEstado=await rpc({accion:'estadoTurno',token:session.token,turno:$('filterMeal').value});
+ renderClosePreview()
+}
+function renderClosePreview(){
+ const box=$('closeSummary');box.replaceChildren();if(!turnoEstado)return;
+ const {resumen,cierre}=turnoEstado;
+ const values=[['Total',resumen.total],['Entregados',resumen.entregados],['Pendientes',resumen.pendientes],
+ ['No entregados',resumen.noEntregados],['Duplicados históricos',resumen.duplicadosHistoricos]];
+ values.forEach(([label,value])=>{const cell=document.createElement('div'),b=document.createElement('b');
+ b.textContent=String(value);cell.append(b,document.createTextNode(label));box.append(cell)});
+ $('closeTurn').disabled=!!cierre||busy;$('closeTurn').textContent=cierre?'Turno ya cerrado':'Cerrar '+(turnoEstado.turno==='MAÑANA'?'almuerzo':'cena');
+ note('closeMsg',cierre?'Cerrado el '+cierre.fechaCierre+' · Total: '+cierre.total+
+ ' · Entregados: '+cierre.entregados+' · No entregados: '+cierre.noEntregados:'Vista previa: datos vigentes al consultar.',false)
+}
+async function sendDeliveries(ids){
+ if(!canManage()||!ids.length||busy||turnoEstado&&turnoEstado.cierre)return;
+ if(!confirm('¿Confirmar la entrega de '+ids.length+' vianda(s)?'))return;
+ loading(true);note('managementMsg','Validando entregas...',false);
+ try{
+  const r=await rpc({accion:'entregaLote',token:session.token,ids});
+  await loadOrders();note('managementMsg','Entregadas correctamente: '+r.entregados,false)
+ }catch(e){note('managementMsg',e.message,true)}
+ finally{loading(false);if(session)renderOrders()}
+}
+$('deliverById').addEventListener('click',()=>{
+ const id=$('orderId').value.trim(),order=orders.find(o=>o.id===id);
+ if(!order){note('managementMsg','ID inexistente para la comida seleccionada.',true);return}
+ if(order.estado!=='PENDIENTE'||order.duplicado){note('managementMsg','Este ID no está habilitado para entrega.',true);return}
+ sendDeliveries([id]).then(()=>{$('orderId').value=''})
+});
+$('selectVisible').addEventListener('click',()=>{pendingVisible().forEach(o=>chosenOrders.add(o.id));renderOrders()});
+$('clearSelected').addEventListener('click',()=>{chosenOrders.clear();renderOrders()});
+$('deliverSelected').addEventListener('click',()=>sendDeliveries([...chosenOrders]));
+$('serviceFilter').addEventListener('change',()=>{chosenOrders.clear();renderOrders()});
+$('previewClose').addEventListener('click',async()=>{
+ if(!canManage()||busy)return;
+ loading(true);try{await refreshTurnStatus();renderOrders()}catch(e){note('closeMsg',e.message,true)}finally{loading(false)}
+});
+$('closeTurn').addEventListener('click',async()=>{
+ if(!canManage()||busy||!turnoEstado||turnoEstado.cierre)return;
+ const turno=turnoEstado.turno;
+ const text='CERRAR '+turno;
+ const entered=prompt('El cierre es IRREVERSIBLE desde la interfaz.\n'+
+ 'Los '+turnoEstado.resumen.pendientes+' pedidos pendientes quedarán NO ENTREGADOS.\n'+
+ 'Para continuar escribí exactamente:\n'+text);
+ if(entered!==text){note('closeMsg','Cierre cancelado: no coincide la confirmación.',true);return}
+ if(!confirm('Última confirmación: ¿cerrar '+turno+' y registrar estadísticas?'))return;
+ loading(true);
+ try{
+  const r=await rpc({accion:'cerrarTurno',token:session.token,turno,
+   confirmacion:entered,totalEsperado:turnoEstado.resumen.total,
+   pendientesEsperados:turnoEstado.resumen.pendientes});
+  await loadOrders();
+  note('closeMsg','Turno cerrado. Entregados: '+r.resumen.entregados+
+    ' · No entregados: '+r.resumen.noEntregados,false);
+ }catch(e){note('closeMsg',e.message,true)}
+ finally{loading(false);if(session)renderOrders()}
+});
+
 $('filterMeal').addEventListener('change',loadOrders);
 $('filterState').addEventListener('change',renderOrders);
 $('searchOrder').addEventListener('input',renderOrders);
