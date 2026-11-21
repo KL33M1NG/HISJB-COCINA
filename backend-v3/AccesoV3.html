@@ -108,7 +108,7 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 <div id="orders"></div><p class="status" id="managementMsg" role="status"></p></div>
 <div class="card" id="closePanel"><h2>🔒 Cerrar turno y generar estadísticas</h2>
 <p class="close-warning">⚠️ El cierre marca los pedidos pendientes como <b>NO ENTREGADOS</b> y bloquea nuevas inscripciones, entregas y reversiones del turno seleccionado. No afecta la otra comida. Esta operación no se puede revertir desde el panel.</p>
-<div class="summary-list" id="closeSummary"></div><div class="actions"><button class="secondary" id="previewClose">Actualizar vista previa</button><button class="close-button" id="closeTurn">Cerrar turno seleccionado</button></div>
+<div class="summary-list" id="closeSummary"></div><div class="grid"><div><h3>Por servicio</h3><div id="closeServices" class="muted"></div></div><div><h3>Por dieta</h3><div id="closeDiets" class="muted"></div></div></div><div class="actions"><button class="secondary" id="previewClose">Actualizar vista previa</button><button class="close-button" id="closeTurn">Cerrar turno seleccionado</button></div>
 <p class="status" id="closeMsg" role="status"></p></div>
 <div class="card hide" id="nutritionEditor"><h2>📝 Nutrición · Publicar o modificar menú</h2>
 <p class="muted">Los menús se pueden modificar en cualquier momento por una emergencia. Cada actualización crea una nueva versión para hoy y queda auditada.</p>
@@ -386,6 +386,9 @@ function renderClosePreview(){
  ['No entregados',resumen.noEntregados],['Duplicados históricos',resumen.duplicadosHistoricos]];
  values.forEach(([label,value])=>{const cell=document.createElement('div'),b=document.createElement('b');
  b.textContent=String(value);cell.append(b,document.createTextNode(label));box.append(cell)});
+ function breakdown(id,datos){const el=$(id);el.replaceChildren();const nombres=Object.keys(datos||{}).sort((a,b)=>a.localeCompare(b,'es'));if(!nombres.length){el.textContent='Sin pedidos';return}
+ nombres.forEach(nombre=>{const item=document.createElement('p');item.style.margin='5px 0';const d=datos[nombre];item.textContent=nombre+': '+d.total+' total · '+d.entregados+' entregados · '+d.pendientes+' pendientes · '+d.noEntregados+' no entregados';el.append(item)})}
+ breakdown('closeServices',resumen.servicios);breakdown('closeDiets',resumen.dietas);
  $('closeTurn').disabled=!!cierre||busy;$('closeTurn').textContent=cierre?'Turno ya cerrado':'Cerrar '+(turnoEstado.turno==='MAÑANA'?'almuerzo':'cena');
  note('closeMsg',cierre?'Cerrado el '+cierre.fechaCierre+' · Total: '+cierre.total+
  ' · Entregados: '+cierre.entregados+' · No entregados: '+cierre.noEntregados:'Vista previa: datos vigentes al consultar.',false)
