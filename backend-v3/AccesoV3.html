@@ -66,9 +66,105 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 @media(max-width:620px){.menu-cards{grid-template-columns:1fr}header strong{font-size:19px}}.order.historical{opacity:.68;background:#fff6df}.warning{display:inline-block;margin:5px 0 0;background:#ffe4b7;color:#805107;padding:4px 8px;border-radius:8px;font-size:12px}.manualHint{color:var(--muted);font-size:13px}
 @media(max-width:600px){.card{padding:15px}.metrics{gap:4px}.metric{padding:9px}.actions button{flex:1}h1{font-size:22px}}
 .close-confirm-box{border:1px solid #e5b66e;background:#fff8ec;border-radius:12px;padding:15px;margin-top:12px;color:#48330f}.close-confirm-box h3{margin:0 0 8px}.close-confirm-box p{margin:8px 0}.close-confirm-box button{min-width:120px}
+
+/* HISJB V3 — apariencia institucional centralizada; no afecta la lógica de pedidos. */
+:root{
+  --card:#ffffff;--field:#ffffff;--soft:#edf4fc;--border:#dbe6ef;--header-start:#0d3970;
+  --header-end:#1474b8;--accent:#1664a6;--accent-soft:#e7f2fd;--shadow:0 8px 32px rgba(14,47,77,.075);
+  --radius:16px;--font-size:15px;--space-scale:1;--focus:#e3a633
+}
+body{font-size:var(--font-size);background:var(--bg);color:var(--ink);min-height:100vh}
+body[data-density="compact"]{--space-scale:.79}
+body[data-font="large"]{--font-size:17px}
+body[data-role="COCINA"]{--accent:#c46720;--accent-soft:#fff1e3}
+body[data-role="NUTRICION"]{--accent:#18785d;--accent-soft:#e3f7ee}
+body[data-role="ADMIN"]{--accent:#6951ae;--accent-soft:#f0eaff}
+body[data-role="WEB"],body[data-role="SUPERVISOR"]{--accent:#1664a6;--accent-soft:#e6f2fc}
+body[data-theme="dark"]{
+ --bg:#0d1827;--ink:#e8f0fc;--muted:#acbbcf;--line:#354456;--border:#34465c;
+ --card:#17263a;--field:#101e30;--soft:#22344b;--navy:#e8f0fc;--shadow:0 8px 26px rgba(0,0,0,.22)
+}
+header{background:linear-gradient(112deg,var(--header-start),var(--header-end));padding:24px 4%;box-shadow:0 4px 22px #081c3930}
+header strong{display:block;font-size:clamp(20px,2.5vw,28px);letter-spacing:.01em}
+header p{letter-spacing:.12em;font-size:11px;text-transform:uppercase;margin-top:6px}
+main{max-width:1250px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:calc(22px * var(--space-scale));box-shadow:var(--shadow)}
+.login{margin-top:32px;padding:32px;max-width:500px}
+#workspace>.row.between{padding:14px 4px 2px;border-bottom:1px solid var(--line);margin-bottom:14px}
+h1,h2,h3{letter-spacing:-.025em;color:var(--ink)}h2{padding-bottom:8px}
+input,select,textarea{background:var(--field);color:var(--ink);border:1px solid var(--border);transition:border-color .17s,box-shadow .17s}
+input:focus,select:focus,textarea:focus,button:focus-visible,summary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button{background:var(--accent);padding:12px 17px;min-height:44px;transition:filter .15s,transform .12s}
+button:hover:not(:disabled){filter:brightness(1.07)}
+button:active:not(:disabled){transform:translateY(1px)}
+button.secondary{background:var(--accent-soft);color:var(--accent)}
+body[data-theme="dark"] button.secondary{color:#dceaff}
+#enter,#submitPeople,#submitManual,#saveMenu,#saveAlert{background:var(--accent)}
+#exit{min-width:135px}
+.metric,.summary-list>div,.history-stats>div{background:var(--soft);border:1px solid var(--border);border-radius:12px}
+.metric b,.summary-list b,.history-stats b{color:var(--accent);font-variant-numeric:tabular-nums}
+.metric small{display:block;margin-bottom:3px}
+.metric:nth-child(4) b{color:#17885b}
+.metric:nth-child(5) b{color:#ac6326}
+.person{padding:calc(14px * var(--space-scale)) 12px;border-radius:9px;margin:4px 0;border:1px solid transparent;border-bottom-color:var(--line)}
+.person:hover{background:var(--accent-soft);border-color:var(--border)}
+.order{padding:calc(16px * var(--space-scale)) 12px;margin:5px 0;border:1px solid var(--border);border-radius:11px;background:var(--card)}
+.order.done{background:#e6f7ef;border-color:#b0e4c9}
+.order.done .pill{background:#caefdb;color:#16623a}
+.order.closed{background:#fff2f0;border-color:#f0cac3}
+.order.historical{background:#fffae7}
+body[data-theme="dark"] .order.done{background:#163b31;border-color:#28624c}
+body[data-theme="dark"] .order.closed{background:#43292f;border-color:#69414a}
+body[data-theme="dark"] .order.historical{background:#514326}
+body[data-theme="dark"] .order.done .pill{background:#26593e;color:#d2f7e2}
+.fast-batch{background:var(--card);border-color:var(--border);top:8px}
+.pill{background:var(--accent-soft);color:var(--accent)}
+body[data-theme="dark"] .pill{color:#dceaff}
+.menu-card,.history-line,.menu-field{background:var(--soft);border-color:var(--border)}
+.menu-card h3,.history-line summary{color:var(--accent)}
+.menu-pending{background:#fff3e9}
+body[data-theme="dark"] .menu-pending{background:#3a3028}
+.diet-badges div{background:var(--accent)}
+.close-warning,.close-confirm-box,.warning{background:#fff1d9;border-color:#ecc682;color:#704a12}
+body[data-theme="dark"] .close-warning,body[data-theme="dark"] .close-confirm-box,body[data-theme="dark"] .warning{background:#433821;color:#ffdb9b;border-color:#82672f}
+.notice{border:1px solid #f3d8a0}
+.alera-publica{max-width:100%}
+body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{background:#453923;color:#ffdda4;border-color:#81662d}
+.appearance-bar{display:flex;justify-content:flex-end;gap:9px;align-items:center;margin:8px 0 4px}
+.appearance-toggle{font-size:13px;min-height:36px;padding:8px 12px;border:1px solid var(--border);background:var(--card);color:var(--ink)}
+.appearance-card{margin:8px 0 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:17px;box-shadow:var(--shadow)}
+.appearance-card h2{font-size:17px;margin:0 0 8px}
+.appearance-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.appearance-controls label{font-size:13px;margin:0}
+.appearance-controls select{display:block;width:100%;margin-top:6px;min-height:43px}
+.appearance-hint{font-size:12px;color:var(--muted);margin:10px 0 0}
+#bulkRosterPanel{border-top:4px solid #8061c0}
+#nutritionEditor{border-top:4px solid #208362}
+#closePanel{border-top:4px solid #cc7540}
+#personalPanel .card:first-child{border-top:4px solid var(--accent)}
+#historyPanel{border-top:4px solid #3579b0}
+@media(max-width:680px){
+ main{padding:12px 12px 80px}.card{padding:calc(16px * var(--space-scale));margin:11px 0}
+ .login{padding:22px;margin-top:16px}.order{flex-wrap:wrap}.order button{width:100%}
+ .actions button{flex:1 1 150px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .appearance-bar{justify-content:center}.appearance-card{padding:13px}
+ header{padding:22px 12px}.fast-batch{top:4px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+
 </style></head>
 <body><header><strong>🏥 HOSPITAL SAN JUAN BAUTISTA</strong><p>GESTIÓN DIGITAL DE ALIMENTACIÓN · V3 PRUEBAS</p></header>
 <main>
+<div class="appearance-bar"><button type="button" id="appearanceToggle" class="appearance-toggle" aria-expanded="false" aria-controls="appearancePanel">⚙️ Apariencia</button></div>
+<section class="appearance-card hide" id="appearancePanel" aria-label="Preferencias de apariencia">
+<h2>🎨 Personalizar la apariencia</h2>
+<div class="appearance-controls">
+<label for="themeChoice">Modo de pantalla<select id="themeChoice"><option value="light">Claro</option><option value="dark">Oscuro</option></select></label>
+<label for="fontChoice">Tamaño de letra<select id="fontChoice"><option value="normal">Normal</option><option value="large">Grande</option></select></label>
+<label for="densityChoice">Espaciado<select id="densityChoice"><option value="comfortable">Cómodo</option><option value="compact">Compacto</option></select></label>
+</div>
+<p class="appearance-hint">Estas preferencias se guardan únicamente en este navegador. No modifican pedidos, usuarios ni permisos.</p>
+</section>
 <div class="notice"><b>ENTORNO DE PRUEBAS.</b> Acceso restringido. Solo personal ficticio y planilla V3.</div>
 <section class="card login" id="access">
 <h1>🔐 Acceso al sistema</h1><p class="muted">Ingresá únicamente la contraseña de tu servicio.</p>
@@ -195,13 +291,45 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 'use strict';
 const $=id=>document.getElementById(id);
 let session=null,roster=[],chosen=new Set(),orders=[],busy=false,chosenOrders=new Set(),turnoEstado=null,bulkPreview=null,closeIntent=null,repairCheck=null,menus={MAÑANA:null,NOCHE:null};
+
+/* Solo preferencias visuales del navegador; nunca almacenar claves ni datos del personal. */
+const LOOK_KEY='hisjb-v3-apariencia';
+const LOOK_DEFAULTS={theme:'light',font:'normal',density:'comfortable'};
+function loadAppearance(){
+ try{
+  const x=JSON.parse(localStorage.getItem(LOOK_KEY)||'{}');
+  return {theme:x.theme==='dark'?'dark':'light',font:x.font==='large'?'large':'normal',density:x.density==='compact'?'compact':'comfortable'}
+ }catch(e){return {...LOOK_DEFAULTS}}
+}
+function applyAppearance(x){
+ document.body.dataset.theme=x.theme;
+ document.body.dataset.font=x.font;
+ document.body.dataset.density=x.density;
+ $('themeChoice').value=x.theme;
+ $('fontChoice').value=x.font;
+ $('densityChoice').value=x.density;
+}
+applyAppearance(loadAppearance());
+$('appearanceToggle').addEventListener('click',()=>{
+ const open=$('appearancePanel').classList.contains('hide');
+ show('appearancePanel',open);
+ $('appearanceToggle').setAttribute('aria-expanded',String(open));
+});
+for(const id of ['themeChoice','fontChoice','densityChoice']){
+ $(id).addEventListener('change',()=>{
+   const x={theme:$('themeChoice').value,font:$('fontChoice').value,density:$('densityChoice').value};
+   applyAppearance(x);
+   try{localStorage.setItem(LOOK_KEY,JSON.stringify(x))}catch(e){}
+ })
+}
+
 const DIETS=['GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA'];
 const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',CELIACA:'Celíaca',GASTRICA:'Gástrica',ASTRINGENTE:'Astringente',VEGETARIANA:'Vegetariana'};
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
 function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
-function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
+function logoutLocal(){document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
 
 async function loadDailyAlert(){
  try{
@@ -301,7 +429,7 @@ e.preventDefault();if(busy)return;
 loading(true);note('accessMsg','Comprobando contraseña...',false);
 try{
 const auth=await rpc({accion:'login',clave:$('password').value});
-session={token:auth.token,rol:auth.rol,servicio:auth.servicio};$('password').value='';
+session={token:auth.token,rol:auth.rol,servicio:auth.servicio};document.body.dataset.role=session.rol;$('password').value='';
 if(!isPersonal()&&!isManagement())throw Error('Cuenta sin acceso habilitado');
 if(isPersonal()&&(!isManagement()||session.rol==='SUPERVISOR'||session.rol==='WEB')){
 const response=await rpc({accion:'personal',token:session.token});
