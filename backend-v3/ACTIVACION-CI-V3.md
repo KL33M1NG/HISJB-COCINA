@@ -9,3 +9,7 @@ Esta actualización documental se utiliza para activar la verificación automati
 - Revisar `Actions` en GitHub para confirmar el resultado y **no presionar Approve si el workflow muestra una rama o proyecto inesperados**.
 
 No agregar contraseñas, tokens, nóminas ni datos del personal al repositorio.
+
+## Segunda comprobación
+
+Se ha configurado `V3_TEST_DEPLOY_ENABLED` como variable de **repositorio** para que el trabajo de sincronización pueda evaluar su condición antes de entrar al entorno protegido. Esta actualización documental activa una nueva ejecución. Se requiere revisión manual antes de desplegar en V3.
