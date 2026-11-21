@@ -41,9 +41,21 @@ chunks.forEach((items,i)=>fs.writeFileSync(path.join(output,'LOTE-'+String(i+1).
 const csv=(rows,keys)=>[keys.join(';'),...rows.map(r=>keys.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(';'))].join('\r\n')+'\r\n';
 fs.writeFileSync(path.join(output,'REVISAR-MANUALMENTE.csv'),csv(revisar,['linea','nombre','servicio','dieta','motivo']),'utf8');
 fs.writeFileSync(path.join(output,'DUPLICADOS-ORIGEN.csv'),csv(repeat,['linea','nombre','servicio']),'utf8');
+// Configuración de servicios: extraer nombres y tipos, NUNCA valores de 'pass'.
+const passBlock=/\bconst\s+PASSWORDS\s*=\s*\{([\s\S]*?)\}\s*;/.exec(html);
+const tipos=[];
+if(passBlock){
+  const pattern=/["']([^"']+)["']\s*:\s*\{\s*pass\s*:\s*["'][^"']*["']\s*,\s*tipo\s*:\s*["']([^"']+)["']\s*\}/g;
+  for(const item of passBlock[1].matchAll(pattern)){
+    const service=norm(item[1]),type=item[2]==='supervisor'?'SUPERVISOR':item[2]==='admin'?'ADMIN':'WEB';
+    tipos.push({servicio:service,rolSugerido:type,presenteEnNomina:valid.some(p=>p.servicio===service)?'SI':'NO'});
+  }
+}
+fs.writeFileSync(path.join(output,'SERVICIOS-PARA-REVISAR.csv'),
+ csv(tipos,['servicio','rolSugerido','presenteEnNomina']),'utf8');
 const counts=Object.fromEntries([...new Set(valid.map(p=>p.servicio))].sort().map(s=>[s,valid.filter(p=>p.servicio===s).length]));
 const result={registrosEncontrados:objects.length,personasImportables:valid.length,duplicados:repeat.length,
-  requierenRevision:revisar.length,lotes:chunks.length,servicios:counts};
+  requierenRevision:revisar.length,lotes:chunks.length,serviciosConfigurados:tipos.length,servicios:counts};
 fs.writeFileSync(path.join(output,'RESUMEN.json'),JSON.stringify(result,null,2)+'\n','utf8');
 console.log('Extracción terminada (sin DNI ni contraseñas).');
 console.log('Registros encontrados:',objects.length,'| importables:',valid.length,'| repetidos:',repeat.length,'| para revisar:',revisar.length);
