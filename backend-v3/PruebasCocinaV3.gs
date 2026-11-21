@@ -38,3 +38,32 @@ function pruebasCocinaSoloLecturaV3() {
   ok('Consulta de estado protegida funciona',estado.status==='success'&&estado.resumen.total>=0);
   Logger.log('RESULTADO: '+passed+'/9 pruebas Cocina V3 (sin escritura)');
 }
+
+/** Historial V3: solo lectura y validación de permisos/fechas. */
+function pruebasHistorialSoloLecturaV3() {
+  var passed=0;
+  function ok(nombre,cond){if(!cond)throw Error('FALLO: '+nombre);passed++;Logger.log('OK: '+nombre);}
+  function rechaza(nombre,fn,frase){
+    var error='';
+    try{fn()}catch(e){error=String(e.message||'')}
+    ok(nombre,error.indexOf(frase)>=0);
+  }
+  var cocina={rol:'COCINA',servicio:'COCINA'};
+  var nutricion={rol:'NUTRICION',servicio:'NUTRICION'};
+  var web={rol:'WEB',servicio:'TRAUMATOLOGIA'};
+  rechaza('WEB no puede consultar cierres internos',function(){
+    v3HistorialCierres_(web,{desde:'2026-11-01',hasta:'2026-11-21'});
+  },'Acceso denegado');
+  rechaza('Rechaza fechas inválidas',function(){
+    v3HistorialCierres_(cocina,{desde:'2026-02-30',hasta:'2026-11-21'});
+  },'Rango de fechas inválido');
+  rechaza('Rechaza rango mayor a 91 días',function(){
+    v3HistorialCierres_(cocina,{desde:'2026-01-01',hasta:'2026-11-21'});
+  },'Rango máximo: 91 días');
+  var c=v3HistorialCierres_(cocina,{desde:'2026-11-01',hasta:'2026-11-21'});
+  ok('Cocina puede leer el historial',c.status==='success'&&Array.isArray(c.registros));
+  var n=v3HistorialCierres_(nutricion,{desde:'2026-11-01',hasta:'2026-11-21'});
+  ok('Nutrición puede leer el historial',n.status==='success'&&Array.isArray(n.registros));
+  ok('Los resúmenes incluyen cifras',typeof c.resumen.total==='number'&&typeof c.resumen.entregados==='number');
+  Logger.log('RESULTADO: '+passed+'/6 pruebas de historial (sin escritura)');
+}
