@@ -138,6 +138,15 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 <div class="history-stats" id="historyStats"></div>
 <div id="historyEntries"></div><p id="historyMsg" class="status" role="status"></p>
 </div>
+<div class="card hide" id="bulkRosterPanel">
+<h2>👥 Administración · Incorporación masiva de personal</h2>
+<p class="muted">Solo ADMIN. Pegá una persona por línea con los campos <b>Apellido y nombre; Servicio; Dieta</b>, separados por punto y coma. No se necesitan DNI ni números de documento. El sistema genera un identificador interno único y omite los trabajadores ya existentes.</p>
+<label for="bulkRosterText">Nómina para importar (hasta 150 personas)</label>
+<textarea id="bulkRosterText" rows="7" placeholder="Pérez Juan; ENFERMERIA; GENERAL&#10;López María; TRAUMATOLOGIA; CELIACA"></textarea>
+<div class="actions"><button type="button" class="secondary" id="previewRoster">🔎 Revisar antes de incorporar</button><button type="button" id="applyRoster" disabled>✅ Confirmar incorporación masiva</button></div>
+<p class="status" id="bulkRosterMsg" role="status"></p>
+<div id="bulkRosterStats" class="summary-list"></div>
+</div>
 <div class="card hide" id="nutritionEditor"><h2>📝 Nutrición · Publicar o modificar menú</h2>
 <p class="muted">Los menús se pueden modificar en cualquier momento por una emergencia. Cada actualización crea una nueva versión para hoy y queda auditada.</p>
 <form id="menuForm"><div class="grid">
@@ -169,14 +178,14 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let session=null,roster=[],chosen=new Set(),orders=[],busy=false,chosenOrders=new Set(),turnoEstado=null,menus={MAÑANA:null,NOCHE:null};
+let session=null,roster=[],chosen=new Set(),orders=[],busy=false,chosenOrders=new Set(),turnoEstado=null,bulkPreview=null,menus={MAÑANA:null,NOCHE:null};
 const DIETS=['GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA'];
 const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',CELIACA:'Celíaca',GASTRICA:'Gástrica',ASTRINGENTE:'Astringente',VEGETARIANA:'Vegetariana'};
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','previewClose','searchHistory'].forEach(id=>$(id).disabled=v)}
-function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','previewClose','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
+function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
 
 async function loadDailyAlert(){
  try{
@@ -288,6 +297,7 @@ renderPeople()
 }else{
 show('personalPanel',false);show('managementPanel',true);
 show('nutritionEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
+show('bulkRosterPanel',session.rol==='ADMIN');
 await refreshMenus();
 historyDefaults();
 $('heading').textContent='Cocina y Nutrición';$('who').textContent='Sector: '+session.servicio+' · Rol: '+session.rol;
@@ -409,6 +419,50 @@ if(!display.length){const p=document.createElement('p');p.className='muted';p.te
 $('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: consulta habilitada, entrega deshabilitada.':'Seleccionar todos toma solo los pendientes del servicio y la búsqueda actuales. Los entregados van abajo, con opción de revertir.';
 }
 
+
+
+function parseRosterLines(text){
+ const lines=text.replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
+ if(!lines.length||lines.length>150)throw Error('Ingresá entre 1 y 150 personas.');
+ return lines.map((line,index)=>{
+  const fields=line.split(';').map(x=>x.trim());
+  if(fields.length!==3)throw Error('Línea '+(index+1)+': usá nombre; servicio; dieta');
+  return {nombre:fields[0],servicio:fields[1],dieta:fields[2]}
+ });
+}
+function invalidateRosterPreview(){
+ bulkPreview=null;$('applyRoster').disabled=true;$('bulkRosterStats').replaceChildren();
+}
+$('bulkRosterText').addEventListener('input',invalidateRosterPreview);
+$('previewRoster').addEventListener('click',async()=>{
+ if(!session||session.rol!=='ADMIN'||busy)return;
+ invalidateRosterPreview();loading(true);
+ try{
+  const filas=parseRosterLines($('bulkRosterText').value);
+  const result=await rpc({accion:'importarNomina',token:session.token,filas,confirmar:false});
+  bulkPreview={filas,esperados:{nuevos:result.nuevos,existentes:result.existentes}};
+  const summary=$('bulkRosterStats');summary.replaceChildren();
+  [['Filas revisadas',result.recibidos],['Nuevos',result.nuevos],['Ya existentes',result.existentes]]
+    .forEach(([label,value])=>{
+      const div=document.createElement('div'),b=document.createElement('b');
+      b.textContent=String(value);div.append(b,document.createTextNode(label));summary.append(div)
+    });
+  note('bulkRosterMsg','Vista previa lista. No se modificó ninguna fila. Revisá los totales antes de confirmar.',false);
+ }catch(e){note('bulkRosterMsg',e.message,true)}
+ finally{loading(false);$('applyRoster').disabled=!bulkPreview}
+});
+$('applyRoster').addEventListener('click',async()=>{
+ if(!session||session.rol!=='ADMIN'||busy||!bulkPreview)return;
+ if(!confirm('¿Incorporar '+bulkPreview.esperados.nuevos+' personas nuevas a Personal_V3? Se omitirán '+bulkPreview.esperados.existentes+' existentes.'))return;
+ loading(true);
+ try{
+  const result=await rpc({accion:'importarNomina',token:session.token,
+    filas:bulkPreview.filas,esperados:bulkPreview.esperados,confirmar:true});
+  invalidateRosterPreview();
+  note('bulkRosterMsg','Incorporación completada: '+result.incorporados+' nuevos, '+result.existentes+' ya existentes.',false);
+ }catch(e){note('bulkRosterMsg',e.message,true)}
+ finally{loading(false)}
+});
 
 function historyDateToday(){
  const d=new Date(),parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Argentina/Buenos_Aires',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);
