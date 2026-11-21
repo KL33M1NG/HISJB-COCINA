@@ -53,6 +53,8 @@ function v3UiCall(p) {
     if (accion === 'cerrarTurno') return v3CerrarTurno_(sesion,p);
     if (accion === 'diagnosticarCierre') return v3DiagnosticarCierre_(sesion,p);
     if (accion === 'reconciliarCierre') return v3ReconciliarCierre_(sesion,p);
+    if (accion === 'listarRespaldos') return v3BackupListar_(sesion);
+    if (accion === 'crearRespaldo') return v3BackupCrear_(sesion);
     if (accion === 'guardarMenu') return v3GuardarMenu_(sesion,p);
     if (accion === 'guardarAviso') return v3GuardarAviso_(sesion,p);
     throw Error('Acción no permitida');
@@ -79,7 +81,11 @@ function v3UiCall(p) {
       'Dieta inválida','Servicio inválido','Turno inválido','Plato principal obligatorio',
       'Texto de aviso demasiado largo','Solo Nutrición puede editar menús y avisos',
       'El pedido seleccionado es un duplicado histórico; no se puede entregar',
-      'Ya existe una entrega de esta persona para esta comida'
+      'Ya existe una entrega de esta persona para esta comida',
+      'Solo Administración puede gestionar respaldos',
+      'Falta configurar la carpeta privada de respaldos V3',
+      'Carpeta de respaldos V3 en papelera','Encabezados inválidos en la planilla V3',
+      'El respaldo requiere revisión manual en Drive'
     ];
     return {status:'error',message:conocidos.indexOf(m)>=0?m:(m.indexOf('Importación inválida: ')===0?m:'No fue posible completar la operación')};
   }
