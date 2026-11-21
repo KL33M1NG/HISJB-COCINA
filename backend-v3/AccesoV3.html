@@ -141,6 +141,9 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 <div class="card hide" id="bulkRosterPanel">
 <h2>👥 Administración · Incorporación masiva de personal</h2>
 <p class="muted">Solo ADMIN. Pegá una persona por línea con los campos <b>Apellido y nombre; Servicio; Dieta</b>, separados por punto y coma. No se necesitan DNI ni números de documento. El sistema genera un identificador interno único y omite los trabajadores ya existentes.</p>
+<label for="bulkRosterFile">Importar lote preparado (.txt)</label>
+<input type="file" id="bulkRosterFile" accept=".txt,text/plain" aria-label="Elegir lote privado de nómina">
+<p class="muted">Podés seleccionar un archivo LOTE-01.txt generado localmente. El archivo se lee en tu navegador; solo los campos nombre, servicio y dieta se envían al servidor cuando revisás la vista previa.</p>
 <label for="bulkRosterText">Nómina para importar (hasta 150 personas)</label>
 <textarea id="bulkRosterText" rows="7" placeholder="Pérez Juan; ENFERMERIA; GENERAL&#10;López María; TRAUMATOLOGIA; CELIACA"></textarea>
 <div class="actions"><button type="button" class="secondary" id="previewRoster">🔎 Revisar antes de incorporar</button><button type="button" id="applyRoster" disabled>✅ Confirmar incorporación masiva</button></div>
@@ -420,6 +423,19 @@ $('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: 
 }
 
 
+
+
+$('bulkRosterFile').addEventListener('change',async()=>{
+ const file=$('bulkRosterFile').files&&$('bulkRosterFile').files[0];
+ if(!file)return;
+ invalidateRosterPreview();
+ if(file.size>75000){note('bulkRosterMsg','El archivo es demasiado grande. Seleccioná un lote de hasta 150 personas.',true);return}
+ try{
+  const text=await file.text();parseRosterLines(text);
+  $('bulkRosterText').value=text;
+  note('bulkRosterMsg','Archivo cargado localmente. Pulsá Revisar antes de incorporar.',false);
+ }catch(e){note('bulkRosterMsg',e.message,true)}
+});
 
 function parseRosterLines(text){
  const lines=text.replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
