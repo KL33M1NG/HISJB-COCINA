@@ -5,7 +5,7 @@
 ## Estado de la integración
 - **Integración HtmlService de pruebas disponible**: `AccesoV3.html` es el ingreso único por contraseña y dirige a las vistas de Personal o Cocina/Nutrición mediante `google.script.run` y roles de `Code.gs`. `PersonalV3.html` y `CocinaV3.html` se mantienen como referencias iniciales. **Todavía no fue probado por el usuario en navegador ni habilitado para producción**. Guías: [ACCESO-SOLO-CLAVE.md](./ACCESO-SOLO-CLAVE.md) e [INTEGRACION-HTMLSERVICE.md](./INTEGRACION-HTMLSERVICE.md).
 - Implementados en `Code.gs`: login por servicio, roles WEB/SUPERVISOR/COCINA/NUTRICION/ADMIN, consulta de nómina **del propio servicio**, registro de una o varias personas, dos pedidos (MAÑANA/NOCHE) para guardias de 24 h, detección de repetidos en el servidor bajo `LockService`, entrega y reversión con auditoría.
-- **Pendiente:** prueba de la interfaz en navegador, pruebas de concurrencia, controles antiabuso, edición de menú con permisos de Nutrición, migración de nómina y puesta en producción. El HTML de GitHub Pages sigue siendo demostrativo.
+- **Nuevo en la rama de desarrollo:** Nutrición puede publicar y modificar menús, crear un aviso del día visible debajo del login e inspeccionar indicadores de Cocina. La primera prueba en navegador está pendiente. Guía: [NUTRICION-MENUS-AVISOS.md](./NUTRICION-MENUS-AVISOS.md). **Pendiente:** pruebas de concurrencia, controles antiabuso, migración de nómina y puesta en producción. El HTML de GitHub Pages sigue siendo demostrativo.
 - El HTML dentro de `versiones/v3/` sigue siendo **solo demostración local**: no tiene clave de acceso y **no utiliza este archivo**.
 - El código NO contiene datos de trabajadores ni contraseñas.
 
@@ -29,8 +29,8 @@ GitHub Pages es un sitio estático: no protege endpoints ni puede guardar claves
 - Guardias de otras duraciones: una comida según turno solicitado.
 - Clave de deduplicación: `ID_PERSONAL + FECHA + TURNO`; estado `ENTREGADO` también impide duplicación.
 - `COCINA`: puede entregar o revertir, con una entrada de auditoría.
-- `NUTRICION`: por ahora puede consultar el listado, **no** editar menús mediante este backend.
-- Este prototipo aún no implementa permisos más granulares, cierre de turnos, menú, carga manual de personas nuevas, login rate-limiting, revocación de sesiones, ni migración desde los registros reales.
+- `NUTRICION`: puede consultar el listado y publicar o editar menús y alertas de la planilla V3, con historial de versiones y auditoría; **no puede validar entregas**.
+- Este prototipo incluye carga manual puntual sin DNI para supervisores y menús V3, pero todavía no implementa cierre de turnos, edición de nómina permanente, control antiintentos reiterados ni migración de registros reales.
 
 ## Pruebas mínimas obligatorias antes de producción
 1. Contraseña incorrecta no debe iniciar sesión.
