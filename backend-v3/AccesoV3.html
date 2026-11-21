@@ -5,8 +5,8 @@
 <style>
 :root{--navy:#102943;--blue:#1664a6;--bg:#f3f7fb;--line:#dce6ef;--ink:#1b3147;--muted:#64758a;--ok:#14754f;--bad:#a63b3b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.45 system-ui,sans-serif;color:var(--ink)}
-header{background:var(--navy);color:white;padding:18px 4%}header strong{font-size:21px}
-main{width:min(1080px,100%);margin:auto;padding:24px 16px 70px}
+header{background:#0757ad;color:white;padding:20px 4%;text-align:center;box-shadow:0 2px 8px #0b285020}header strong{font-size:24px}header p{margin:3px 0 0;opacity:.88}
+main{width:min(1200px,100%);margin:auto;padding:24px 16px 70px}
 .card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin:16px 0;box-shadow:0 3px 12px #112b4510}
 .login{max-width:480px;margin:38px auto}.muted,small{color:var(--muted)}
 h1{font-size:25px;margin:0 0 9px}h2{font-size:19px;margin:0 0 12px}
@@ -30,23 +30,37 @@ button:disabled{opacity:.55;cursor:not-allowed}label{display:block;font-weight:6
 .metric b{display:block;font-size:24px}
 .order{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);padding:14px 4px}
 .order.done{background:#fff0f0}.order .pill{display:inline-block;margin-top:5px}
-.order.done .pill{background:#fadddd;color:#973535}.order>div{flex:1}.order.historical{opacity:.68;background:#fff6df}.warning{display:inline-block;margin:5px 0 0;background:#ffe4b7;color:#805107;padding:4px 8px;border-radius:8px;font-size:12px}.manualHint{color:var(--muted);font-size:13px}
+.order.done .pill{background:#fadddd;color:#973535}.order>div{flex:1}
+.alerta-publica{margin-top:18px;padding:15px 18px;background:#fff3cd;color:#785119;border:1px solid #ffdd85;border-radius:11px;white-space:pre-wrap;overflow-wrap:anywhere}
+.menu-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:13px 0}
+.menu-card{border:1px solid #d9e6f1;border-radius:13px;padding:17px;background:#f9fbfe;min-width:0}
+.menu-card h3{color:#0757ad;margin:0 0 9px}.menu-card strong{font-size:17px}.menu-card .muted{font-size:13px}
+.menu-pending{border:1px solid #edc3c8;background:#fce5e7}.menu-pending h3{color:#a03040}
+.diet-badges{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.diet-badges div{border-radius:9px;padding:10px;text-align:center;background:#0757ad;color:#fff;font-size:12px}
+.diet-badges b{display:block;font-size:21px}
+.menu-field{padding:11px;border:1px solid var(--line);border-radius:9px;margin-bottom:10px;background:#f8fafc}
+.menu-field input{width:100%;margin-top:6px}
+textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;border:1px solid #b9cbd9;border-radius:9px;font:inherit}
+#nutritionEditor input,#nutritionEditor select{width:100%}
+@media(max-width:620px){.menu-cards{grid-template-columns:1fr}header strong{font-size:19px}}.order.historical{opacity:.68;background:#fff6df}.warning{display:inline-block;margin:5px 0 0;background:#ffe4b7;color:#805107;padding:4px 8px;border-radius:8px;font-size:12px}.manualHint{color:var(--muted);font-size:13px}
 @media(max-width:600px){.card{padding:15px}.metrics{gap:4px}.metric{padding:9px}.actions button{flex:1}h1{font-size:22px}}
 </style></head>
-<body><header><strong>HISJB · Sistema de viandas V3</strong></header>
+<body><header><strong>🏥 HOSPITAL SAN JUAN BAUTISTA</strong><p>GESTIÓN DIGITAL DE ALIMENTACIÓN · V3 PRUEBAS</p></header>
 <main>
 <div class="notice"><b>ENTORNO DE PRUEBAS.</b> Acceso restringido. Solo personal ficticio y planilla V3.</div>
 <section class="card login" id="access">
-<h1>Ingresar al sistema</h1><p class="muted">Escribí la contraseña de tu servicio. No necesitás seleccionar ni escribir el nombre del sector.</p>
+<h1>🔐 Acceso al sistema</h1><p class="muted">Ingresá únicamente la contraseña de tu servicio.</p>
 <form id="accessForm">
 <label for="password">Contraseña del servicio</label>
 <input id="password" type="password" required autocomplete="current-password" placeholder="Contraseña">
 <div class="actions"><button type="submit" id="enter">Ingresar</button></div>
-</form><p class="status" id="accessMsg" role="status"></p>
+</form><div id="dailyAlert" class="alerta-publica hide" role="status"></div><p class="status" id="accessMsg" role="status"></p>
 </section>
 <div id="workspace" class="hide">
 <div class="row between"><div><h1 id="heading">Panel</h1><p class="muted" id="who"></p></div><button id="exit" class="secondary">Cerrar sesión</button></div>
 <section id="personalPanel" class="hide">
+<div class="card"><h2>🍽️ Menú del día</h2><div id="personalMenus" class="menu-cards"></div></div>
 <div class="card"><h2>Registrar viandas</h2><div class="grid">
 <div><label for="shift">Duración de guardia</label><select id="shift"><option value="12">12 horas</option><option value="16">16 horas</option><option value="20">20 horas</option><option value="24">24 horas (almuerzo + cena)</option></select></div>
 <div><label for="meal">Comida</label><select id="meal"><option value="MAÑANA">Almuerzo</option><option value="NOCHE">Cena</option></select></div></div>
@@ -67,14 +81,47 @@ button:disabled{opacity:.55;cursor:not-allowed}label{display:block;font-weight:6
 </div>
 </section>
 <section id="managementPanel" class="hide">
+<div class="card"><h2>📊 Indicadores de Cocina</h2>
+<div class="metrics" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+<div class="metric"><small>Total del día</small><b id="dayTotal">0</b></div>
+<div class="metric"><small>Almuerzo</small><b id="dayLunch">0</b></div>
+<div class="metric"><small>Cena</small><b id="dayDinner">0</b></div>
+<div class="metric"><small>Entregados</small><b id="dayDone">0</b></div>
+<div class="metric"><small>Pendientes</small><b id="dayPending">0</b></div></div>
+<p class="muted" id="historicalHint"></p></div>
+<div class="card"><h2>🍽️ Menús publicados</h2><div id="kitchenMenus" class="menu-cards"></div></div>
 <div class="card"><h2>Pedidos del día</h2><div class="grid">
 <div><label for="filterMeal">Comida</label><select id="filterMeal"><option value="MAÑANA">Almuerzo</option><option value="NOCHE">Cena</option></select></div>
 <div><label for="filterState">Estado</label><select id="filterState"><option value="TODOS">Todos</option><option value="PENDIENTE">Pendientes</option><option value="ENTREGADO">Entregados</option></select></div>
 </div><div class="metrics"><div class="metric"><b id="total">0</b>Total</div><div class="metric"><b id="pending">0</b>Pendientes</div><div class="metric"><b id="delivered">0</b>Entregados</div></div>
-<button id="refresh" class="secondary">Actualizar pedidos</button></div>
+<button id="refresh" class="secondary">Actualizar pedidos</button>
+<h3>📋 Pendientes por dieta (comida seleccionada)</h3><div id="dietBadges" class="diet-badges"></div></div>
 <div class="card"><h2>Entrega de viandas</h2><input id="searchOrder" type="search" placeholder="Buscar por persona o servicio…">
 <p class="muted" id="managementHint"></p><div id="orders"></div><p class="status" id="managementMsg" role="status"></p></div>
-<div class="card"><h2>Nutrición · Menú del día</h2><p class="muted">La edición del menú aún no está habilitada en V3. Nutrición puede consultar pedidos, pero no marcar entregas. El menú operativo sigue en la versión estable.</p></div>
+<div class="card hide" id="nutritionEditor"><h2>📝 Nutrición · Publicar o modificar menú</h2>
+<p class="muted">Los menús se pueden modificar en cualquier momento por una emergencia. Cada actualización crea una nueva versión para hoy y queda auditada.</p>
+<form id="menuForm"><div class="grid">
+<div><label for="editMeal">Turno</label><select id="editMeal"><option value="MAÑANA">🍽️ Almuerzo</option><option value="NOCHE">🌙 Cena</option></select></div>
+<div><label for="mainDish">Plato principal</label><input id="mainDish" maxlength="160" required placeholder="Ej.: Guiso de lentejas"></div>
+<div><label for="dessert">Postre del día</label><input id="dessert" maxlength="140" placeholder="Ej.: Gelatina de frutilla"></div></div>
+<h3>Especificaciones por dieta (opcionales)</h3>
+<div class="grid" id="dietInputs">
+<div class="menu-field"><label for="editGENERAL">General</label><input id="editGENERAL" maxlength="160"></div>
+<div class="menu-field"><label for="editHIPOSODICA">Hiposódica</label><input id="editHIPOSODICA" maxlength="160"></div>
+<div class="menu-field"><label for="editDIABETICA">Diabética</label><input id="editDIABETICA" maxlength="160"></div>
+<div class="menu-field"><label for="editCELIACA">Celíaca (sin TACC)</label><input id="editCELIACA" maxlength="160"></div>
+<div class="menu-field"><label for="editGASTRICA">Gástrica</label><input id="editGASTRICA" maxlength="160"></div>
+<div class="menu-field"><label for="editASTRINGENTE">Astringente</label><input id="editASTRINGENTE" maxlength="160"></div>
+<div class="menu-field"><label for="editVEGETARIANA">Vegetariana</label><input id="editVEGETARIANA" maxlength="160"></div></div>
+<p class="muted">Si una dieta queda vacía, se mostrará el nombre del plato principal.</p>
+<button id="saveMenu" type="submit">💾 Publicar / guardar cambios</button><p id="menuMsg" class="status" role="status"></p></form>
+<hr style="border:0;border-top:1px solid #dce6ef;margin:25px 0">
+<h2>📢 Alerta del día en el ingreso</h2>
+<p class="muted">Este mensaje se verá debajo del campo de contraseña, sin necesidad de iniciar sesión. Solo se muestra la alerta de hoy. Dejá el campo vacío para retirarla.</p>
+<form id="alertForm"><label for="alertText">Mensaje del día (máximo 500 caracteres)</label>
+<textarea id="alertText" maxlength="500" placeholder="Ej.: Por trabajos en Cocina, la entrega del almuerzo comenzará a las 12:30."></textarea>
+<div class="actions"><button id="saveAlert" type="submit">📢 Publicar alerta</button><button class="secondary" id="clearAlert" type="button">Retirar alerta</button></div>
+<p id="alertMsg" class="status" role="status"></p></form></div>
 </section>
 </div>
 </main>
