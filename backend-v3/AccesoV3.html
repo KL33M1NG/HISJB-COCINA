@@ -304,7 +304,7 @@ show('bulkRosterPanel',session.rol==='ADMIN');
 await refreshMenus();
 historyDefaults();
 $('heading').textContent='Cocina y Nutrición';$('who').textContent='Sector: '+session.servicio+' · Rol: '+session.rol;
-await loadOrders();await loadHistory()
+await loadOrders();await loadHistory(true)
 }
 show('access',false);show('workspace',true);note('accessMsg','',false)
 }catch(err){logoutLocal();note('accessMsg',err.message,true)}
@@ -529,8 +529,8 @@ function renderHistory(data){
   item.append(breakdown);list.append(item)
  });
 }
-async function loadHistory(){
- if(!session||!isManagement()||busy)return;
+async function loadHistory(force){
+ if(!session||!isManagement()||(busy&&!force))return;
  loading(true);note('historyMsg','Consultando cierres...',false);
  try{
   const r=await rpc({accion:'historialCierres',token:session.token,desde:$('historyFrom').value,hasta:$('historyTo').value});
