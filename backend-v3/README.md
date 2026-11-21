@@ -3,6 +3,7 @@
 > **NO instalar sobre el Apps Script de producción**. Este código es una base experimental. Su integración con GitHub Pages y su seguridad todavía requieren revisión antes de usar personal real.
 
 ## Estado de la integración
+- **Cocina V3 extendida (pendiente de prueba real):** búsqueda por ID, filtro por servicio, entregas por lote y cierre de turno con estadísticas deduplicadas y estado NO_ENTREGADO. Guía: [CIERRE-TURNO-COCINA.md](./CIERRE-TURNO-COCINA.md).
 - **Integración HtmlService de pruebas disponible**: `AccesoV3.html` es el ingreso único por contraseña y dirige a las vistas de Personal o Cocina/Nutrición mediante `google.script.run` y roles de `Code.gs`. `PersonalV3.html` y `CocinaV3.html` se mantienen como referencias iniciales. **Todavía no fue probado por el usuario en navegador ni habilitado para producción**. Guías: [ACCESO-SOLO-CLAVE.md](./ACCESO-SOLO-CLAVE.md) e [INTEGRACION-HTMLSERVICE.md](./INTEGRACION-HTMLSERVICE.md).
 - Implementados en `Code.gs`: login por servicio, roles WEB/SUPERVISOR/COCINA/NUTRICION/ADMIN, consulta de nómina **del propio servicio**, registro de una o varias personas, dos pedidos (MAÑANA/NOCHE) para guardias de 24 h, detección de repetidos en el servidor bajo `LockService`, entrega y reversión con auditoría.
 - **Nuevo en la rama de desarrollo:** Nutrición puede publicar y modificar menús, crear un aviso del día visible debajo del login e inspeccionar indicadores de Cocina. La primera prueba en navegador está pendiente. Guía: [NUTRICION-MENUS-AVISOS.md](./NUTRICION-MENUS-AVISOS.md). **Pendiente:** pruebas de concurrencia, controles antiabuso, migración de nómina y puesta en producción. El HTML de GitHub Pages sigue siendo demostrativo.
@@ -30,7 +31,7 @@ GitHub Pages es un sitio estático: no protege endpoints ni puede guardar claves
 - Clave de deduplicación: `ID_PERSONAL + FECHA + TURNO`; estado `ENTREGADO` también impide duplicación.
 - `COCINA`: puede entregar o revertir, con una entrada de auditoría.
 - `NUTRICION`: puede consultar el listado y publicar o editar menús y alertas de la planilla V3, con historial de versiones y auditoría; **no puede validar entregas**.
-- Este prototipo incluye carga manual puntual sin DNI para supervisores y menús V3, pero todavía no implementa cierre de turnos, edición de nómina permanente, control antiintentos reiterados ni migración de registros reales.
+- Este prototipo incluye carga manual puntual sin DNI para supervisores y menús V3, incluye ahora cierre de turnos de prueba, pero todavía no implementa reapertura auditada, edición de nómina permanente, control antiintentos reiterados ni migración de registros reales.
 
 ## Pruebas mínimas obligatorias antes de producción
 1. Contraseña incorrecta no debe iniciar sesión.
