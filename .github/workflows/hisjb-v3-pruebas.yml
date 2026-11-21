@@ -6,6 +6,8 @@ on:
       - desarrollo-selector-v3-2026-11-20
     paths:
       - "backend-v3/**"
+      - "tools/probar-v3-ci.js"
+      - "tools/verificar-v3-ci.js"
       - ".github/workflows/hisjb-v3-pruebas.yml"
   workflow_dispatch:
 
@@ -18,6 +20,7 @@ concurrency:
 
 jobs:
   verificar:
+    if: ${{ github.ref == 'refs/heads/desarrollo-selector-v3-2026-11-20' }}
     name: Comprobar codigo V3 (sin credenciales)
     runs-on: ubuntu-latest
     steps:
@@ -30,13 +33,14 @@ jobs:
         run: |
           set -euo pipefail
           node tools/verificar-v3-ci.js
+          node tools/probar-v3-ci.js
       - name: Confirmar que no se despliega produccion
         run: echo "Verificacion completa. No se modifico Apps Script ni produccion."
 
   sincronizar_pruebas:
     name: Sincronizar SOLO Apps Script V3 de pruebas
     needs: verificar
-    if: ${{ vars.V3_TEST_DEPLOY_ENABLED == 'true' }}
+    if: ${{ github.ref == 'refs/heads/desarrollo-selector-v3-2026-11-20' && vars.V3_TEST_DEPLOY_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     environment: v3-pruebas
     timeout-minutes: 12

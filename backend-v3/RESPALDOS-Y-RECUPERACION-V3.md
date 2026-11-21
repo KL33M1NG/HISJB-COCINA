@@ -11,7 +11,7 @@
 - El proyecto de Apps Script y sus propiedades secretas (cuentas, claves derivadas, pepper, configuración de pruebas) **NO se incluyen en la copia de Sheets**; GitHub conserva el código pero los secretos deben mantenerse y protegerse por separado.
 
 ## Antes de probar
-1. Crear en Google Drive una carpeta **privada**, por ejemplo `HISJB V3 RESPALDOS PRUEBAS`. No hacerla pública ni compartirla con equipos que no necesiten acceder a nóminas y pedidos.
+1. Crear en Google Drive una carpeta **privada**, por ejemplo `HISJB V3 RESPALDOS PRUEBAS`. La validación exige acceso restringido, propietario identificable y ningún colaborador/editor/lector adicional.
 2. Obtener el **ID de la carpeta** de la URL de Drive (solo el texto después de `/folders/`, no la URL completa).
 3. Abrir el editor del Apps Script V3 de PRUEBAS → **Configuración del proyecto → Propiedades de secuencia de comandos**.
 4. Agregar una propiedad con nombre exacto `HISJB_V3_BACKUP_FOLDER_ID` y valor **ID de la carpeta**. Nunca poner el ID en el repositorio público ni enviar links del contenido por chat.
@@ -21,7 +21,7 @@
 8. En el panel ADMIN, pulsar `Crear y verificar respaldo`. Revisar que informe `Respaldo verificado` y confirmar en la carpeta privada de Drive que existe la copia.
 
 ## Programación diaria (solo después de validar copia manual)
-En el editor privado V3 de Apps Script, ejecutar una vez `v3InstalarRespaldoDiarioV3` como propietario/autorizado. Conceder permisos Drive/Triggers si Google los solicita. La tarea se ejecutará cerca de las 02:00 según la zona horaria del proyecto; no se garantiza un minuto exacto. El botón **Consultar respaldos** mostrará si el usuario que ejecuta la app puede ver el disparador instalado. No instalar con varias cuentas.
+En el editor privado V3 de Apps Script, ejecutar una vez `v3InstalarRespaldoDiarioV3_` como propietario/autorizado. Conceder permisos Drive/Triggers si Google los solicita. La tarea se ejecutará cerca de las 02:00 según la zona horaria del proyecto; no se garantiza un minuto exacto. El botón **Consultar respaldos** mostrará si el usuario que ejecuta la app puede ver el disparador instalado. No instalar con varias cuentas. Si existiera un disparador con el nombre anterior `v3RespaldoDiarioProgramado`, revisarlo y retirarlo desde el editor antes de instalar el nuevo.
 
 **Se recomienda controlar las copias periódicamente**. No hay borrado automático ni retención configurada, para evitar eliminar respaldos por error. Definir política de retención, permisos de acceso, almacenamiento disponible y responsables institucionales antes de producción.
 

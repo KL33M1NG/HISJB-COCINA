@@ -85,6 +85,7 @@ function v3UiCall(p) {
       'Solo Administración puede gestionar respaldos',
       'Falta configurar la carpeta privada de respaldos V3',
       'Carpeta de respaldos V3 en papelera','Encabezados inválidos en la planilla V3',
+      'La carpeta de respaldos debe ser privada y sin colaboradores',
       'El respaldo requiere revisión manual en Drive'
     ];
     return {status:'error',message:conocidos.indexOf(m)>=0?m:(m.indexOf('Importación inválida: ')===0?m:'No fue posible completar la operación')};

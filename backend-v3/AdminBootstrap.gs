@@ -5,7 +5,7 @@
  * DESPUÉS: la propiedad temporal se borra tras crear la cuenta.
  * Nunca incluir contraseñas en el código fuente o registros.
  */
-function v3ConfigurarAdminSeguro() {
+function v3ConfigurarAdminSeguro_() {
   var props=PropertiesService.getScriptProperties();
   var nombre='HISJB_V3_ADMIN_BOOTSTRAP';
   var clave=props.getProperty(nombre);

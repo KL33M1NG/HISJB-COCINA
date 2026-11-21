@@ -4,7 +4,7 @@
  * La restauración automática está deliberadamente deshabilitada.
  */
 var V3_BACKUP_FOLDER_PROP_='HISJB_V3_BACKUP_FOLDER_ID';
-var V3_BACKUP_TRIGGER_HANDLER_='v3RespaldoDiarioProgramado';
+var V3_BACKUP_TRIGGER_HANDLER_='v3RespaldoDiarioProgramado_';
 var V3_BACKUP_REQUIRED_={
  'Personal_V3':['ID_PERSONAL','NOMBRE','SERVICIO','DIETA','ACTIVO'],
  'Pedidos_V3':['ID','FECHA','TURNO','ID_PERSONAL','NOMBRE','SERVICIO','GUARDIA','DIETA','ESTADO','HORA_ENTREGA','TIPO','LOTE'],
@@ -19,6 +19,8 @@ function v3BackupFolder_(){
    throw Error('Falta configurar la carpeta privada de respaldos V3');
  var folder=DriveApp.getFolderById(folderId);
  if(folder.isTrashed())throw Error('Carpeta de respaldos V3 en papelera');
+ if(folder.getSharingAccess()!==DriveApp.Access.PRIVATE||!folder.getOwner()||folder.getEditors().length||folder.getViewers().length)
+   throw Error('La carpeta de respaldos debe ser privada y sin colaboradores');
  return folder;
 }
 /** Devuelve solo tamaños, no devuelve contenido ni nombres de trabajadores. */
@@ -79,7 +81,7 @@ function v3BackupCrearSeguro_(tipo,responsable){
    var copiedSheet=SpreadsheetApp.openById(copy.getId()),validated=v3BackupInventario_(copiedSheet);
    if(!validated.correcto)throw Error('Respaldo creado, pero falló la verificación de encabezados');
    Object.keys(inv.hojas).forEach(function(key){
-     if(inv.hojas[key].filas!==validated.hojas[key].filas)
+     if(inv.hojas[key].presente!==validated.hojas[key].presente||inv.hojas[key].filas!==validated.hojas[key].filas)
        throw Error('Respaldo creado, pero los recuentos de filas no coinciden');
    });
   }catch(e){
@@ -92,10 +94,8 @@ function v3BackupCrearSeguro_(tipo,responsable){
  }finally{lock.releaseLock()}
 }
 /** Respaldo automático por trigger instalable, no llamado desde navegador. */
-function v3RespaldoDiarioProgramado(){
- var propietario=Session.getEffectiveUser().getEmail();
- // La propiedad está en el proyecto V3 de pruebas, no compartida con el navegador.
- return v3BackupCrearSeguro_('PROGRAMADO',propietario?'SISTEMA':'SISTEMA');
+function v3RespaldoDiarioProgramado_(){
+ return v3BackupCrearSeguro_('PROGRAMADO','SISTEMA');
 }
 function v3BackupProgramado_(){
  return ScriptApp.getProjectTriggers().some(function(t){
@@ -107,11 +107,13 @@ function v3BackupProgramado_(){
  * con la cuenta propietaria y autorización Drive.
  * Instala una sola tarea diaria, aprox. 02h zona del script.
  */
-function v3InstalarRespaldoDiarioV3(){
+function v3InstalarRespaldoDiarioV3_(){
  var props=PropertiesService.getScriptProperties();
  if(!props.getProperty(V3.hojaProp))throw Error('No se configuró planilla V3');
  v3BackupFolder_();
  if(v3BackupProgramado_())return 'El respaldo diario V3 ya estaba programado';
+ if(ScriptApp.getProjectTriggers().some(function(t){return t.getHandlerFunction()==='v3RespaldoDiarioProgramado'}))
+   throw Error('Revisá el disparador anterior en el editor antes de instalar uno nuevo');
  ScriptApp.newTrigger(V3_BACKUP_TRIGGER_HANDLER_).timeBased().everyDays(1).atHour(2).create();
  return 'Respaldo diario V3 programado (aprox. 02:00, hora del proyecto)';
 }

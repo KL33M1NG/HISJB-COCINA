@@ -14,7 +14,7 @@ En PowerShell:
 Verificar el vínculo con el proyecto V3 de pruebas y conservar el appsscript.json original. Después ejecutar: clasp.cmd push.
 
 ## Paso 2: crear cuenta ADMIN de pruebas
-En el editor de Apps Script V3 → Configuración del proyecto → Propiedades de la secuencia de comandos, crear HISJB_V3_ADMIN_BOOTSTRAP con una contraseña PRIVADA NUEVA de 16+ caracteres. No compartirla por chat ni guardarla en GitHub. Ejecutar v3ConfigurarAdminSeguro de AdminBootstrap.gs. Resultado esperado: Cuenta creada para ADMIN (ADMIN). La función borra la propiedad temporal y guarda el hash/salt en las propiedades privadas. Si ya existe ADMIN, actualiza su clave. Entrar a /dev con esa clave.
+En el editor de Apps Script V3 → Configuración del proyecto → Propiedades de la secuencia de comandos, crear HISJB_V3_ADMIN_BOOTSTRAP con una contraseña PRIVADA NUEVA de 16+ caracteres. No compartirla por chat ni guardarla en GitHub. Ejecutar v3ConfigurarAdminSeguro_ de AdminBootstrap.gs. Resultado esperado: Cuenta creada para ADMIN (ADMIN). La función borra la propiedad temporal y guarda el hash/salt en las propiedades privadas. Si ya existe ADMIN, actualiza su clave. Entrar a /dev con esa clave.
 
 ## Paso 3: preparar lotes LOCALES
 En PowerShell desde la raíz del repositorio:
