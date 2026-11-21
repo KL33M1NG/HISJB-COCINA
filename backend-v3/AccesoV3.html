@@ -65,6 +65,7 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 #nutritionEditor input,#nutritionEditor select{width:100%}
 @media(max-width:620px){.menu-cards{grid-template-columns:1fr}header strong{font-size:19px}}.order.historical{opacity:.68;background:#fff6df}.warning{display:inline-block;margin:5px 0 0;background:#ffe4b7;color:#805107;padding:4px 8px;border-radius:8px;font-size:12px}.manualHint{color:var(--muted);font-size:13px}
 @media(max-width:600px){.card{padding:15px}.metrics{gap:4px}.metric{padding:9px}.actions button{flex:1}h1{font-size:22px}}
+.close-confirm-box{border:1px solid #e5b66e;background:#fff8ec;border-radius:12px;padding:15px;margin-top:12px;color:#48330f}.close-confirm-box h3{margin:0 0 8px}.close-confirm-box p{margin:8px 0}.close-confirm-box button{min-width:120px}
 </style></head>
 <body><header><strong>🏥 HOSPITAL SAN JUAN BAUTISTA</strong><p>GESTIÓN DIGITAL DE ALIMENTACIÓN · V3 PRUEBAS</p></header>
 <main>
@@ -127,7 +128,13 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 <div id="orders"></div><p class="status" id="managementMsg" role="status"></p></div>
 <div class="card" id="closePanel"><h2>🔒 Cerrar turno y generar estadísticas</h2>
 <p class="close-warning">⚠️ El cierre marca los pedidos pendientes como <b>NO ENTREGADOS</b> y bloquea nuevas inscripciones, entregas y reversiones del turno seleccionado. No afecta la otra comida. Esta operación no se puede revertir desde el panel.</p>
-<div class="summary-list" id="closeSummary"></div><div class="grid"><div><h3>Por servicio</h3><div id="closeServices" class="muted"></div></div><div><h3>Por dieta</h3><div id="closeDiets" class="muted"></div></div></div><div class="actions"><button class="secondary" id="previewClose">Actualizar vista previa</button><button class="close-button" id="closeTurn">Cerrar turno seleccionado</button></div>
+<div class="summary-list" id="closeSummary"></div><div class="grid"><div><h3>Por servicio</h3><div id="closeServices" class="muted"></div></div><div><h3>Por dieta</h3><div id="closeDiets" class="muted"></div></div></div><div class="actions"><button class="secondary" type="button" id="previewClose">Actualizar vista previa</button><button class="close-button" type="button" id="closeTurn">Cerrar turno seleccionado</button></div>
+<div class="close-confirm-box hide" id="closeConfirmBox" role="group" aria-labelledby="closeConfirmTitle">
+<h3 id="closeConfirmTitle">🔒 ¿Confirmar cierre?</h3>
+<p id="closeConfirmSummary"></p>
+<p class="muted">Se marcarán como NO ENTREGADAS las viandas pendientes y se bloqueará este turno. No afecta al otro turno.</p>
+<div class="actions"><button type="button" class="secondary" id="cancelClose">Cancelar</button><button type="button" class="close-button" id="confirmClose">Confirmar cierre</button></div>
+</div>
 <p class="status" id="closeMsg" role="status"></p></div>
 <div class="card" id="historyPanel">
 <div class="row between"><h2>📅 Historial de cierres y estadísticas</h2><span class="pill">Cocina · Nutrición</span></div>
@@ -181,14 +188,14 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let session=null,roster=[],chosen=new Set(),orders=[],busy=false,chosenOrders=new Set(),turnoEstado=null,bulkPreview=null,menus={MAÑANA:null,NOCHE:null};
+let session=null,roster=[],chosen=new Set(),orders=[],busy=false,chosenOrders=new Set(),turnoEstado=null,bulkPreview=null,closeIntent=null,menus={MAÑANA:null,NOCHE:null};
 const DIETS=['GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA'];
 const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',CELIACA:'Celíaca',GASTRICA:'Gástrica',ASTRINGENTE:'Astringente',VEGETARIANA:'Vegetariana'};
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','previewClose','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
-function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
+function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
 
 async function loadDailyAlert(){
  try{
@@ -546,8 +553,17 @@ function pendingVisible(){
  return orders.filter(o=>(estado==='TODOS'||estado==='PENDIENTE')&&o.estado==='PENDIENTE'&&!o.duplicado&&(!sector||o.servicio===sector)&&
   (o.nombre+' '+o.servicio+' '+o.id).toLocaleLowerCase('es').includes(q))
 }
+function cancelCloseIntent(){
+ closeIntent=null;show('closeConfirmBox',false);
+}
+function closeSnapshot(estado){
+ return estado&&estado.fecha+'|'+estado.turno+'|'+estado.resumen.total+'|'+
+ estado.resumen.entregados+'|'+estado.resumen.pendientes+'|'+
+ estado.resumen.noEntregados+'|'+estado.resumen.duplicadosHistoricos
+}
 async function refreshTurnStatus(){
  if(!session||!isManagement())return;
+ cancelCloseIntent();
  turnoEstado=await rpc({accion:'estadoTurno',token:session.token,turno:$('filterMeal').value});
  renderClosePreview()
 }
@@ -589,25 +605,41 @@ $('previewClose').addEventListener('click',async()=>{
  if(!canManage()||busy)return;
  loading(true);try{await refreshTurnStatus();renderOrders()}catch(e){note('closeMsg',e.message,true)}finally{loading(false)}
 });
-$('closeTurn').addEventListener('click',async()=>{
+$('closeTurn').addEventListener('click',()=>{
  if(!canManage()||busy||!turnoEstado||turnoEstado.cierre)return;
- const turno=turnoEstado.turno;
- const text='CERRAR '+turno;
- const entered=prompt('El cierre es IRREVERSIBLE desde la interfaz.\n'+
- 'Los '+turnoEstado.resumen.pendientes+' pedidos pendientes quedarán NO ENTREGADOS.\n'+
- 'Para continuar escribí exactamente:\n'+text);
- if(entered!==text){note('closeMsg','Cierre cancelado: no coincide la confirmación.',true);return}
- if(!confirm('Última confirmación: ¿cerrar '+turno+' y registrar estadísticas?'))return;
- loading(true);
+ closeIntent={turno:turnoEstado.turno,snapshot:closeSnapshot(turnoEstado),
+  total:turnoEstado.resumen.total,pendientes:turnoEstado.resumen.pendientes};
+ $('closeConfirmSummary').textContent=(closeIntent.turno==='MAÑANA'?'Almuerzo':'Cena')+
+  ': '+closeIntent.total+' viandas · '+turnoEstado.resumen.entregados+' entregadas · '+
+  closeIntent.pendientes+' pendientes.';
+ show('closeConfirmBox',true);
+ $('confirmClose').focus();
+});
+$('cancelClose').addEventListener('click',()=>{
+ cancelCloseIntent();note('closeMsg','Cierre cancelado.',false)
+});
+$('confirmClose').addEventListener('click',async()=>{
+ if(!canManage()||busy||!turnoEstado||turnoEstado.cierre||!closeIntent)return;
+ const confirmacion=closeIntent;
+ // El turno o los datos pueden haber cambiado mientras se mostraba el panel.
+ if($('filterMeal').value!==confirmacion.turno||closeSnapshot(turnoEstado)!==confirmacion.snapshot){
+  cancelCloseIntent();note('closeMsg','La vista previa cambió. Actualizala antes de cerrar.',true);return;
+ }
+ cancelCloseIntent();loading(true);note('closeMsg','Registrando cierre del turno...',false);
+ let success=false;
  try{
-  const r=await rpc({accion:'cerrarTurno',token:session.token,turno,
-   confirmacion:entered,totalEsperado:turnoEstado.resumen.total,
-   pendientesEsperados:turnoEstado.resumen.pendientes});
-  await loadOrders();await loadHistory();
+  const r=await rpc({accion:'cerrarTurno',token:session.token,turno:confirmacion.turno,
+   confirmacion:true,totalEsperado:confirmacion.total,
+   pendientesEsperados:confirmacion.pendientes});
+  success=true;
   note('closeMsg','Turno cerrado. Entregados: '+r.resumen.entregados+
-    ' · No entregados: '+r.resumen.noEntregados,false);
+   ' · No entregados: '+r.resumen.noEntregados,false);
  }catch(e){note('closeMsg',e.message,true)}
- finally{loading(false);if(session)renderOrders()}
+ finally{
+  // Refrescar sin suponer que una falla de red significa que el cierre no se ejecutó.
+  try{await loadOrders();await loadHistory(true)}catch(e){}
+  loading(false);if(session)renderOrders()
+ }
 });
 
 $('filterMeal').addEventListener('change',loadOrders);
