@@ -31,8 +31,8 @@ objects.forEach((obj,index)=>{
   else if(servicio.length<2||servicio.length>60||!/^[\p{L}\p{M}\d ._/-]+$/u.test(servicio))causa='Servicio requiere revisión';
   else if(!allowed.has(dieta))causa='Dieta no reconocida: '+dieta;
   const clave=norm(servicio)+'|'+norm(nombre);
-  if(!causa && seen.has(clave)){repeat.push({linea:index+1,nombre,servicio});continue}
-  if(causa){revisar.push({linea:index+1,nombre,servicio,dieta,motivo:causa});continue}
+  if(!causa && seen.has(clave)){repeat.push({linea:index+1,nombre,servicio});return}
+  if(causa){revisar.push({linea:index+1,nombre,servicio,dieta,motivo:causa});return}
   seen.add(clave);valid.push({nombre,servicio:norm(servicio),dieta});
 });
 const chunks=[];for(let i=0;i<valid.length;i+=150)chunks.push(valid.slice(i,i+150));
