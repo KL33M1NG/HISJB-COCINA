@@ -152,6 +152,8 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
 
+.backup-entry{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:10px 12px;margin:8px 0;font-size:13px;overflow-wrap:anywhere}
+#backupPanel{border-top:4px solid #3579b0}
 </style></head>
 <body><header><strong>🏥 HOSPITAL SAN JUAN BAUTISTA</strong><p>GESTIÓN DIGITAL DE ALIMENTACIÓN · V3 PRUEBAS</p></header>
 <main>
@@ -232,6 +234,17 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div class="actions"><button type="button" class="secondary" id="cancelClose">Cancelar</button><button type="button" class="close-button" id="confirmClose">Confirmar cierre</button></div>
 </div>
 <p class="status" id="closeMsg" role="status"></p></div>
+<div class="card hide" id="backupPanel">
+<h2>🗄️ Administración · Respaldos de V3</h2>
+<p class="muted">Copias privadas de la planilla de pruebas. Solo ADMIN puede consultar y crear respaldos. Las copias no incluyen las propiedades secretas de Apps Script y no existe restauración automática.</p>
+<div class="actions">
+<button type="button" id="listBackups" class="secondary">Consultar respaldos</button>
+<button type="button" id="makeBackup">Crear y verificar respaldo</button>
+</div>
+<div id="backupSummary" class="summary-list"></div>
+<div id="backupEntries"></div>
+<p id="backupMsg" class="status" role="status"></p>
+</div>
 <div class="card hide" id="repairPanel">
 <h2>🛠️ Administración · Verificar cierre parcial</h2>
 <p class="muted">Si un cierre se interrumpe, verificá el turno seleccionado. Solo se permite completar pedidos pendientes si las cifras coinciden con el cierre guardado. No reabre turnos.</p>
@@ -328,7 +341,7 @@ const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','listBackups','makeBackup','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
 function logoutLocal(){document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
 
 async function loadDailyAlert(){
@@ -443,6 +456,7 @@ show('personalPanel',false);show('managementPanel',true);
 show('nutritionEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
 show('bulkRosterPanel',session.rol==='ADMIN');
 show('repairPanel',session.rol==='ADMIN');
+show('backupPanel',session.rol==='ADMIN');
 await refreshMenus();
 historyDefaults();
 $('heading').textContent='Cocina y Nutrición';$('who').textContent='Sector: '+session.servicio+' · Rol: '+session.rol;
@@ -681,6 +695,41 @@ async function loadHistory(force){
  finally{loading(false)}
 }
 $('searchHistory').addEventListener('click',loadHistory);
+
+async function loadBackupStatus(){
+ if(!session||session.rol!=='ADMIN'||busy)return;
+ loading(true);note('backupMsg','Consultando la carpeta privada de respaldos...',false);
+ try{
+  const result=await rpc({accion:'listarRespaldos',token:session.token});
+  const count=$('backupSummary'),entries=$('backupEntries');
+  count.replaceChildren();entries.replaceChildren();
+  const inv=result.inventarioActual||{correcto:false,hojas:{}};
+  const items=[['Copias recientes',result.cantidad],['Estructura V3',inv.correcto?'Correcta':'Revisar'],['Respaldo diario',result.programado?'Programado':'Sin programar']];
+  for(const [label,value] of items){
+    const el=document.createElement('div'),b=document.createElement('b');
+    b.textContent=String(value);el.append(b,document.createTextNode(label));count.append(el);
+  }
+  for(const file of result.respaldos||[]){
+    const item=document.createElement('div');item.className='backup-entry';
+    item.textContent='🗂️ '+file.fecha+' · '+file.nombre;entries.append(item)
+  }
+  if(!result.respaldos.length){const hint=document.createElement('p');hint.className='muted';hint.textContent='Aún no se encontraron copias verificables en la carpeta configurada.';entries.append(hint)}
+  note('backupMsg','Consulta completada. No se modificaron pedidos.',false);
+ }catch(e){note('backupMsg',e.message,true)}
+ finally{loading(false)}
+}
+$('listBackups').addEventListener('click',loadBackupStatus);
+$('makeBackup').addEventListener('click',async()=>{
+ if(!session||session.rol!=='ADMIN'||busy)return;
+ loading(true);note('backupMsg','Creando una copia privada y verificando sus hojas...',false);
+ try{
+   const r=await rpc({accion:'crearRespaldo',token:session.token});
+   note('backupMsg','Respaldo verificado: '+r.nombre,false);
+ }catch(e){note('backupMsg',e.message,true)}
+ finally{loading(false)}
+ // Actualizar solo al volver a pulsar Consultar, para conservar el mensaje de resultado.
+});
+
 
 function canManage(){return session&&['COCINA','ADMIN'].includes(session.rol)}
 function pendingVisible(){
