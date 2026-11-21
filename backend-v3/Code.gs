@@ -46,6 +46,9 @@ function v3UiCall(p) {
     if (accion === 'entrega') return v3Entrega_(sesion,p);
     if (accion === 'menus') return v3MenusHoy_(sesion);
     if (accion === 'resumenCocina') return v3ResumenCocina_(sesion);
+    if (accion === 'estadoTurno') return v3EstadoTurno_(sesion,p);
+    if (accion === 'entregaLote') return v3EntregaLote_(sesion,p);
+    if (accion === 'cerrarTurno') return v3CerrarTurno_(sesion,p);
     if (accion === 'guardarMenu') return v3GuardarMenu_(sesion,p);
     if (accion === 'guardarAviso') return v3GuardarAviso_(sesion,p);
     throw Error('Acción no permitida');
@@ -59,6 +62,9 @@ function v3UiCall(p) {
       'Comida inválida','Trabajador no habilitado','Trabajador de otro servicio: acceso denegado',
       'Sistema ocupado, reintentar','Sistema ocupado','Turno inválido',
       'Solo Cocina puede validar o revertir','Estado incompatible','Pedido inexistente',
+      'El turno ya está cerrado','Solo Cocina puede cerrar turnos',
+      'Confirmación de cierre incorrecta','El turno cambió: actualizá el resumen antes de cerrar',
+      'La selección incluye pedidos repetidos','Solo se pueden entregar pedidos de hoy',
       'Acción no permitida','Nombre inválido','Categoría inválida',
       'La persona ya está en la nómina; seleccionála desde el listado',
       'Dieta inválida','Servicio inválido','Turno inválido','Plato principal obligatorio',
@@ -228,6 +234,7 @@ function v3Registrar_(sesion,p) {
   if (!lock.tryLock(30000)) throw Error('Sistema ocupado, reintentar');
   try {
     var ss=v3Planilla_(), personal=ss.getSheetByName(V3.personal),pedidos=ss.getSheetByName(V3.pedidos);
+    v3ExigirAbierto_(ss,timing.turnos);
     var roster=new Map(v3Rows_(personal).map(function(r){return [String(r[0]).trim(),r];}));
     var existentes=new Set();
     v3PedidosHoy_(ss).forEach(function(r){
@@ -272,6 +279,7 @@ function v3RegistrarManual_(sesion,p) {
   if(!lock.tryLock(30000)) throw Error('Sistema ocupado, reintentar');
   try {
     var ss=v3Planilla_(),pedidos=ss.getSheetByName(V3.pedidos),hoy=v3Hoy_(ss);
+    v3ExigirAbierto_(ss,timing.turnos);
     // Impedir cargar manualmente a una persona ya presente en la nómina del sector.
     var estaEnNomina=v3Rows_(ss.getSheetByName(V3.personal)).some(function(r){
       return v3Norm_(r[2])===servicio && v3NombreClave_(r[1])===v3NombreClave_(nombre)
@@ -320,6 +328,7 @@ function v3Entrega_(sesion,p) {
     var ss=v3Planilla_(),s=ss.getSheetByName(V3.pedidos),rows=v3Rows_(s);
     for(var i=0;i<rows.length;i++){
       if(String(rows[i][0])!==id) continue;
+      v3ExigirAbierto_(ss,[v3TurnoCanonico_(rows[i][2])]);
       var estado=String(rows[i][8]);
       if (estado!==(revertir?'ENTREGADO':'PENDIENTE')) throw Error('Estado incompatible');
       if(!revertir){
@@ -440,7 +449,7 @@ function v3ResumenCocina_(sesion) {
     if(!unicos.has(key)||v3Norm_(r[8])==='ENTREGADO')unicos.set(key,r);
   });
   var resumen={
-    total:0,manana:0,noche:0,entregados:0,pendientes:0,
+    total:0,manana:0,noche:0,entregados:0,pendientes:0,noEntregados:0,
     dietas:{},servicios:{},duplicadosHistoricos:Math.max(0,rows.length-unicos.size)
   };
   unicos.forEach(function(r){
@@ -448,6 +457,7 @@ function v3ResumenCocina_(sesion) {
     if(v3Norm_(r[2])==='MANANA')resumen.manana++;
     if(v3Norm_(r[2])==='NOCHE')resumen.noche++;
     if(v3Norm_(r[8])==='ENTREGADO')resumen.entregados++;
+    else if(v3Norm_(r[8])==='NO_ENTREGADO')resumen.noEntregados++;
     else{
       resumen.pendientes++;
       var dieta=v3Norm_(r[7]||'GENERAL');
