@@ -328,6 +328,11 @@ function v3Listado_(sesion,p) {
       tipo:String(r[10]),duplicado:canonic.get(key)!==i,grupoDuplicado:cuentas.get(key)>1};
   })};
 }
+/** Evitar entregar o revertir pedidos de otra fecha, incluso si se conoce su ID. */
+function v3ExigirPedidoDeHoy_(ss,fechaPedido) {
+  if (v3FechaClave_(fechaPedido,ss.getSpreadsheetTimeZone()) !== v3Hoy_(ss))
+    throw Error('Solo se pueden entregar pedidos de hoy');
+}
 function v3Entrega_(sesion,p) {
   if (!['COCINA','ADMIN'].includes(sesion.rol)) throw Error('Solo Cocina puede validar o revertir');
   var id=String(p.id||''),revertir=p.revertir===true;
@@ -337,6 +342,7 @@ function v3Entrega_(sesion,p) {
     var ss=v3Planilla_(),s=ss.getSheetByName(V3.pedidos),rows=v3Rows_(s);
     for(var i=0;i<rows.length;i++){
       if(String(rows[i][0])!==id) continue;
+      v3ExigirPedidoDeHoy_(ss,rows[i][1]);
       v3ExigirAbierto_(ss,[v3TurnoCanonico_(rows[i][2])]);
       var estado=String(rows[i][8]);
       if (estado!==(revertir?'ENTREGADO':'PENDIENTE')) throw Error('Estado incompatible');
