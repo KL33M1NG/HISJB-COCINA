@@ -136,6 +136,12 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 <div class="actions"><button type="button" class="secondary" id="cancelClose">Cancelar</button><button type="button" class="close-button" id="confirmClose">Confirmar cierre</button></div>
 </div>
 <p class="status" id="closeMsg" role="status"></p></div>
+<div class="card hide" id="repairPanel">
+<h2>🛠️ Administración · Verificar cierre parcial</h2>
+<p class="muted">Si un cierre se interrumpe, verificá el turno seleccionado. Solo se permite completar pedidos pendientes si las cifras coinciden con el cierre guardado. No reabre turnos.</p>
+<div class="actions"><button type="button" class="secondary" id="diagnoseClose">Verificar integridad del cierre</button><button type="button" class="close-button hide" id="repairClose">Completar estados pendientes</button></div>
+<p class="status" id="repairMsg" role="status"></p>
+</div>
 <div class="card" id="historyPanel">
 <div class="row between"><h2>📅 Historial de cierres y estadísticas</h2><span class="pill">Cocina · Nutrición</span></div>
 <p class="muted">Consultá los cierres de días anteriores sin abrir Google Sheets. Los informes están disponibles después de cerrar cada turno.</p>
@@ -188,14 +194,14 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let session=null,roster=[],chosen=new Set(),orders=[],busy=false,chosenOrders=new Set(),turnoEstado=null,bulkPreview=null,closeIntent=null,menus={MAÑANA:null,NOCHE:null};
+let session=null,roster=[],chosen=new Set(),orders=[],busy=false,chosenOrders=new Set(),turnoEstado=null,bulkPreview=null,closeIntent=null,repairCheck=null,menus={MAÑANA:null,NOCHE:null};
 const DIETS=['GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA'];
 const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',CELIACA:'Celíaca',GASTRICA:'Gástrica',ASTRINGENTE:'Astringente',VEGETARIANA:'Vegetariana'};
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
-function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
+function logoutLocal(){session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
 
 async function loadDailyAlert(){
  try{
@@ -308,6 +314,7 @@ renderPeople()
 show('personalPanel',false);show('managementPanel',true);
 show('nutritionEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
 show('bulkRosterPanel',session.rol==='ADMIN');
+show('repairPanel',session.rol==='ADMIN');
 await refreshMenus();
 historyDefaults();
 $('heading').textContent='Cocina y Nutrición';$('who').textContent='Sector: '+session.servicio+' · Rol: '+session.rol;
@@ -563,7 +570,7 @@ function closeSnapshot(estado){
 }
 async function refreshTurnStatus(){
  if(!session||!isManagement())return;
- cancelCloseIntent();
+ cancelCloseIntent();repairCheck=null;show('repairClose',false);
  turnoEstado=await rpc({accion:'estadoTurno',token:session.token,turno:$('filterMeal').value});
  renderClosePreview()
 }
@@ -605,6 +612,35 @@ $('previewClose').addEventListener('click',async()=>{
  if(!canManage()||busy)return;
  loading(true);try{await refreshTurnStatus();renderOrders()}catch(e){note('closeMsg',e.message,true)}finally{loading(false)}
 });
+$('diagnoseClose').addEventListener('click',async()=>{
+ if(!session||session.rol!=='ADMIN'||busy)return;
+ repairCheck=null;show('repairClose',false);loading(true);
+ try{
+  const result=await rpc({accion:'diagnosticarCierre',token:session.token,turno:$('filterMeal').value});
+  if(!result.coincide){
+   note('repairMsg','Las cifras no coinciden con el registro guardado. No se permite reparación automática; revisar la planilla.',true);
+  }else if(result.filasPendientes===0){
+   note('repairMsg','Cierre consistente. No hay pedidos pendientes por completar.',false);
+  }else{
+   repairCheck={turno:result.turno,fecha:result.fecha,filas:result.filasPendientes};
+   show('repairClose',true);
+   note('repairMsg','Se detectaron '+result.filasPendientes+' filas pendientes del turno cerrado. Podés completarlas.',true);
+  }
+ }catch(e){note('repairMsg',e.message,true)}
+ finally{loading(false)}
+});
+$('repairClose').addEventListener('click',async()=>{
+ if(!session||session.rol!=='ADMIN'||busy||!repairCheck)return;
+ const check=repairCheck;repairCheck=null;show('repairClose',false);
+ loading(true);
+ try{
+  const r=await rpc({accion:'reconciliarCierre',token:session.token,turno:check.turno,confirmacion:true});
+  note('repairMsg','Reconciliación completada: '+r.reparadas+' filas. Turno permanece cerrado.',false);
+  await loadOrders();await loadHistory(true);
+ }catch(e){note('repairMsg',e.message,true)}
+ finally{loading(false)}
+});
+
 $('closeTurn').addEventListener('click',()=>{
  if(!canManage()||busy||!turnoEstado||turnoEstado.cierre)return;
  closeIntent={turno:turnoEstado.turno,snapshot:closeSnapshot(turnoEstado),
