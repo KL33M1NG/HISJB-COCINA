@@ -117,6 +117,15 @@ function v3EntregaLote_(sesion,p) {
     return {status:'success',entregados:ids.length};
   }finally{lock.releaseLock();}
 }
+/** Proyecta el resultado del cierre sin tocar la hoja; útil para verificar el registro antes de escribir. */
+function v3ProyectarCierre_(rows,turno) {
+ var t=v3TurnoCanonico_(turno);
+ return v3EstadisticasTurno_(rows.map(function(r){
+   var c=r.slice();
+   if(v3Norm_(c[2])===v3Norm_(t)&&v3Norm_(c[8])==='PENDIENTE')c[8]='NO_ENTREGADO';
+   return c;
+ }),t);
+}
 function v3CerrarTurno_(sesion,p) {
   if(!['COCINA','ADMIN'].includes(sesion.rol))throw Error('Solo Cocina puede cerrar turnos');
   var turno=v3TurnoCanonico_(p.turno),lock=LockService.getScriptLock();
@@ -126,7 +135,7 @@ function v3CerrarTurno_(sesion,p) {
     v3ExigirAbierto_(ss,[turno]);
     var hoja=ss.getSheetByName(V3.pedidos),rows=v3Rows_(hoja),original=v3EstadisticasTurno_(
       rows.filter(function(r){return v3FechaClave_(r[1],zona)===hoy;}),turno);
-    if(p.confirmacion!=='CERRAR '+turno)throw Error('Confirmación de cierre incorrecta');
+    if(p.confirmacion!==true)throw Error('Confirmación de cierre incorrecta');
     if(p.totalEsperado!==original.total || p.pendientesEsperados!==original.pendientes)
       throw Error('El turno cambió: actualizá el resumen antes de cerrar');
     // Solo filas pendientes del turno seleccionado. No tocar almuerzo y cena a la vez.
@@ -135,11 +144,20 @@ function v3CerrarTurno_(sesion,p) {
       if(v3FechaClave_(r[1],zona)===hoy &&
          v3Norm_(r[2])===v3Norm_(turno) && v3Norm_(r[8])==='PENDIENTE')posiciones.push(i+2);
     });
-    posiciones.forEach(function(i){hoja.getRange(i,9).setValue('NO_ENTREGADO')});
-    var cierre=v3EstadisticasTurno_(v3PedidosHoy_(ss),turno);
-    v3CierreHoja_(ss).appendRow([hoy,turno,new Date(),cierre.total,
+    // BARRERA DE CIERRE: registrar primero la decisión bajo lock. Hasta que
+    // exista esa fila, ninguna inscripción ni entrega queda bloqueada.
+    // Después de appendRow + flush, las demás operaciones rechazan el turno.
+    // Si la actualización de estados falla, ADMIN puede reconciliar
+    // exclusivamente los pendientes de este cierre; no se reabre el turno.
+    var rowsHoy=rows.filter(function(r){return v3FechaClave_(r[1],zona)===hoy});
+    var cierre=v3ProyectarCierre_(rowsHoy,turno);
+    var cierres=v3CierreHoja_(ss);
+    cierres.appendRow([hoy,turno,new Date(),cierre.total,
       cierre.entregados,cierre.noEntregados,cierre.duplicadosHistoricos,
       JSON.stringify(cierre.dietas),JSON.stringify(cierre.servicios),sesion.servicio]);
+    SpreadsheetApp.flush();
+    posiciones.forEach(function(i){hoja.getRange(i,9).setValue('NO_ENTREGADO')});
+    SpreadsheetApp.flush();
     v3Auditar_(ss,'CERRAR_TURNO',sesion.servicio,
       'Turno '+turno+', total '+cierre.total+', entregados '+cierre.entregados+
       ', no entregados '+cierre.noEntregados);
