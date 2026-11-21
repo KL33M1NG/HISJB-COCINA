@@ -48,6 +48,7 @@ function v3UiCall(p) {
     if (accion === 'resumenCocina') return v3ResumenCocina_(sesion);
     if (accion === 'estadoTurno') return v3EstadoTurno_(sesion,p);
     if (accion === 'historialCierres') return v3HistorialCierres_(sesion,p);
+    if (accion === 'importarNomina') return v3ImportarNomina_(sesion,p);
     if (accion === 'entregaLote') return v3EntregaLote_(sesion,p);
     if (accion === 'cerrarTurno') return v3CerrarTurno_(sesion,p);
     if (accion === 'guardarMenu') return v3GuardarMenu_(sesion,p);
@@ -67,6 +68,8 @@ function v3UiCall(p) {
       'Confirmación de cierre incorrecta','El turno cambió: actualizá el resumen antes de cerrar',
       'La selección incluye pedidos repetidos','Solo se pueden entregar pedidos de hoy',
       'Rango de fechas inválido','Rango máximo: 91 días',
+      'Solo Administración puede importar personal','La importación admite de 1 a 150 personas',
+      'La nómina cambió: repetí la vista previa',
       'Acción no permitida','Nombre inválido','Categoría inválida',
       'La persona ya está en la nómina; seleccionála desde el listado',
       'Dieta inválida','Servicio inválido','Turno inválido','Plato principal obligatorio',
@@ -74,7 +77,7 @@ function v3UiCall(p) {
       'El pedido seleccionado es un duplicado histórico; no se puede entregar',
       'Ya existe una entrega de esta persona para esta comida'
     ];
-    return {status:'error',message:conocidos.indexOf(m)>=0?m:'No fue posible completar la operación'};
+    return {status:'error',message:conocidos.indexOf(m)>=0?m:(m.indexOf('Importación inválida: ')===0?m:'No fue posible completar la operación')};
   }
 }
 
