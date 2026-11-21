@@ -31,6 +31,14 @@ button:disabled{opacity:.55;cursor:not-allowed}label{display:block;font-weight:6
 .order{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);padding:14px 4px}
 .order.done{background:#fff0f0}.order .pill{display:inline-block;margin-top:5px}
 .order.done .pill{background:#fadddd;color:#973535}.order>div{flex:1}
+.fast-deliver{background:#12844d;min-width:114px;padding:12px}
+.fast-batch{position:sticky;top:0;z-index:4;padding:12px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 3px 12px #0c2c4517}
+#deliverSelected{background:#08794b;padding:13px 17px;font-size:16px}
+#serviceFilter{min-height:46px}
+.order .details{font-size:14px}
+.order input[type=checkbox]{cursor:pointer}
+#deliveryActions{margin-top:8px}
+@media(max-width:620px){.fast-deliver{min-width:95px}.fast-batch button{flex:1}}
 .close-warning{background:#fff5dc;border:1px solid #ecc77a;padding:13px;border-radius:10px;color:#765008}
 .close-button{background:#cf303e} .multi{background:#0c7e5a}.order input[type=checkbox]{width:20px;height:20px;accent-color:#0864b2}.order.closed{background:#f5edf0}.summary-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.summary-list>div{background:#f0f5fa;padding:12px;border-radius:9px;text-align:center}.summary-list b{display:block;font-size:21px}
 .alerta-publica{margin-top:18px;padding:15px 18px;background:#fff3cd;color:#785119;border:1px solid #ffdd85;border-radius:11px;white-space:pre-wrap;overflow-wrap:anywhere}
@@ -99,12 +107,13 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 <button id="refresh" class="secondary">Actualizar pedidos</button>
 <p class="muted" id="turnoState"></p>
 <h3>📋 Pendientes por dieta (comida seleccionada)</h3><div id="dietBadges" class="diet-badges"></div></div>
-<div class="card"><h2>✅ Entrega de viandas</h2>
-<div class="grid"><div><label for="searchOrder">Buscar por nombre, ID o servicio</label><input id="searchOrder" type="search" placeholder="Nombre, ID de registro o servicio…"></div>
-<div><label for="serviceFilter">Filtrar servicio</label><select id="serviceFilter"><option value="">Todos los servicios</option></select></div></div>
-<div class="actions" id="deliveryActions"><input id="orderId" placeholder="ID exacto del pedido" aria-label="ID exacto del pedido" style="flex:1;min-width:190px"><button id="deliverById">Validar por ID</button></div>
+<div class="card"><h2>✅ Entrega rápida de viandas</h2>
+<p class="muted">Marcá <b>Entregar</b> junto al nombre, o elegí un servicio y seleccioná a todas las personas presentes para validarlas juntas. No hace falta escribir ningún ID.</p>
+<div class="grid"><div><label for="searchOrder">Buscar por nombre</label><input id="searchOrder" type="search" placeholder="Buscar trabajador…"></div>
+<div><label for="serviceFilter">Filtrar por servicio</label><select id="serviceFilter"><option value="">Todos los servicios</option></select></div></div>
 <p class="muted" id="managementHint"></p>
-<div class="actions" id="batchActions"><button class="secondary" id="selectVisible">Seleccionar pendientes visibles</button><button class="secondary" id="clearSelected">Limpiar selección</button><button class="multi" id="deliverSelected">Entregar seleccionados (0)</button></div>
+<div class="actions fast-batch" id="batchActions"><button class="secondary" id="selectVisible">☑️ Seleccionar todos los pendientes del filtro</button><button class="secondary" id="clearSelected">Limpiar selección</button><button id="deliverSelected">✅ Entregar seleccionados (0)</button></div>
+<details id="deliveryActions"><summary class="muted">Opción adicional: validar por ID</summary><div class="actions"><input id="orderId" placeholder="ID exacto del pedido" aria-label="ID exacto del pedido" style="flex:1;min-width:190px"><button id="deliverById">Validar por ID</button></div></details>
 <div id="orders"></div><p class="status" id="managementMsg" role="status"></p></div>
 <div class="card" id="closePanel"><h2>🔒 Cerrar turno y generar estadísticas</h2>
 <p class="close-warning">⚠️ El cierre marca los pedidos pendientes como <b>NO ENTREGADOS</b> y bloquea nuevas inscripciones, entregas y reversiones del turno seleccionado. No afecta la otra comida. Esta operación no se puede revertir desde el panel.</p>
@@ -327,7 +336,7 @@ const closed=!!(turnoEstado&&turnoEstado.cierre),canDeliver=session&&['COCINA','
 show('deliveryActions',canDeliver&&!closed);show('batchActions',canDeliver&&!closed);show('closePanel',canDeliver);
 $('orderId').disabled=closed;
 $('turnoState').textContent=closed?'🔒 Turno CERRADO: '+turnoEstado.cierre.fechaCierre+' · No se admiten nuevas operaciones.':'Turno abierto para registrar y entregar viandas.';
-$('deliverSelected').textContent='Entregar seleccionados ('+chosenOrders.size+')';
+$('deliverSelected').textContent='✅ Entregar seleccionados ('+chosenOrders.size+')';
 $('deliverSelected').disabled=busy||closed||!chosenOrders.size;
 $('total').textContent=orders.length;$('pending').textContent=orders.filter(x=>x.estado==='PENDIENTE').length;
 $('delivered').textContent=orders.filter(x=>x.estado==='ENTREGADO').length;list.replaceChildren();
@@ -342,7 +351,7 @@ if(canDeliver&&!closed&&order.estado==='PENDIENTE'&&!order.duplicado){
  row.append(check);
 }
 const wrap=document.createElement('div'),name=document.createElement('b'),detail=document.createElement('small'),pill=document.createElement('span');
-name.textContent=order.nombre;detail.textContent=order.servicio+' · Guardia '+order.guardia+' h · Dieta '+order.dieta+' · ID: '+order.id;
+name.textContent=order.nombre;detail.textContent=order.servicio+' · Guardia '+order.guardia+' h · Dieta '+order.dieta;
 pill.className='pill';pill.textContent=order.estado;wrap.append(name,detail,pill);
 if(order.grupoDuplicado){
  const warn=document.createElement('div');warn.className='warning';
@@ -354,18 +363,30 @@ if(order.tipo&&order.tipo.indexOf('MANUAL:')===0){
 }
 row.append(wrap);
 if(canDeliver&&!closed&&!order.duplicado&&['ENTREGADO','PENDIENTE'].includes(order.estado)){
-const btn=document.createElement('button');btn.className=order.estado==='ENTREGADO'?'secondary':'';
-const revertir=order.estado==='ENTREGADO';btn.textContent=revertir?'Revertir':'Entregar';btn.disabled=busy;
+const btn=document.createElement('button');
+const revertir=order.estado==='ENTREGADO';
+btn.className=revertir?'secondary':'fast-deliver';
+btn.textContent=revertir?'↩️ Revertir':'✓ Entregar';
+btn.disabled=busy;
 btn.addEventListener('click',async()=>{
-if(busy||!confirm((revertir?'¿Revertir':'¿Entregar')+' vianda de '+order.nombre+'?'))return;
-loading(true);btn.disabled=true;
-try{await rpc({accion:'entrega',token:session.token,id:order.id,revertir});await loadOrders();note('managementMsg','Estado actualizado.',false)}
-catch(e){note('managementMsg',e.message,true);loading(false);renderOrders()}
+ if(busy)return;
+ // Entrega individual: un toque, sin ventanas de confirmación.
+ // Reversión también queda auditada por el servidor.
+ loading(true);btn.disabled=true;btn.textContent='Procesando…';
+ try{
+  await rpc({accion:'entrega',token:session.token,id:order.id,revertir});
+  order.estado=revertir?'PENDIENTE':'ENTREGADO';
+  chosenOrders.delete(order.id);
+  note('managementMsg',revertir?'Entrega revertida: '+order.nombre:'Entregado: '+order.nombre,false);
+  // Refrescar el resumen sin volver a pedir toda la nómina en cada entrega.
+  await refreshSummary();
+ }catch(e){note('managementMsg',e.message,true)}
+ finally{loading(false);renderOrders();renderDietBadges()}
 });row.append(btn)}
 list.append(row)
 }
 if(!display.length){const p=document.createElement('p');p.className='muted';p.textContent='No hay pedidos para el filtro seleccionado.';list.append(p)}
-$('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: consulta habilitada, entrega deshabilitada.':'Pendientes arriba; entregados abajo. Los duplicados históricos se señalan y no admiten una segunda entrega.';
+$('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: consulta habilitada, entrega deshabilitada.':'Seleccionar todos toma solo los pendientes del servicio y la búsqueda actuales. Los entregados van abajo, con opción de revertir.';
 }
 
 function canManage(){return session&&['COCINA','ADMIN'].includes(session.rol)}
@@ -395,7 +416,7 @@ function renderClosePreview(){
 }
 async function sendDeliveries(ids){
  if(!canManage()||!ids.length||busy||turnoEstado&&turnoEstado.cierre)return;
- if(!confirm('¿Confirmar la entrega de '+ids.length+' vianda(s)?'))return;
+ if(ids.length>1&&!confirm('¿Entregar '+ids.length+' viandas seleccionadas?'))return;
  loading(true);note('managementMsg','Validando entregas...',false);
  try{
   const r=await rpc({accion:'entregaLote',token:session.token,ids});
@@ -409,7 +430,7 @@ $('deliverById').addEventListener('click',()=>{
  if(order.estado!=='PENDIENTE'||order.duplicado){note('managementMsg','Este ID no está habilitado para entrega.',true);return}
  sendDeliveries([id]).then(()=>{$('orderId').value=''})
 });
-$('selectVisible').addEventListener('click',()=>{pendingVisible().forEach(o=>chosenOrders.add(o.id));renderOrders()});
+$('selectVisible').addEventListener('click',()=>{chosenOrders.clear();pendingVisible().forEach(o=>chosenOrders.add(o.id));renderOrders()});
 $('clearSelected').addEventListener('click',()=>{chosenOrders.clear();renderOrders()});
 $('deliverSelected').addEventListener('click',()=>sendDeliveries([...chosenOrders]));
 $('serviceFilter').addEventListener('change',()=>{chosenOrders.clear();renderOrders()});
