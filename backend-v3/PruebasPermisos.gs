@@ -131,3 +131,47 @@ function pruebasManualSoloLecturaV3() {
   debeRechazar(web);
   Logger.log('OK: 5/5 pruebas de normalización y autorización manual (solo lectura)');
 }
+
+/**
+ * Regresión de Nutrición, Cocina y aviso del día, sin escrituras.
+ * No expone contraseñas ni requiere una cuenta real de Nutrición.
+ */
+function pruebasMenusSoloLecturaV3() {
+  var cocina={rol:'COCINA',servicio:'COCINA'};
+  var supervisor={rol:'SUPERVISOR',servicio:'ENFERMERIA'};
+  var nutricion={rol:'NUTRICION',servicio:'NUTRICION'};
+  function rechaza(nombre,fn) {
+    try {fn();throw Error('FALLO: '+nombre+' aceptó una operación restringida');}
+    catch(e){
+      if(String(e.message).indexOf('FALLO')===0)throw e;
+      if(String(e.message)!=='Solo Nutrición puede editar menús y avisos')throw e;
+      Logger.log('OK: '+nombre);
+    }
+  }
+  rechaza('Cocina no puede editar menú',function(){
+    v3GuardarMenu_(cocina,{turno:'MAÑANA',plato:'PRUEBA'});
+  });
+  rechaza('Supervisor no puede editar menú',function(){
+    v3GuardarMenu_(supervisor,{turno:'MAÑANA',plato:'PRUEBA'});
+  });
+  rechaza('Cocina no puede publicar avisos',function(){
+    v3GuardarAviso_(cocina,{texto:'PRUEBA'});
+  });
+  rechaza('Supervisor no puede publicar avisos',function(){
+    v3GuardarAviso_(supervisor,{texto:'PRUEBA'});
+  });
+  var publicacion=v3AvisoPublico_();
+  if(publicacion.status!=='success'||typeof publicacion.aviso!=='string')
+    throw Error('Error en lectura pública del aviso');
+  Logger.log('OK: aviso público de solo lectura');
+  var consulta=v3MenusHoy_(nutricion);
+  if(consulta.status!=='success'||!consulta.menus ||
+     !('MAÑANA' in consulta.menus)||!('NOCHE' in consulta.menus))
+    throw Error('Error al consultar menús del día');
+  Logger.log('OK: consulta de menús por rol Nutrición');
+  var resumen=v3ResumenCocina_(cocina);
+  if(resumen.status!=='success'||resumen.resumen.total<0)
+    throw Error('Error al consultar resumen Cocina');
+  Logger.log('OK: indicadores Cocina disponibles');
+  Logger.log('RESULTADO: 7/7 pruebas de permisos/consultas Nutrición');
+}
