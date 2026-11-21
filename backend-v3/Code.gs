@@ -5,6 +5,7 @@
  */
 const V3 = Object.freeze({
   pedidos: 'Pedidos_V3', personal: 'Personal_V3', auditoria: 'Auditoria_V3',
+  menus: 'Menu_V3', avisos: 'Avisos_V3',
   cuentasProp: 'HISJB_V3_CUENTAS', hojaProp: 'HISJB_V3_TEST_SHEET_ID',
   secretProp: 'HISJB_V3_PEPPER', sesionMinutos: 180
 });
@@ -32,6 +33,7 @@ function v3UiCall(p) {
     if (!p || typeof p !== 'object') throw Error('Solicitud no válida');
     var accion = String(p.accion || '');
     if (accion === 'login') return v3Login_(p);
+    if (accion === 'avisoPublico') return v3AvisoPublico_();
     if (accion === 'logout') {
       v3CerrarSesion_(p.token);
       return {status:'success'};
@@ -42,6 +44,9 @@ function v3UiCall(p) {
     if (accion === 'registrarManual') return v3RegistrarManual_(sesion,p);
     if (accion === 'listado') return v3Listado_(sesion,p);
     if (accion === 'entrega') return v3Entrega_(sesion,p);
+    if (accion === 'menus') return v3MenusHoy_(sesion);
+    if (accion === 'guardarMenu') return v3GuardarMenu_(sesion,p);
+    if (accion === 'guardarAviso') return v3GuardarAviso_(sesion,p);
     throw Error('Acción no permitida');
   } catch (err) {
     // No devolver trazas ni detalles del servidor al navegador.
@@ -55,7 +60,8 @@ function v3UiCall(p) {
       'Solo Cocina puede validar o revertir','Estado incompatible','Pedido inexistente',
       'Acción no permitida','Nombre inválido','Categoría inválida',
       'La persona ya está en la nómina; seleccionála desde el listado',
-      'Dieta inválida','Servicio inválido',
+      'Dieta inválida','Servicio inválido','Turno inválido','Plato principal obligatorio',
+      'Texto de aviso demasiado largo','Solo Nutrición puede editar menús y avisos',
       'El pedido seleccionado es un duplicado histórico; no se puede entregar',
       'Ya existe una entrega de esta persona para esta comida'
     ];
@@ -85,6 +91,8 @@ function v3HojasIniciales_() {
   specs[V3.personal] = ['ID_PERSONAL','NOMBRE','SERVICIO','DIETA','ACTIVO'];
   specs[V3.pedidos] = ['ID','FECHA','TURNO','ID_PERSONAL','NOMBRE','SERVICIO','GUARDIA','DIETA','ESTADO','HORA_ENTREGA','TIPO','LOTE'];
   specs[V3.auditoria] = ['FECHA_HORA','ACCION','SERVICIO','DETALLE'];
+  specs[V3.menus] = ['FECHA','TURNO','PLATO','POSTRE','GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA','SERVICIO_EDITOR','ACTUALIZADO_EN','VERSION'];
+  specs[V3.avisos] = ['FECHA','TEXTO','SERVICIO_EDITOR','ACTUALIZADO_EN','VERSION'];
   Object.keys(specs).forEach(function(nombre) {
     var s = ss.getSheetByName(nombre);
     if (!s) {s = ss.insertSheet(nombre); s.appendRow(specs[nombre]);}
@@ -335,4 +343,90 @@ function v3Entrega_(sesion,p) {
 }
 function v3Auditar_(ss,accion,servicio,detalle){
   ss.getSheetByName(V3.auditoria).appendRow([new Date(),accion,servicio,detalle]);
+}
+
+/* Menús y alertas del día V3: historial por versiones, sin sobreescribir pedidos. */
+function v3PrepararHoja_(ss,nombre,cabecera) {
+  var hoja=ss.getSheetByName(nombre);
+  if(!hoja){hoja=ss.insertSheet(nombre);hoja.appendRow(cabecera);}
+  else if(hoja.getLastRow()===0)hoja.appendRow(cabecera);
+  return hoja;
+}
+function v3VersionHoy_(sheet,hoy,zona) {
+  if(!sheet||sheet.getLastRow()<2) return [];
+  return v3Rows_(sheet).filter(function(r){
+    return v3FechaClave_(r[0],zona)===hoy;
+  });
+}
+function v3MenusHoy_(sesion) {
+  if(!['WEB','SUPERVISOR','COCINA','NUTRICION','ADMIN'].includes(sesion.rol))
+    throw Error('Acceso denegado');
+  var ss=v3Planilla_(),hoy=v3Hoy_(ss),sheet=ss.getSheetByName(V3.menus);
+  var rows=v3VersionHoy_(sheet,hoy,ss.getSpreadsheetTimeZone());
+  var result={MAÑANA:null,NOCHE:null};
+  rows.forEach(function(r){
+    var turno=v3Norm_(r[1])==='MANANA'?'MAÑANA':v3Norm_(r[1]);
+    if(!Object.prototype.hasOwnProperty.call(result,turno))return;
+    var menu={
+      turno:turno,plato:String(r[2]||''),postre:String(r[3]||''),
+      dietas:{
+        GENERAL:String(r[4]||''),HIPOSODICA:String(r[5]||''),
+        DIABETICA:String(r[6]||''),CELIACA:String(r[7]||''),
+        GASTRICA:String(r[8]||''),ASTRINGENTE:String(r[9]||''),
+        VEGETARIANA:String(r[10]||'')
+      },actualizado:r[12] instanceof Date ?
+        Utilities.formatDate(r[12],ss.getSpreadsheetTimeZone(),'dd/MM/yyyy HH:mm') :
+        String(r[12]||''),version:Number(r[13])||1
+    };
+    if(!result[turno]||menu.version>=result[turno].version)result[turno]=menu;
+  });
+  return {status:'success',menus:result,fecha:hoy};
+}
+function v3GuardarMenu_(sesion,p) {
+  if(!['NUTRICION','ADMIN'].includes(sesion.rol))
+    throw Error('Solo Nutrición puede editar menús y avisos');
+  var turno=v3Norm_(p.turno)==='MANANA'?'MAÑANA':v3Norm_(p.turno);
+  if(!['MAÑANA','NOCHE'].includes(turno))throw Error('Turno inválido');
+  function limpio(v,max){return String(v||'').trim().replace(/\s+/g,' ').slice(0,max);}
+  var plato=limpio(p.plato,160),postre=limpio(p.postre,140);
+  if(!plato)throw Error('Plato principal obligatorio');
+  var dietas=p.dietas&&typeof p.dietas==='object'?p.dietas:{};
+  var claves=['GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA'];
+  var lock=LockService.getScriptLock();
+  if(!lock.tryLock(30000))throw Error('Sistema ocupado, reintentar');
+  try{
+    var ss=v3Planilla_(),hoja=v3PrepararHoja_(ss,V3.menus,
+      ['FECHA','TURNO','PLATO','POSTRE','GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA','SERVICIO_EDITOR','ACTUALIZADO_EN','VERSION']);
+    var hoy=v3Hoy_(ss),zona=ss.getSpreadsheetTimeZone();
+    var rows=v3VersionHoy_(hoja,hoy,zona).filter(function(r){return v3Norm_(r[1])===v3Norm_(turno);});
+    var version=rows.reduce(function(a,r){return Math.max(a,Number(r[13])||0);},0)+1;
+    var fila=[hoy,turno,plato,postre].concat(claves.map(function(k){return limpio(dietas[k],160);}));
+    fila.push(sesion.servicio,new Date(),version);
+    hoja.appendRow(fila);
+    v3Auditar_(ss,'MENU_ACTUALIZADO',sesion.servicio,'Turno '+turno+', versión '+version);
+    return {status:'success',turno:turno,version:version};
+  }finally{lock.releaseLock();}
+}
+function v3AvisoPublico_() {
+  // Solo texto publicado para el día; nunca se devuelven cuentas o datos de personal.
+  var ss=v3Planilla_(),hoy=v3Hoy_(ss),hoja=ss.getSheetByName(V3.avisos);
+  var rows=v3VersionHoy_(hoja,hoy,ss.getSpreadsheetTimeZone());
+  var last=rows.reduce(function(a,r){return !a||Number(r[4])>=Number(a[4])?r:a;},null);
+  return {status:'success',aviso:last?String(last[1]||''):''};
+}
+function v3GuardarAviso_(sesion,p) {
+  if(!['NUTRICION','ADMIN'].includes(sesion.rol))
+    throw Error('Solo Nutrición puede editar menús y avisos');
+  var texto=String(p.texto||'').trim();
+  if(texto.length>500)throw Error('Texto de aviso demasiado largo');
+  var lock=LockService.getScriptLock();
+  if(!lock.tryLock(30000))throw Error('Sistema ocupado, reintentar');
+  try{
+    var ss=v3Planilla_(),hoja=v3PrepararHoja_(ss,V3.avisos,['FECHA','TEXTO','SERVICIO_EDITOR','ACTUALIZADO_EN','VERSION']);
+    var rows=v3VersionHoy_(hoja,v3Hoy_(ss),ss.getSpreadsheetTimeZone());
+    var version=rows.reduce(function(a,r){return Math.max(a,Number(r[4])||0);},0)+1;
+    hoja.appendRow([v3Hoy_(ss),texto,sesion.servicio,new Date(),version]);
+    v3Auditar_(ss,'AVISO_ACTUALIZADO',sesion.servicio,'Aviso diario, versión '+version+(texto?'':' (retirado)'));
+    return {status:'success',version:version,aviso:texto};
+  }finally{lock.releaseLock();}
 }
