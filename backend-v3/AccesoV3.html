@@ -379,7 +379,7 @@ btn.addEventListener('click',async()=>{
   chosenOrders.delete(order.id);
   note('managementMsg',revertir?'Entrega revertida: '+order.nombre:'Entregado: '+order.nombre,false);
   // Refrescar el resumen sin volver a pedir toda la nómina en cada entrega.
-  await refreshSummary();
+  refreshSummary();
  }catch(e){note('managementMsg',e.message,true)}
  finally{loading(false);renderOrders();renderDietBadges()}
 });row.append(btn)}
@@ -391,8 +391,8 @@ $('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: 
 
 function canManage(){return session&&['COCINA','ADMIN'].includes(session.rol)}
 function pendingVisible(){
- const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),sector=$('serviceFilter').value;
- return orders.filter(o=>o.estado==='PENDIENTE'&&!o.duplicado&&(!sector||o.servicio===sector)&&
+ const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),sector=$('serviceFilter').value,estado=$('filterState').value;
+ return orders.filter(o=>(estado==='TODOS'||estado==='PENDIENTE')&&o.estado==='PENDIENTE'&&!o.duplicado&&(!sector||o.servicio===sector)&&
   (o.nombre+' '+o.servicio+' '+o.id).toLocaleLowerCase('es').includes(q))
 }
 async function refreshTurnStatus(){
@@ -460,7 +460,7 @@ $('closeTurn').addEventListener('click',async()=>{
 });
 
 $('filterMeal').addEventListener('change',loadOrders);
-$('filterState').addEventListener('change',renderOrders);
+$('filterState').addEventListener('change',()=>{chosenOrders.clear();renderOrders()});
 $('searchOrder').addEventListener('input',renderOrders);
 $('refresh').addEventListener('click',loadOrders);
 })();
