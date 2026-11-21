@@ -5,6 +5,7 @@
  */
 var V3_BACKUP_FOLDER_PROP_='HISJB_V3_BACKUP_FOLDER_ID';
 var V3_BACKUP_TRIGGER_HANDLER_='v3RespaldoDiarioProgramado_';
+var V3_BACKUP_SCRIPT_ID_='1EdznVOmQEuvmDQPbPqgmeLZoWAZ-g7pyXKiIjXjTLSRvla6eifgesn13';
 var V3_BACKUP_REQUIRED_={
  'Personal_V3':['ID_PERSONAL','NOMBRE','SERVICIO','DIETA','ACTIVO'],
  'Pedidos_V3':['ID','FECHA','TURNO','ID_PERSONAL','NOMBRE','SERVICIO','GUARDIA','DIETA','ESTADO','HORA_ENTREGA','TIPO','LOTE'],
@@ -22,6 +23,18 @@ function v3BackupFolder_(){
  if(folder.getSharingAccess()!==DriveApp.Access.PRIVATE||!folder.getOwner()||folder.getEditors().length||folder.getViewers().length)
    throw Error('La carpeta de respaldos debe ser privada y sin colaboradores');
  return folder;
+}
+function v3ExigirProyectoRespaldoV3_(){
+ if(ScriptApp.getScriptId()!==V3_BACKUP_SCRIPT_ID_)throw Error('Operación exclusiva de Apps Script V3 de pruebas');
+}
+function v3BackupCompararInventarios_(original,copia){
+ return original.correcto&&copia.correcto&&Object.keys(original.hojas).every(function(key){
+  var a=original.hojas[key],b=copia.hojas[key];
+  return !!b&&a.presente===b.presente&&a.filas===b.filas&&a.encabezadosCorrectos===b.encabezadosCorrectos;
+ });
+}
+function v3BackupArchivoPrivado_(file){
+ return file.getSharingAccess()===DriveApp.Access.PRIVATE&&!!file.getOwner()&&!file.getEditors().length&&!file.getViewers().length;
 }
 /** Devuelve solo tamaños, no devuelve contenido ni nombres de trabajadores. */
 function v3BackupInventario_(ss){
@@ -67,6 +80,7 @@ function v3BackupCrear_(sesion){
  return v3BackupCrearSeguro_('MANUAL',sesion.servicio);
 }
 function v3BackupCrearSeguro_(tipo,responsable){
+ v3ExigirProyectoRespaldoV3_();
  var lock=LockService.getScriptLock();
  if(!lock.tryLock(30000))throw Error('Sistema ocupado');
  try{
@@ -79,18 +93,20 @@ function v3BackupCrearSeguro_(tipo,responsable){
   var name=v3BackupNombre_(ss,new Date()),copy=source.makeCopy(name,folder);
   try{
    var copiedSheet=SpreadsheetApp.openById(copy.getId()),validated=v3BackupInventario_(copiedSheet);
-   if(!validated.correcto)throw Error('Respaldo creado, pero falló la verificación de encabezados');
-   Object.keys(inv.hojas).forEach(function(key){
-     if(inv.hojas[key].presente!==validated.hojas[key].presente||inv.hojas[key].filas!==validated.hojas[key].filas)
-       throw Error('Respaldo creado, pero los recuentos de filas no coinciden');
-   });
+   if(!v3BackupArchivoPrivado_(copy)||!v3BackupCompararInventarios_(inv,validated))
+     throw Error('Respaldo creado, pero falló la verificación');
+   if(tipo==='SIMULACRO'){
+     var ensayo=copy.makeCopy('SIMULACRO-RESTAURACION-'+name,folder);
+     if(!v3BackupArchivoPrivado_(ensayo)||!v3BackupCompararInventarios_(validated,v3BackupInventario_(SpreadsheetApp.openById(ensayo.getId()))))
+       throw Error('El simulacro requiere revisión manual en Drive');
+   }
   }catch(e){
    // No borrar automáticamente una copia cuya validación falló: revisar manualmente.
    throw Error('El respaldo requiere revisión manual en Drive');
   }
   // No auditar con nombres de personas ni registrar URL del archivo.
   v3Auditar_(ss,'RESPALDO_V3',responsable,tipo+'; resultado VERIFICADO');
-  return {status:'success',nombre:name,verificado:true,hojas:Object.keys(inv.hojas).length};
+  return {status:'success',nombre:name,verificado:true,hojas:Object.keys(inv.hojas).length,simulacroVerificado:tipo==='SIMULACRO'};
  }finally{lock.releaseLock()}
 }
 /** Respaldo automático por trigger instalable, no llamado desde navegador. */
@@ -108,6 +124,7 @@ function v3BackupProgramado_(){
  * Instala una sola tarea diaria, aprox. 02h zona del script.
  */
 function v3InstalarRespaldoDiarioV3_(){
+ v3ExigirProyectoRespaldoV3_();
  var props=PropertiesService.getScriptProperties();
  if(!props.getProperty(V3.hojaProp))throw Error('No se configuró planilla V3');
  v3BackupFolder_();
@@ -116,4 +133,20 @@ function v3InstalarRespaldoDiarioV3_(){
    throw Error('Revisá el disparador anterior en el editor antes de instalar uno nuevo');
  ScriptApp.newTrigger(V3_BACKUP_TRIGGER_HANDLER_).timeBased().everyDays(1).atHour(2).create();
  return 'Respaldo diario V3 programado (aprox. 02:00, hora del proyecto)';
+}
+/** Ejecutar una vez desde el editor privado, después de comprobar la planilla ficticia y la carpeta. */
+function v3ValidacionIntegralV3_(){
+ v3ExigirProyectoRespaldoV3_();
+ v3BackupFolder_();
+ pruebasManualSoloLecturaV3();
+ pruebasMenusSoloLecturaV3();
+ pruebasCocinaSoloLecturaV3();
+ pruebasHistorialSoloLecturaV3();
+ pruebasCierreSeguroSoloLecturaV3();
+ pruebasProteccionEntregasV3();
+ pruebasImportacionNominaSoloLecturaV3();
+ pruebasRespaldosSoloLecturaV3();
+ var r=v3BackupCrearSeguro_('SIMULACRO','SISTEMA');
+ Logger.log('V3 PRUEBAS: respaldo privado y copia aislada de restauración verificados (inventario).');
+ return {status:r.status,verificado:r.verificado,simulacroVerificado:r.simulacroVerificado};
 }

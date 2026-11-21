@@ -8,6 +8,7 @@ on:
       - "backend-v3/**"
       - "tools/probar-v3-ci.js"
       - "tools/verificar-v3-ci.js"
+      - "tools/comparar-v3-sincronizacion.js"
       - ".github/workflows/hisjb-v3-pruebas.yml"
   workflow_dispatch:
 
@@ -91,4 +92,9 @@ jobs:
           set -euo pipefail
           trap 'rm -f "$HOME/.clasprc.json" ".clasp.json" "appsscript.json"' EXIT
           npx --yes --package=@google/clasp@3.4.1 clasp push --force
+          directorio_lectura=$(mktemp -d)
+          origen="$PWD"
+          node -e 'const fs=require("fs");const cfg=JSON.parse(fs.readFileSync(".clasp.json","utf8"));cfg.scriptExtensions=[".gs",".js"];fs.writeFileSync(process.argv[1]+"/.clasp.json",JSON.stringify(cfg))' "$directorio_lectura"
+          (cd "$directorio_lectura" && npx --yes --package=@google/clasp@3.4.1 clasp pull)
+          node ../tools/comparar-v3-sincronizacion.js "$origen" "$directorio_lectura"
           echo "Codigo sincronizado en V3 de pruebas. Revisar el enlace /dev."

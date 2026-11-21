@@ -33,4 +33,18 @@ for(const [prop,value] of [['getSharingAccess','ANYONE'],['getEditors',[{}]],['g
  privateFolder[prop]=original;
 }
 console.log('OK: tareas administrativas privadas y carpeta exclusiva de propietario (simuladas).');
+context.ScriptApp={getScriptId:()=> 'PROYECTO_DISTINTO'};
+assert.throws(()=>context.v3ExigirProyectoRespaldoV3_(),/exclusiva/);
+context.ScriptApp.getScriptId=()=>context.V3_BACKUP_SCRIPT_ID_;
+context.v3ExigirProyectoRespaldoV3_();
+const original={correcto:true,hojas:{Pedidos_V3:{presente:true,filas:1,encabezadosCorrectos:true}}};
+const copia=JSON.parse(JSON.stringify(original));
+assert.equal(context.v3BackupCompararInventarios_(original,copia),true);
+copia.hojas.Pedidos_V3.filas=2;
+assert.equal(context.v3BackupCompararInventarios_(original,copia),false);
+copia.hojas.Pedidos_V3.filas=1;copia.hojas.Pedidos_V3.presente=false;
+assert.equal(context.v3BackupCompararInventarios_(original,copia),false);
+assert.equal(context.v3BackupArchivoPrivado_(privateFolder),true);
+assert.equal(typeof context.v3ValidacionIntegralV3,'undefined');
+console.log('OK: destino fijo, comparación de inventarios y validación integral privada.');
 console.log('COMPROBACIÓN COMPLETADA: regresiones V3 con servicios simulados, sin datos ni escrituras reales.');

@@ -25,6 +25,11 @@ En el editor privado V3 de Apps Script, ejecutar una vez `v3InstalarRespaldoDiar
 
 **Se recomienda controlar las copias periódicamente**. No hay borrado automático ni retención configurada, para evitar eliminar respaldos por error. Definir política de retención, permisos de acceso, almacenamiento disponible y responsables institucionales antes de producción.
 
+## Validación integral en un solo paso
+Una vez confirmada la propiedad de la planilla de pruebas y configurada la carpeta privada, ejecutar `v3ValidacionIntegralV3_` **desde el editor de Apps Script V3**. Ejecuta las ocho suites de solo lectura, crea un respaldo y una copia adicional aislada `SIMULACRO-RESTAURACION-HISJB-V3-PRUEBAS-...`, comprueba su privacidad e inventario de hojas y registra el resultado sin exponer IDs ni contenido. Se conserva la copia aislada para revisión manual; no reemplaza el original. Si alguna prueba falla, no se inicia la copia; si una copia falla, se conserva para revisión. No es una restauración de producción ni coteja todas las celdas. La tarea diaria se instala por separado después de verificar el ensayo.
+
+La sincronización protegida de GitHub Actions no debe confundirse con ejecución remota. La API de ejecución exigiría una implementación específica y autorización OAuth adicional para Sheets y Drive, distinta de la sincronización de código. No se habilita dicha API ni se amplía la credencial actual: las operaciones reales permanecen en el editor y en el disparador privado.
+
 ## Recuperación segura (simulacro en otro archivo, nunca sobre datos activos)
 1. Suspender la carga de datos del entorno de pruebas, registrar hora e incidente.
 2. Elegir una copia anterior, verificar fecha, encabezados y números de filas. Recordar que se perderían los cambios posteriores a esa copia si se usara como restauración.
