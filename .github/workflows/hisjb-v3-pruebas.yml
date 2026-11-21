@@ -1,0 +1,90 @@
+name: HISJB V3 - pruebas (verificacion y sincronizacion)
+
+on:
+  push:
+    branches:
+      - desarrollo-selector-v3-2026-11-20
+    paths:
+      - "backend-v3/**"
+      - ".github/workflows/hisjb-v3-pruebas.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hisjb-v3-pruebas
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    name: Comprobar codigo V3 (sin credenciales)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Revisar Javascript y HTML de Apps Script
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/verificar-v3-ci.js
+      - name: Confirmar que no se despliega produccion
+        run: echo "Verificacion completa. No se modifico Apps Script ni produccion."
+
+  sincronizar_pruebas:
+    name: Sincronizar SOLO Apps Script V3 de pruebas
+    needs: verificar
+    if: ${{ vars.V3_TEST_DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: v3-pruebas
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Preparar manifiesto V3 de pruebas conocido
+        shell: bash
+        working-directory: backend-v3
+        run: |
+          set -euo pipefail
+          cat > appsscript.json <<'JSON'
+          {
+            "timeZone": "America/Argentina/Buenos_Aires",
+            "dependencies": {},
+            "exceptionLogging": "STACKDRIVER",
+            "runtimeVersion": "V8",
+            "webapp": {
+              "executeAs": "USER_DEPLOYING",
+              "access": "MYSELF"
+            }
+          }
+          JSON
+          node -e 'const x=require("./appsscript.json"); if(x.webapp.access!=="MYSELF" || x.webapp.executeAs!=="USER_DEPLOYING") process.exit(1)'
+      - name: Configurar credencial privada y destino fijo de pruebas
+        shell: bash
+        working-directory: backend-v3
+        env:
+          CLASPRC_SECRET: ${{ secrets.V3_TEST_CLASPRC_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CLASPRC_SECRET}" ]; then
+            echo "Falta el secreto V3_TEST_CLASPRC_JSON en el entorno v3-pruebas." >&2
+            exit 1
+          fi
+          umask 077
+          printf '%s' "$CLASPRC_SECRET" > "$HOME/.clasprc.json"
+          unset CLASPRC_SECRET
+          node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync(process.env.HOME+"/.clasprc.json","utf8"));if(!a||typeof a!=="object")process.exit(1)'
+          node -e 'require("fs").writeFileSync(".clasp.json",JSON.stringify({scriptId:"1EdznVOmQEuvmDQPbPqgmeLZoWAZ-g7pyXKiIjXjTLSRvla6eifgesn13",rootDir:"."}))'
+          node -e 'const x=require("./.clasp.json");if(x.scriptId!=="1EdznVOmQEuvmDQPbPqgmeLZoWAZ-g7pyXKiIjXjTLSRvla6eifgesn13")process.exit(1)'
+      - name: Sincronizar codigo con V3 PRUEBAS (no publicar /exec)
+        shell: bash
+        working-directory: backend-v3
+        run: |
+          set -euo pipefail
+          trap 'rm -f "$HOME/.clasprc.json" ".clasp.json" "appsscript.json"' EXIT
+          npx --yes --package=@google/clasp@3.4.1 clasp push --force
+          echo "Codigo sincronizado en V3 de pruebas. Revisar el enlace /dev."
