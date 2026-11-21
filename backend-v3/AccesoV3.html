@@ -129,12 +129,106 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;padding:12px;b
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let session=null,roster=[],chosen=new Set(),orders=[],busy=false;
+let session=null,roster=[],chosen=new Set(),orders=[],busy=false,menus={MAÑANA:null,NOCHE:null};
+const DIETS=['GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENTE','VEGETARIANA'];
+const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',CELIACA:'Celíaca',GASTRICA:'Gástrica',ASTRINGENTE:'Astringente',VEGETARIANA:'Vegetariana'};
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v}
 function logoutLocal(){session=null;chosen.clear();roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
+
+async function loadDailyAlert(){
+ try{
+  const a=await rpc({accion:'avisoPublico'}),text=String(a.aviso||'');
+  $('dailyAlert').textContent='📢 AVISO DEL DÍA\n'+text;
+  show('dailyAlert',!!text);
+  if(!session || ['NUTRICION','ADMIN'].includes(session.rol))$('alertText').value=text;
+ }catch(e){show('dailyAlert',false)}
+}
+function makeMenuCard(menu,meal){
+ const card=document.createElement('div');card.className='menu-card'+(!menu?' menu-pending':'');
+ const title=document.createElement('h3');title.textContent=meal==='MAÑANA'?'🍽️ ALMUERZO':'🌙 CENA';card.append(title);
+ const value=document.createElement('strong');value.textContent=menu?menu.plato:'⏳ Menú en preparación';card.append(value);
+ if(menu){
+  if(menu.postre){const p=document.createElement('p');p.textContent='🍰 Postre: '+menu.postre;card.append(p)}
+  const d=document.createElement('small');d.textContent='Versión '+menu.version+' · Actualizado '+menu.actualizado;card.append(d);
+  const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Ver especificaciones por dieta';details.append(summary);
+  DIETS.forEach(k=>{const p=document.createElement('p');p.style.margin='6px 0';p.textContent=LABELS[k]+': '+(menu.dietas[k]||menu.plato);details.append(p)});
+  card.append(details)
+ }else{const p=document.createElement('p');p.className='muted';p.textContent='Nutrición todavía no publicó el menú para esta comida.';card.append(p)}
+ return card;
+}
+function renderMenus(){
+ for(const id of ['personalMenus','kitchenMenus']){
+  const area=$(id);area.replaceChildren();
+  area.append(makeMenuCard(menus.MAÑANA,'MAÑANA'),makeMenuCard(menus.NOCHE,'NOCHE'))
+ }
+}
+async function refreshMenus(){
+ if(!session)return;
+ const result=await rpc({accion:'menus',token:session.token});
+ menus=result.menus||{MAÑANA:null,NOCHE:null};renderMenus();
+ if(session&&['NUTRICION','ADMIN'].includes(session.rol))fillMenuEditor();
+}
+function fillMenuEditor(){
+ const current=menus[$('editMeal').value];
+ $('mainDish').value=current?current.plato:'';
+ $('dessert').value=current?current.postre:'';
+ DIETS.forEach(k=>{$('edit'+k).value=current&&current.dietas?current.dietas[k]||'':''});
+}
+async function refreshSummary(){
+ if(!session||!isManagement())return;
+ try{
+  const r=await rpc({accion:'resumenCocina',token:session.token}),v=r.resumen;
+  $('dayTotal').textContent=v.total;$('dayLunch').textContent=v.manana;$('dayDinner').textContent=v.noche;
+  $('dayDone').textContent=v.entregados;$('dayPending').textContent=v.pendientes;
+  $('historicalHint').textContent=v.duplicadosHistoricos?
+    '⚠️ '+v.duplicadosHistoricos+' registros históricos repetidos excluidos de los indicadores.':'Los indicadores no cuentan duplicados históricos.';
+ }catch(e){$('historicalHint').textContent='No se pudo actualizar el resumen: '+e.message}
+}
+function renderDietBadges(){
+ const box=$('dietBadges');box.replaceChildren();
+ const totals={};DIETS.forEach(k=>totals[k]=0);
+ orders.filter(o=>o.estado==='PENDIENTE'&&!o.duplicado).forEach(o=>{
+  const key=String(o.dieta||'GENERAL').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  totals[key]=(totals[key]||0)+1
+ });
+ const keys=[...DIETS,...Object.keys(totals).filter(k=>!DIETS.includes(k))];
+ keys.forEach(k=>{
+  const div=document.createElement('div'),b=document.createElement('b'),small=document.createElement('span');
+  b.textContent=totals[k];small.textContent=LABELS[k]||k;div.append(b,small);box.append(div)
+ })
+}
+$('menuForm').addEventListener('submit',async ev=>{
+ ev.preventDefault();if(!session||busy||!['NUTRICION','ADMIN'].includes(session.rol))return;
+ const turno=$('editMeal').value,plato=$('mainDish').value.trim(),postre=$('dessert').value.trim(),dietas={};
+ DIETS.forEach(k=>dietas[k]=$('edit'+k).value.trim());
+ if(!plato)return note('menuMsg','Ingresá un plato principal.',true);
+ if(!confirm('¿Guardar el menú de '+(turno==='MAÑANA'?'almuerzo':'cena')+'? La actualización estará visible inmediatamente.'))return;
+ loading(true);note('menuMsg','Guardando...',false);
+ try{
+  const result=await rpc({accion:'guardarMenu',token:session.token,turno,plato,postre,dietas});
+  await refreshMenus();
+  note('menuMsg','Menú publicado correctamente · Versión '+result.version,false)
+ }catch(e){note('menuMsg',e.message,true)}finally{loading(false)}
+});
+$('alertForm').addEventListener('submit',async ev=>{
+ ev.preventDefault();if(!session||busy||!['NUTRICION','ADMIN'].includes(session.rol))return;
+ loading(true);note('alertMsg','Guardando aviso...',false);
+ try{
+  await rpc({accion:'guardarAviso',token:session.token,texto:$('alertText').value});
+  await loadDailyAlert();note('alertMsg','Aviso del día actualizado.',false);
+ }catch(e){note('alertMsg',e.message,true)}finally{loading(false)}
+});
+$('clearAlert').addEventListener('click',()=>{
+ if(!confirm('¿Retirar el aviso del día del inicio de sesión?'))return;
+ $('alertText').value='';
+ $('alertForm').requestSubmit()
+});
+$('editMeal').addEventListener('change',fillMenuEditor);
+loadDailyAlert();
+
 function isPersonal(){return session&&['WEB','SUPERVISOR','ADMIN'].includes(session.rol)}
 function isManagement(){return session&&['COCINA','NUTRICION','ADMIN'].includes(session.rol)}
 $('accessForm').addEventListener('submit',async e=>{
@@ -147,11 +241,14 @@ if(!isPersonal()&&!isManagement())throw Error('Cuenta sin acceso habilitado');
 if(isPersonal()&&(!isManagement()||session.rol==='SUPERVISOR'||session.rol==='WEB')){
 const response=await rpc({accion:'personal',token:session.token});
 roster=response.personas||[];chosen.clear();show('personalPanel',true);show('managementPanel',false);
+await refreshMenus();
 show('manualPanel',session.rol==='SUPERVISOR'||session.rol==='ADMIN');
 $('heading').textContent='Registro de viandas';$('who').textContent='Servicio: '+session.servicio+' · Modalidad: '+session.rol;
 renderPeople()
 }else{
 show('personalPanel',false);show('managementPanel',true);
+show('nutritionEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
+await refreshMenus();
 $('heading').textContent='Cocina y Nutrición';$('who').textContent='Sector: '+session.servicio+' · Rol: '+session.rol;
 await loadOrders()
 }
@@ -202,9 +299,9 @@ catch(e){note('personalMsg',e.message,true)}finally{loading(false)}
 });
 async function loadOrders(){
 if(!session)return;loading(true);note('managementMsg','Cargando pedidos...',false);
-try{const r=await rpc({accion:'listado',token:session.token,turno:$('filterMeal').value});orders=r.pedidos||[];note('managementMsg','Lista actualizada',false)}
+try{const r=await rpc({accion:'listado',token:session.token,turno:$('filterMeal').value});orders=r.pedidos||[];await refreshSummary();await refreshMenus();note('managementMsg','Lista actualizada',false)}
 catch(e){note('managementMsg',e.message,true);if(e.message.includes('Sesión'))logoutLocal()}
-finally{loading(false);if(session)renderOrders()}
+finally{loading(false);if(session){renderOrders();renderDietBadges()}}
 }
 function renderOrders(){
 const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),state=$('filterState').value,list=$('orders');
