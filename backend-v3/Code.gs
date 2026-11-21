@@ -45,6 +45,7 @@ function v3UiCall(p) {
     if (accion === 'listado') return v3Listado_(sesion,p);
     if (accion === 'entrega') return v3Entrega_(sesion,p);
     if (accion === 'menus') return v3MenusHoy_(sesion);
+    if (accion === 'resumenCocina') return v3ResumenCocina_(sesion);
     if (accion === 'guardarMenu') return v3GuardarMenu_(sesion,p);
     if (accion === 'guardarAviso') return v3GuardarAviso_(sesion,p);
     throw Error('Acción no permitida');
@@ -429,4 +430,31 @@ function v3GuardarAviso_(sesion,p) {
     v3Auditar_(ss,'AVISO_ACTUALIZADO',sesion.servicio,'Aviso diario, versión '+version+(texto?'':' (retirado)'));
     return {status:'success',version:version,aviso:texto};
   }finally{lock.releaseLock();}
+}
+
+function v3ResumenCocina_(sesion) {
+  if(!v3EsGestion_(sesion))throw Error('Acceso denegado');
+  var ss=v3Planilla_(),rows=v3PedidosHoy_(ss),unicos=new Map();
+  rows.forEach(function(r){
+    var key=v3PedidoClave_(r[4],r[5],r[2]);
+    if(!unicos.has(key)||v3Norm_(r[8])==='ENTREGADO')unicos.set(key,r);
+  });
+  var resumen={
+    total:0,manana:0,noche:0,entregados:0,pendientes:0,
+    dietas:{},servicios:{},duplicadosHistoricos:Math.max(0,rows.length-unicos.size)
+  };
+  unicos.forEach(function(r){
+    resumen.total++;
+    if(v3Norm_(r[2])==='MANANA')resumen.manana++;
+    if(v3Norm_(r[2])==='NOCHE')resumen.noche++;
+    if(v3Norm_(r[8])==='ENTREGADO')resumen.entregados++;
+    else{
+      resumen.pendientes++;
+      var dieta=v3Norm_(r[7]||'GENERAL');
+      resumen.dietas[dieta]=(resumen.dietas[dieta]||0)+1;
+    }
+    var servicio=String(r[5]||'SIN SERVICIO');
+    resumen.servicios[servicio]=(resumen.servicios[servicio]||0)+1;
+  });
+  return {status:'success',resumen:resumen,fecha:v3Hoy_(ss)};
 }
