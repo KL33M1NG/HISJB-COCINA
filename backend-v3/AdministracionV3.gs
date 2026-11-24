@@ -1,5 +1,32 @@
 /** Gestión exclusiva de ADMIN; no devuelve hashes, sales ni contraseñas. */
 var V3_SERVICIOS_WEB_EXTRA_=['BACTERIOLOGIA','CLINICA MEDICA','LABORATORIO','QUEMADOS','TRAUMATOLOGIA','UTI II'];
+var V3_SUPERVISORES_=['CAMILLEROS','ENFERMERIA','MANTENIMIENTO'];
+function v3AdminRolLote_(nombre){return V3_SUPERVISORES_.includes(nombre)?'SUPERVISOR':['COCINA','NUTRICION'].includes(nombre)?nombre:'WEB'}
+function v3AdminVistaAccesos_(s){
+ v3AdminExigir_(s);var lista=v3AdminPersonal_(s).servicios.filter(function(x){return x.nombre!=='ADMIN'&&x.rol!=='ADMIN'});
+ return {status:'success',servicios:lista.map(function(x){return {servicio:x.nombre,rol:x.rol||v3AdminRolLote_(x.nombre),existente:!!x.rol}})};
+}
+function v3AdminCrearAccesosLote_(s,p){
+ v3AdminExigir_(s);v3ExigirProyectoRespaldoV3_();
+ var filas=p.filas;if(!Array.isArray(filas)||!filas.length||filas.length>60)throw Error('Lote de accesos inválido');
+ var lock=LockService.getScriptLock();if(!lock.tryLock(30000))throw Error('Sistema ocupado');
+ try{
+  var estado=v3AdminVistaAccesos_(s),props=PropertiesService.getScriptProperties(),cuentas=JSON.parse(props.getProperty(V3.cuentasProp)||'{}'),pepper=props.getProperty(V3.secretProp);
+  if(!pepper)throw Error('Configuración de accesos incompleta');
+  var vistos=new Set();
+  filas.forEach(function(f){
+   var servicio=v3Norm_(f.servicio),clave=String(f.clave||''),actual=estado.servicios.find(function(x){return x.servicio===servicio});
+   if(!actual||actual.existente||Object.prototype.hasOwnProperty.call(cuentas,servicio)||vistos.has(servicio)||f.rol!==actual.rol)throw Error('El catálogo de accesos cambió; repetí la vista previa');
+   if(clave.length<16||clave.length>128)throw Error('Requiere clave de 16 a 128 caracteres');
+   Object.keys(cuentas).forEach(function(k){var c=cuentas[k];if(c&&v3Hash_(c.salt+':'+clave+':'+pepper)===c.hash)throw Error('Esta contraseña ya pertenece a otro servicio')});
+   var salt=Utilities.getUuid();cuentas[servicio]={rol:actual.rol,salt:salt,hash:v3Hash_(salt+':'+clave+':'+pepper)};vistos.add(servicio);
+  });
+  var json=JSON.stringify(cuentas);if(Utilities.newBlob(json).getBytes().length>8500)throw Error('Capacidad de configuración de cuentas excedida');
+  props.setProperty(V3.cuentasProp,json);
+  v3Auditar_(v3Planilla_(),'ADMIN_ACCESOS_LOTE',s.servicio,'Cuentas nuevas: '+vistos.size);
+  return {status:'success',creados:vistos.size};
+ }finally{lock.releaseLock()}
+}
 function v3AdminExigir_(s){if(s.rol!=='ADMIN')throw Error('Solo Administración puede gestionar personal y accesos');}
 function v3AdminPersonal_(s){
  v3AdminExigir_(s);

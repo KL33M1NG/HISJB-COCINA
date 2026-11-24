@@ -52,6 +52,8 @@ function v3UiCall(p) {
     if (accion === 'administrarPersonal') return v3AdminPersonal_(sesion);
     if (accion === 'guardarPersonal') return v3AdminGuardarPersonal_(sesion,p);
     if (accion === 'guardarAccesoServicio') return v3AdminGuardarAcceso_(sesion,p);
+    if (accion === 'vistaAccesosLote') return v3AdminVistaAccesos_(sesion);
+    if (accion === 'crearAccesosLote') return v3AdminCrearAccesosLote_(sesion,p);
     if (accion === 'avisosAdmin') return v3AvisosAdmin_(sesion);
     if (accion === 'entregaLote') return v3EntregaLote_(sesion,p);
     if (accion === 'cerrarTurno') return v3CerrarTurno_(sesion,p);
@@ -86,6 +88,7 @@ function v3UiCall(p) {
       'Texto de aviso demasiado largo','Solo Nutrición puede editar menús y avisos',
       'Solo Administración puede gestionar personal y accesos','Servicio ya tiene una cuenta','Servicio sin personal registrado','No se puede modificar el acceso ADMIN','Requiere clave de 16 a 128 caracteres','Esta contraseña ya pertenece a otro servicio','La configuración de avisos cambió; actualizá antes de guardar','Fecha de vencimiento inválida','Se admiten hasta tres avisos','Trabajador inexistente','Ya existe una persona con ese nombre en este servicio','Rol incorrecto',
       'La persona tiene pedidos de hoy; cambiá su nombre o servicio después de cerrar el día',
+      'Lote de accesos inválido','Configuración de accesos incompleta','El catálogo de accesos cambió; repetí la vista previa','Capacidad de configuración de cuentas excedida',
       'El pedido seleccionado es un duplicado histórico; no se puede entregar',
       'Ya existe una entrega de esta persona para esta comida',
       'Solo Administración puede gestionar respaldos',
