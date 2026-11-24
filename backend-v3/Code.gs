@@ -49,6 +49,10 @@ function v3UiCall(p) {
     if (accion === 'estadoTurno') return v3EstadoTurno_(sesion,p);
     if (accion === 'historialCierres') return v3HistorialCierres_(sesion,p);
     if (accion === 'importarNomina') return v3ImportarNomina_(sesion,p);
+    if (accion === 'administrarPersonal') return v3AdminPersonal_(sesion);
+    if (accion === 'guardarPersonal') return v3AdminGuardarPersonal_(sesion,p);
+    if (accion === 'guardarAccesoServicio') return v3AdminGuardarAcceso_(sesion,p);
+    if (accion === 'avisosAdmin') return v3AvisosAdmin_(sesion);
     if (accion === 'entregaLote') return v3EntregaLote_(sesion,p);
     if (accion === 'cerrarTurno') return v3CerrarTurno_(sesion,p);
     if (accion === 'diagnosticarCierre') return v3DiagnosticarCierre_(sesion,p);
@@ -80,6 +84,8 @@ function v3UiCall(p) {
       'La persona ya está en la nómina; seleccionála desde el listado',
       'Dieta inválida','Servicio inválido','Turno inválido','Plato principal obligatorio',
       'Texto de aviso demasiado largo','Solo Nutrición puede editar menús y avisos',
+      'Solo Administración puede gestionar personal y accesos','Servicio ya tiene una cuenta','Servicio sin personal registrado','No se puede modificar el acceso ADMIN','Requiere clave de 16 a 128 caracteres','Esta contraseña ya pertenece a otro servicio','La configuración de avisos cambió; actualizá antes de guardar','Fecha de vencimiento inválida','Se admiten hasta tres avisos','Trabajador inexistente','Ya existe una persona con ese nombre en este servicio','Rol incorrecto',
+      'La persona tiene pedidos de hoy; cambiá su nombre o servicio después de cerrar el día',
       'El pedido seleccionado es un duplicado histórico; no se puede entregar',
       'Ya existe una entrega de esta persona para esta comida',
       'Solo Administración puede gestionar respaldos',
@@ -172,7 +178,7 @@ function v3Login_(p) {
   Object.keys(cuentas).forEach(function(nombre) {
     var c = cuentas[nombre];
     if (c && c.salt && c.hash && v3Hash_(c.salt+':'+clave+':'+pepper) === c.hash) {
-      coincidencias.push({servicio:nombre,rol:c.rol});
+      coincidencias.push({servicio:nombre,rol:c.rol,revision:c.salt});
     }
   });
   // Si hay claves iguales entre servicios, no se permite acceder ambiguamente.
@@ -187,7 +193,9 @@ function v3Sesion_(token) {
   if (!/^[a-f\d-]{72}$/.test(String(token || ''))) throw Error('Sesión inválida');
   var val = CacheService.getScriptCache().get('v3:'+token);
   if (!val) throw Error('Sesión vencida: volver a ingresar');
-  return JSON.parse(val);
+  var sesion=JSON.parse(val),cuentas=JSON.parse(PropertiesService.getScriptProperties().getProperty(V3.cuentasProp)||'{}'),actual=cuentas[sesion.servicio];
+  if(!actual||!sesion.revision||actual.salt!==sesion.revision||actual.rol!==sesion.rol)throw Error('Sesión vencida: volver a ingresar');
+  return sesion;
 }
 function v3Rows_(s) {
   if (!s || s.getLastRow() < 2) return [];
@@ -440,26 +448,23 @@ function v3GuardarMenu_(sesion,p) {
   }finally{lock.releaseLock();}
 }
 function v3AvisoPublico_() {
-  // Solo texto publicado para el día; nunca se devuelven cuentas o datos de personal.
-  var ss=v3Planilla_(),hoy=v3Hoy_(ss),hoja=ss.getSheetByName(V3.avisos);
-  var rows=v3VersionHoy_(hoja,hoy,ss.getSpreadsheetTimeZone());
-  var last=rows.reduce(function(a,r){return !a||Number(r[4])>=Number(a[4])?r:a;},null);
-  return {status:'success',aviso:last?String(last[1]||''):''};
+  var ss=v3Planilla_(),estado=v3LeerAvisos_(ss),hoy=v3Hoy_(ss);
+  var avisos=estado.avisos.filter(function(a){return a.activo&&a.texto&&(a.fijo||a.hasta>=hoy)}).map(function(a){return a.texto});
+  return {status:'success',aviso:avisos[0]||'',avisos:avisos};
 }
 function v3GuardarAviso_(sesion,p) {
   if(!['NUTRICION','ADMIN'].includes(sesion.rol))
     throw Error('Solo Nutrición puede editar menús y avisos');
-  var texto=String(p.texto||'').trim();
-  if(texto.length>500)throw Error('Texto de aviso demasiado largo');
   var lock=LockService.getScriptLock();
   if(!lock.tryLock(30000))throw Error('Sistema ocupado, reintentar');
   try{
     var ss=v3Planilla_(),hoja=v3PrepararHoja_(ss,V3.avisos,['FECHA','TEXTO','SERVICIO_EDITOR','ACTUALIZADO_EN','VERSION']);
-    var rows=v3VersionHoy_(hoja,v3Hoy_(ss),ss.getSpreadsheetTimeZone());
-    var version=rows.reduce(function(a,r){return Math.max(a,Number(r[4])||0);},0)+1;
-    hoja.appendRow([v3Hoy_(ss),texto,sesion.servicio,new Date(),version]);
-    v3Auditar_(ss,'AVISO_ACTUALIZADO',sesion.servicio,'Aviso diario, versión '+version+(texto?'':' (retirado)'));
-    return {status:'success',version:version,aviso:texto};
+    var actual=v3LeerAvisos_(ss),hoy=v3Hoy_(ss);
+    if(p.version!==actual.version)throw Error('La configuración de avisos cambió; actualizá antes de guardar');
+    var avisos=v3NormalizarAvisos_(p.avisos,hoy),version=actual.version+1;
+    hoja.appendRow([hoy,'V3_ALERTAS:'+JSON.stringify(avisos),sesion.servicio,new Date(),version]);
+    v3Auditar_(ss,'AVISO_ACTUALIZADO',sesion.servicio,'Configuración de avisos, versión '+version);
+    return {status:'success',version:version};
   }finally{lock.releaseLock();}
 }
 

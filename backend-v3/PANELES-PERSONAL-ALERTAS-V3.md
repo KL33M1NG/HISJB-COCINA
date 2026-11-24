@@ -1,0 +1,8 @@
+# V3 de pruebas: paneles, personal y avisos
+
+- Cocina: Resumen, Pedidos y entregas, Cierre de turno, Menús, Historial. El selector compartido de almuerzo/cena aparece donde corresponde.
+- Nutrición: Menús, Alertas y consultas de pedidos, resumen e historial. Los tres avisos se pueden activar/desactivar individualmente, fijar sin vencimiento o hacer vencer al final de una fecha (zona horaria de la planilla).
+- ADMIN: además de las funciones de gestión, Personal (alta, edición, habilitación e importación), Accesos y Respaldos. El personal sigue teniendo identificadores internos; no se cambian pedidos históricos. Los cambios de nombre/servicio se bloquean si esa persona tiene pedidos de hoy.
+- Accesos: una contraseña por servicio (WEB, SUPERVISOR, COCINA y NUTRICION). ADMIN no se modifica desde esta interfaz. La UI genera claves aleatorias, pero el operador debe guardarlas en un gestor institucional privado antes de confirmar. No se muestran claves existentes, hashes ni sales. Rotar una clave invalida las sesiones de ese servicio. No cargar claves en repositorios, hojas, logs ni chats.
+- Avisos: se conserva el esquema de `Avisos_V3`; las nuevas versiones se almacenan como JSON prefijado en TEXTO para no alterar encabezados ni respaldos. Las filas anteriores se conservan; el aviso antiguo de hoy se importa como primer temporal hasta el primer guardado. Dos administradores no pueden sobrescribir una versión sin actualizarla.
+- Solo pruebas: usar exclusivamente personal ficticio o datos autorizados y minimizados; cargar la nómina de producción únicamente tras aprobación y plan de migración independiente. No se deben guardar datos de empleados ni contraseñas reales en GitHub.

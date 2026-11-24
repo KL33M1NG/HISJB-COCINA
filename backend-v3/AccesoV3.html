@@ -154,6 +154,7 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 
 .backup-entry{border:1px solid var(--border);background:var(--soft);border-radius:9px;padding:10px 12px;margin:8px 0;font-size:13px;overflow-wrap:anywhere}
 #backupPanel{border-top:4px solid #3579b0}
+.management-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px;position:relative}.management-tabs button{width:auto;background:var(--soft);color:var(--accent);border:1px solid var(--border);border-radius:10px}.management-tabs button[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}.tab-hidden{display:none!important}.alert-slot{border:1px solid var(--border);border-radius:12px;padding:15px;margin:12px 0;background:var(--soft)}.alert-slot label{display:flex;align-items:center;gap:8px}.alert-slot input[type=checkbox]{width:auto}.public-alert-item{padding:11px 0;white-space:pre-wrap}.public-alert-item+.public-alert-item{border-top:1px solid currentColor}.admin-person{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding:10px 0}.admin-person button{width:auto}.admin-person small{display:block;color:var(--muted)}
 </style></head>
 <body><header><strong>🏥 HOSPITAL SAN JUAN BAUTISTA</strong><p>GESTIÓN DIGITAL DE ALIMENTACIÓN · V3 PRUEBAS</p></header>
 <main>
@@ -200,7 +201,9 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 </div>
 </section>
 <section id="managementPanel" class="hide">
-<div class="card"><h2>📊 Indicadores de Cocina</h2>
+<nav id="managementTabs" class="management-tabs" aria-label="Secciones del panel"></nav>
+<div class="card hide" id="turnToolbar"><label for="filterMeal">Comida seleccionada</label><select id="filterMeal"><option value="MAÑANA">Almuerzo</option><option value="NOCHE">Cena</option></select></div>
+<div class="card" data-panel="resumen"><h2>📊 Indicadores de Cocina</h2>
 <div class="metrics" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
 <div class="metric"><small>Total del día</small><b id="dayTotal">0</b></div>
 <div class="metric"><small>Almuerzo</small><b id="dayLunch">0</b></div>
@@ -208,15 +211,14 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div class="metric"><small>Entregados</small><b id="dayDone">0</b></div>
 <div class="metric"><small>Pendientes</small><b id="dayPending">0</b></div></div>
 <p class="muted" id="historicalHint"></p></div>
-<div class="card"><h2>🍽️ Menús publicados</h2><div id="kitchenMenus" class="menu-cards"></div></div>
-<div class="card"><h2>Pedidos del día</h2><div class="grid">
-<div><label for="filterMeal">Comida</label><select id="filterMeal"><option value="MAÑANA">Almuerzo</option><option value="NOCHE">Cena</option></select></div>
+<div class="card" data-panel="menus"><h2>🍽️ Menús publicados</h2><div id="kitchenMenus" class="menu-cards"></div></div>
+<div class="card" data-panel="pedidos"><h2>Pedidos del día</h2><div class="grid">
 <div><label for="filterState">Estado</label><select id="filterState"><option value="TODOS">Todos</option><option value="PENDIENTE">Pendientes</option><option value="ENTREGADO">Entregados</option><option value="NO_ENTREGADO">No entregados</option></select></div>
 </div><div class="metrics"><div class="metric"><b id="total">0</b>Total</div><div class="metric"><b id="pending">0</b>Pendientes</div><div class="metric"><b id="delivered">0</b>Entregados</div></div>
 <button id="refresh" class="secondary">Actualizar pedidos</button>
 <p class="muted" id="turnoState"></p>
 <h3>📋 Pendientes por dieta (comida seleccionada)</h3><div id="dietBadges" class="diet-badges"></div></div>
-<div class="card"><h2>✅ Entrega rápida de viandas</h2>
+<div class="card" data-panel="pedidos"><h2>✅ Entrega rápida de viandas</h2>
 <p class="muted">Marcá <b>Entregar</b> junto al nombre, o elegí un servicio y seleccioná a todas las personas presentes para validarlas juntas. No hace falta escribir ningún ID.</p>
 <div class="grid"><div><label for="searchOrder">Buscar por nombre</label><input id="searchOrder" type="search" placeholder="Buscar trabajador…"></div>
 <div><label for="serviceFilter">Filtrar por servicio</label><select id="serviceFilter"><option value="">Todos los servicios</option></select></div></div>
@@ -224,7 +226,7 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div class="actions fast-batch" id="batchActions"><button class="secondary" id="selectVisible">☑️ Seleccionar todos los pendientes del filtro</button><button class="secondary" id="clearSelected">Limpiar selección</button><button id="deliverSelected">✅ Entregar seleccionados (0)</button></div>
 <details id="deliveryActions"><summary class="muted">Opción adicional: validar por ID</summary><div class="actions"><input id="orderId" placeholder="ID exacto del pedido" aria-label="ID exacto del pedido" style="flex:1;min-width:190px"><button id="deliverById">Validar por ID</button></div></details>
 <div id="orders"></div><p class="status" id="managementMsg" role="status"></p></div>
-<div class="card" id="closePanel"><h2>🔒 Cerrar turno y generar estadísticas</h2>
+<div class="card" id="closePanel" data-panel="cierre"><h2>🔒 Cerrar turno y generar estadísticas</h2>
 <p class="close-warning">⚠️ El cierre marca los pedidos pendientes como <b>NO ENTREGADOS</b> y bloquea nuevas inscripciones, entregas y reversiones del turno seleccionado. No afecta la otra comida. Esta operación no se puede revertir desde el panel.</p>
 <div class="summary-list" id="closeSummary"></div><div class="grid"><div><h3>Por servicio</h3><div id="closeServices" class="muted"></div></div><div><h3>Por dieta</h3><div id="closeDiets" class="muted"></div></div></div><div class="actions"><button class="secondary" type="button" id="previewClose">Actualizar vista previa</button><button class="close-button" type="button" id="closeTurn">Cerrar turno seleccionado</button></div>
 <div class="close-confirm-box hide" id="closeConfirmBox" role="group" aria-labelledby="closeConfirmTitle">
@@ -234,7 +236,7 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div class="actions"><button type="button" class="secondary" id="cancelClose">Cancelar</button><button type="button" class="close-button" id="confirmClose">Confirmar cierre</button></div>
 </div>
 <p class="status" id="closeMsg" role="status"></p></div>
-<div class="card hide" id="backupPanel">
+<div class="card hide" id="backupPanel" data-panel="respaldos">
 <h2>🗄️ Administración · Respaldos de V3</h2>
 <p class="muted">Copias privadas de la planilla de pruebas. Solo ADMIN puede consultar y crear respaldos. Las copias no incluyen las propiedades secretas de Apps Script y no existe restauración automática.</p>
 <div class="actions">
@@ -245,13 +247,13 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div id="backupEntries"></div>
 <p id="backupMsg" class="status" role="status"></p>
 </div>
-<div class="card hide" id="repairPanel">
+<div class="card hide" id="repairPanel" data-panel="cierre">
 <h2>🛠️ Administración · Verificar cierre parcial</h2>
 <p class="muted">Si un cierre se interrumpe, verificá el turno seleccionado. Solo se permite completar pedidos pendientes si las cifras coinciden con el cierre guardado. No reabre turnos.</p>
 <div class="actions"><button type="button" class="secondary" id="diagnoseClose">Verificar integridad del cierre</button><button type="button" class="close-button hide" id="repairClose">Completar estados pendientes</button></div>
 <p class="status" id="repairMsg" role="status"></p>
 </div>
-<div class="card" id="historyPanel">
+<div class="card" id="historyPanel" data-panel="historial">
 <div class="row between"><h2>📅 Historial de cierres y estadísticas</h2><span class="pill">Cocina · Nutrición</span></div>
 <p class="muted">Consultá los cierres de días anteriores sin abrir Google Sheets. Los informes están disponibles después de cerrar cada turno.</p>
 <div class="history-dates"><div><label for="historyFrom">Desde</label><input type="date" id="historyFrom"></div>
@@ -260,7 +262,9 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div class="history-stats" id="historyStats"></div>
 <div id="historyEntries"></div><p id="historyMsg" class="status" role="status"></p>
 </div>
-<div class="card hide" id="bulkRosterPanel">
+<div class="card hide" id="adminPersonnel" data-panel="personal"><h2>👥 Personal y servicios</h2><p class="muted">Alta, edición y habilitación de trabajadores. No se borran registros históricos.</p><input id="adminSearch" type="search" placeholder="Buscar nombre o servicio"><div id="adminRoster"></div><button type="button" class="secondary" id="newPerson">Nueva persona</button><form id="adminPersonForm"><input type="hidden" id="adminPersonId"><div class="grid"><div><label for="adminName">Nombre y apellido</label><input id="adminName" required maxlength="100"></div><div><label for="adminService">Servicio</label><input id="adminService" required maxlength="60" list="adminServices"><datalist id="adminServices"></datalist></div><div><label for="adminDiet">Dieta</label><select id="adminDiet"></select></div></div><label><input id="adminActive" type="checkbox" checked> Personal habilitado</label><button type="submit" id="savePerson">Guardar persona</button></form><p id="adminPersonMsg" class="status" role="status"></p></div>
+<div class="card hide" id="adminAccounts" data-panel="accesos"><h2>🔐 Accesos por servicio</h2><p class="muted">Cada servicio tiene una contraseña única. Las claves se guardan como hash; no se pueden consultar posteriormente. Guardá la nueva clave en un gestor privado antes de confirmar.</p><div id="adminAccountList"></div><form id="adminAccountForm"><div class="grid"><div><label for="accountService">Servicio</label><select id="accountService" required></select></div><div><label for="accountRole">Rol</label><select id="accountRole"><option>WEB</option><option>SUPERVISOR</option><option>COCINA</option><option>NUTRICION</option></select></div><div><label for="accountPassword">Nueva contraseña (16 caracteres como mínimo)</label><input id="accountPassword" type="password" minlength="16" maxlength="128" required autocomplete="new-password"></div></div><div class="actions"><button type="button" class="secondary" id="generatePassword">Generar clave segura</button><button type="button" class="secondary" id="togglePassword">Mostrar / ocultar</button></div><label><input id="rotateAccount" type="checkbox"> Confirmo reemplazar la clave y el rol existentes</label><button id="saveAccount" type="submit">Guardar acceso</button></form><p id="adminAccountMsg" class="status" role="status"></p></div>
+<div class="card hide" id="bulkRosterPanel" data-panel="personal">
 <h2>👥 Administración · Incorporación masiva de personal</h2>
 <p class="muted">Solo ADMIN. Pegá una persona por línea con los campos <b>Apellido y nombre; Servicio; Dieta</b>, separados por punto y coma. No se necesitan DNI ni números de documento. El sistema genera un identificador interno único y omite los trabajadores ya existentes.</p>
 <label for="bulkRosterFile">Importar lote preparado (.txt)</label>
@@ -272,7 +276,7 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <p class="status" id="bulkRosterMsg" role="status"></p>
 <div id="bulkRosterStats" class="summary-list"></div>
 </div>
-<div class="card hide" id="nutritionEditor"><h2>📝 Nutrición · Publicar o modificar menú</h2>
+<div class="card hide" id="nutritionEditor" data-panel="menus"><h2>📝 Nutrición · Publicar o modificar menú</h2>
 <p class="muted">Los menús se pueden modificar en cualquier momento por una emergencia. Cada actualización crea una nueva versión para hoy y queda auditada.</p>
 <form id="menuForm"><div class="grid">
 <div><label for="editMeal">Turno</label><select id="editMeal"><option value="MAÑANA">🍽️ Almuerzo</option><option value="NOCHE">🌙 Cena</option></select></div>
@@ -289,12 +293,10 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div class="menu-field"><label for="editVEGETARIANA">Vegetariana</label><input id="editVEGETARIANA" maxlength="160"></div></div>
 <p class="muted">Si una dieta queda vacía, se mostrará el nombre del plato principal.</p>
 <button id="saveMenu" type="submit">💾 Publicar / guardar cambios</button><p id="menuMsg" class="status" role="status"></p></form>
-<hr style="border:0;border-top:1px solid #dce6ef;margin:25px 0">
-<h2>📢 Alerta del día en el ingreso</h2>
-<p class="muted">Este mensaje se verá debajo del campo de contraseña, sin necesidad de iniciar sesión. Solo se muestra la alerta de hoy. Dejá el campo vacío para retirarla.</p>
-<form id="alertForm"><label for="alertText">Mensaje del día (máximo 500 caracteres)</label>
-<textarea id="alertText" maxlength="500" placeholder="Ej.: Por trabajos en Cocina, la entrega del almuerzo comenzará a las 12:30."></textarea>
-<div class="actions"><button id="saveAlert" type="submit">📢 Publicar alerta</button><button class="secondary" id="clearAlert" type="button">Retirar alerta</button></div>
+</div><div class="card hide" id="alertEditor" data-panel="avisos"><h2>📢 Mensajes y alertas del ingreso</h2>
+<p class="muted">Hasta tres mensajes simultáneos. Los fijos permanecen hasta que se desactiven; los temporales vencen al finalizar la fecha elegida. No incluyas datos personales.</p>
+<form id="alertForm"><div id="alertSlots"></div>
+<div class="actions"><button id="saveAlert" type="submit">📢 Guardar avisos</button><button class="secondary" id="clearAlert" type="button">Desactivar todos</button></div>
 <p id="alertMsg" class="status" role="status"></p></form></div>
 </section>
 </div>
@@ -341,16 +343,48 @@ const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','listBackups','makeBackup','searchHistory','previewRoster'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
-function logoutLocal(){document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true)}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','listBackups','makeBackup','searchHistory','previewRoster','savePerson','saveAccount'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
+let adminData={personas:[],servicios:[]},alertVersion=null,alertFields=[],activeTab='';
+function logoutLocal(){document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];adminData={personas:[],servicios:[]};alertVersion=null;['adminRoster','adminAccountList','adminServices','accountService','bulkRosterStats','orders','people'].forEach(id=>$(id).replaceChildren());alertFields.forEach(f=>{f.texto.value='';f.activo.checked=false;f.fijo.checked=false;f.fecha.value=''});$('adminAccountForm').reset();$('accountPassword').value='';$('accountPassword').type='password';$('adminPersonForm').reset();$('adminPersonId').value='';$('adminSearch').value='';$('bulkRosterText').value='';$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true);loadDailyAlert()}
+
+function selectManagementTab(key){
+ activeTab=key;document.querySelectorAll('#managementPanel [data-panel]').forEach(el=>el.classList.toggle('tab-hidden',el.dataset.panel!==key));
+ $('managementTabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.key===key)));
+ show('turnToolbar',['pedidos','cierre'].includes(key));
+ if(key==='avisos')loadAlertEditor();
+ if(['personal','accesos'].includes(key))loadAdminData();
+}
+function buildManagementTabs(){
+ const common=[['resumen','📊 Resumen'],['pedidos','🍽️ Pedidos y entregas'],['menus','📋 Menús'],['historial','📅 Historial']];
+ if(session.rol!=='NUTRICION')common.splice(2,0,['cierre','🔒 Cierre de turno']);
+ if(['NUTRICION','ADMIN'].includes(session.rol))common.push(['avisos','📢 Alertas']);
+ if(session.rol==='ADMIN')common.push(['personal','👥 Personal'],['accesos','🔐 Accesos'],['respaldos','🗄️ Respaldos']);
+ const nav=$('managementTabs');nav.replaceChildren();
+ for(const [key,label] of common){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.key=key;b.setAttribute('aria-selected','false');b.addEventListener('click',()=>{if(!busy)selectManagementTab(key)});nav.append(b)}
+ selectManagementTab(session.rol==='NUTRICION'?'menus':'resumen');
+}
 
 async function loadDailyAlert(){
  try{
-  const a=await rpc({accion:'avisoPublico'}),text=String(a.aviso||'');
-  $('dailyAlert').textContent='📢 AVISO DEL DÍA\n'+text;
-  show('dailyAlert',!!text);
-  if(!session || ['NUTRICION','ADMIN'].includes(session.rol))$('alertText').value=text;
+  const a=await rpc({accion:'avisoPublico'}),avisos=Array.isArray(a.avisos)?a.avisos:(a.aviso?[a.aviso]:[]),box=$('dailyAlert');
+  box.replaceChildren();for(const text of avisos){const item=document.createElement('div');item.className='public-alert-item';item.textContent='📢 '+text;box.append(item)}show('dailyAlert',!!avisos.length);
  }catch(e){show('dailyAlert',false)}
+}
+function createAlertSlots(){
+ for(let i=0;i<3;i++){
+  const box=document.createElement('div');box.className='alert-slot';const h=document.createElement('h3');h.textContent='Mensaje '+(i+1);box.append(h);
+  const texto=document.createElement('textarea');texto.maxLength=500;texto.rows=3;texto.placeholder='Escribí el mensaje (máximo 500 caracteres)';texto.setAttribute('aria-label','Mensaje '+(i+1));box.append(texto);
+  function check(label){const l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';l.append(c,document.createTextNode(label));box.append(l);return c}
+  const activo=check('Publicar / activo'),fijo=check('Mantener fijo hasta desactivarlo'),fecha=document.createElement('input'),l=document.createElement('label');fecha.type='date';l.textContent='Vence al finalizar el día:';l.append(fecha);box.append(l);fijo.addEventListener('change',()=>{fecha.disabled=fijo.checked});
+  $('alertSlots').append(box);alertFields.push({texto,activo,fijo,fecha});
+ }
+}
+createAlertSlots();
+async function loadAlertEditor(){
+ if(!session||!['ADMIN','NUTRICION'].includes(session.rol))return;
+ try{const token=session.token,r=await rpc({accion:'avisosAdmin',token});if(!session||session.token!==token)return;alertVersion=r.version;
+  alertFields.forEach((f,i)=>{const a=r.avisos[i];f.texto.value=a.texto;f.activo.checked=a.activo&&(a.fijo||a.hasta>=r.hoy);f.fijo.checked=a.fijo;f.fecha.min=r.hoy;f.fecha.value=a.hasta>=r.hoy?a.hasta:r.hoy;f.fecha.disabled=a.fijo});
+ }catch(e){note('alertMsg',e.message,true)}
 }
 function makeMenuCard(menu,meal){
  const card=document.createElement('div');card.className='menu-card'+(!menu?' menu-pending':'');
@@ -423,17 +457,37 @@ $('alertForm').addEventListener('submit',async ev=>{
  ev.preventDefault();if(!session||busy||!['NUTRICION','ADMIN'].includes(session.rol))return;
  loading(true);note('alertMsg','Guardando aviso...',false);
  try{
-  await rpc({accion:'guardarAviso',token:session.token,texto:$('alertText').value});
-  await loadDailyAlert();note('alertMsg','Aviso del día actualizado.',false);
+  if(alertVersion===null)throw Error('Actualizá la pestaña de avisos antes de guardar');
+  await rpc({accion:'guardarAviso',token:session.token,version:alertVersion,avisos:alertFields.map(f=>({texto:f.texto.value,activo:f.activo.checked,fijo:f.fijo.checked,hasta:f.fecha.value}))});
+  await loadDailyAlert();await loadAlertEditor();note('alertMsg','Mensajes actualizados.',false);
  }catch(e){note('alertMsg',e.message,true)}finally{loading(false)}
 });
 $('clearAlert').addEventListener('click',()=>{
- if(!confirm('¿Retirar el aviso del día del inicio de sesión?'))return;
- $('alertText').value='';
+ if(!confirm('¿Desactivar los tres mensajes del inicio de sesión?'))return;
+ alertFields.forEach(f=>{f.activo.checked=false});
  $('alertForm').requestSubmit()
 });
 $('editMeal').addEventListener('change',fillMenuEditor);
 loadDailyAlert();
+setInterval(()=>{if(!session)loadDailyAlert()},60000);
+
+function renderAdminData(){
+ const q=$('adminSearch').value.toLocaleLowerCase('es').trim(),box=$('adminRoster');box.replaceChildren();
+ const matches=adminData.personas.filter(p=>(p.nombre+' '+p.servicio).toLocaleLowerCase('es').includes(q));
+ const info=document.createElement('p');info.className='muted';info.textContent=matches.length+' personas · mostrando hasta 100 resultados';box.append(info);
+ for(const p of matches.slice(0,100)){const row=document.createElement('div'),text=document.createElement('div'),name=document.createElement('b'),detail=document.createElement('small'),btn=document.createElement('button');row.className='admin-person';name.textContent=p.nombre;detail.textContent=p.servicio+' · '+p.dieta+' · '+(p.activo?'Habilitado':'Inactivo');text.append(name,detail);btn.type='button';btn.className='secondary';btn.textContent='Editar';btn.addEventListener('click',()=>{$('adminPersonId').value=p.id;$('adminName').value=p.nombre;$('adminService').value=p.servicio;$('adminDiet').value=p.dieta;$('adminActive').checked=p.activo;$('adminName').focus()});row.append(text,btn);box.append(row)}
+ const old=$('accountService').value; $('accountService').replaceChildren();$('adminServices').replaceChildren();$('adminAccountList').replaceChildren();
+ for(const s of adminData.servicios){const opt=document.createElement('option');opt.value=s.nombre;$('adminServices').append(opt);const line=document.createElement('div');line.className='backup-entry';line.textContent=s.nombre+' · '+(s.rol?'Acceso: '+s.rol:'Sin contraseña configurada');$('adminAccountList').append(line);if(s.rol!=='ADMIN'&&s.nombre!=='ADMIN'){const o=document.createElement('option');o.value=s.nombre;o.textContent=s.nombre;$('accountService').append(o)}}
+ if([...$('accountService').options].some(o=>o.value===old))$('accountService').value=old;setAccountRole();
+}
+function setAccountRole(){const s=adminData.servicios.find(x=>x.nombre===$('accountService').value);$('accountRole').value=s&&s.rol?s.rol:['COCINA','NUTRICION'].includes($('accountService').value)?$('accountService').value:'WEB';$('rotateAccount').checked=false}
+async function loadAdminData(){if(!session||session.rol!=='ADMIN')return;try{const token=session.token,r=await rpc({accion:'administrarPersonal',token});if(!session||session.token!==token)return;adminData=r;renderAdminData()}catch(e){note('adminPersonMsg',e.message,true);note('adminAccountMsg',e.message,true)}}
+for(const k of DIETS){const o=document.createElement('option');o.value=k;o.textContent=LABELS[k];$('adminDiet').append(o)}
+$('adminSearch').addEventListener('input',renderAdminData);$('newPerson').addEventListener('click',()=>{$('adminPersonForm').reset();$('adminPersonId').value='';$('adminName').focus()});$('accountService').addEventListener('change',setAccountRole);
+$('adminPersonForm').addEventListener('submit',async e=>{e.preventDefault();if(!session||session.rol!=='ADMIN'||busy)return;loading(true);try{await rpc({accion:'guardarPersonal',token:session.token,id:$('adminPersonId').value,nombre:$('adminName').value,servicio:$('adminService').value,dieta:$('adminDiet').value,activo:$('adminActive').checked});$('adminPersonForm').reset();$('adminPersonId').value='';await loadAdminData();note('adminPersonMsg','Personal guardado.',false)}catch(err){note('adminPersonMsg',err.message,true)}finally{loading(false)}});
+$('generatePassword').addEventListener('click',()=>{const a=new Uint8Array(24);crypto.getRandomValues(a);$('accountPassword').value=Array.from(a,x=>x.toString(16).padStart(2,'0')).join('');$('accountPassword').type='text'});
+$('togglePassword').addEventListener('click',()=>{$('accountPassword').type=$('accountPassword').type==='password'?'text':'password'});
+$('adminAccountForm').addEventListener('submit',async e=>{e.preventDefault();if(!session||session.rol!=='ADMIN'||busy)return;if(!confirm('¿Guardaste la nueva contraseña en un gestor privado? No se podrá recuperar desde el sistema.'))return;loading(true);try{await rpc({accion:'guardarAccesoServicio',token:session.token,servicio:$('accountService').value,rol:$('accountRole').value,clave:$('accountPassword').value,rotar:$('rotateAccount').checked});$('accountPassword').value='';$('accountPassword').type='password';await loadAdminData();note('adminAccountMsg','Acceso guardado correctamente.',false)}catch(err){note('adminAccountMsg',err.message,true)}finally{loading(false)}});
 
 function isPersonal(){return session&&['WEB','SUPERVISOR','ADMIN'].includes(session.rol)}
 function isManagement(){return session&&['COCINA','NUTRICION','ADMIN'].includes(session.rol)}
@@ -457,6 +511,9 @@ show('nutritionEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
 show('bulkRosterPanel',session.rol==='ADMIN');
 show('repairPanel',session.rol==='ADMIN');
 show('backupPanel',session.rol==='ADMIN');
+show('alertEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
+show('adminPersonnel',session.rol==='ADMIN');show('adminAccounts',session.rol==='ADMIN');
+buildManagementTabs();
 await refreshMenus();
 historyDefaults();
 $('heading').textContent='Cocina y Nutrición';$('who').textContent='Sector: '+session.servicio+' · Rol: '+session.rol;
