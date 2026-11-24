@@ -9,3 +9,5 @@
 
 ## Alta masiva de accesos
 En ADMIN → Accesos → Configuración masiva, revisar los servicios detectados en la nómina y los seis servicios adicionales; los tres supervisores del listado original se sugieren automáticamente y los demás quedan en WEB, con Cocina y Nutrición en sus roles propios. Las cuentas existentes y ADMIN quedan excluidas de la creación. Seleccionar, generar claves aleatorias en el navegador, copiar a un gestor privado y confirmar el alta. Si cambia el catálogo antes de confirmar, se rechaza el lote completo. Las claves no aparecen en auditoría ni se guardan en texto plano. Al salir de la pestaña se descartan las claves pendientes; no dejar la pantalla desatendida.
+
+En ADMIN → Personal el listado comienza vacío hasta elegir un servicio. Muestra cantidad de trabajadores por servicio, búsqueda por nombre, orden alfabético y páginas de 25 resultados. El alta individual permite preseleccionar el servicio elegido.
