@@ -83,11 +83,16 @@ context.PropertiesService={getScriptProperties:()=>({getProperty:k=>props.get(k)
 context.Utilities.computeDigest=(_alg,s)=>Array.from(require('node:crypto').createHash('sha256').update(s).digest());context.Utilities.DigestAlgorithm={SHA_256:'SHA_256'};context.Utilities.Charset={UTF_8:'UTF_8'};
 let seq=0;context.Utilities.getUuid=()=>('uuid-ficticio-'+(++seq));
 assert.equal(context.v3AdminPersonal_(admin).personas.length,1);
+for(const nombre of ['BACTERIOLOGIA','CLINICA MEDICA','LABORATORIO','QUEMADOS','TRAUMATOLOGIA','UTI II']){
+ const svc=context.v3AdminPersonal_(admin).servicios.find(s=>s.nombre===nombre);assert.equal(svc.rolSugerido,'WEB');assert.equal(svc.rol,null);
+}
 assert.equal(JSON.stringify(context.v3AdminPersonal_(admin)).includes('interno'),false);
 assert.equal(context.v3AdminGuardarPersonal_(admin,{nombre:'Otra Persona',servicio:'SERVICIO PRUEBA',dieta:'GENERAL',activo:true}).status,'success');
 assert.equal(rowsPeople.length,2);
 assert.throws(()=>context.v3AdminGuardarPersonal_(admin,{nombre:'Otra Persona',servicio:'SERVICIO PRUEBA',dieta:'GENERAL'}),/Ya existe/);
 const claveFicticia=require('node:crypto').randomBytes(24).toString('hex');
+assert.throws(()=>context.v3AdminGuardarAcceso_(admin,{servicio:'UTI II',rol:'SUPERVISOR',clave:claveFicticia}),/Rol incorrecto/);
+assert.equal(context.v3AdminGuardarAcceso_(admin,{servicio:'UTI II',rol:'WEB',clave:require('node:crypto').randomBytes(24).toString('hex')}).status,'success');
 assert.equal(context.v3AdminGuardarAcceso_(admin,{servicio:'SERVICIO PRUEBA',rol:'WEB',clave:claveFicticia}).status,'success');
 assert.equal(props.get('HISJB_V3_CUENTAS').includes(claveFicticia),false);
 assert.throws(()=>context.v3AdminGuardarAcceso_(admin,{servicio:'SERVICIO PRUEBA',rol:'WEB',clave:claveFicticia}),/ya tiene/);

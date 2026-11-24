@@ -1,15 +1,16 @@
 /** Gestión exclusiva de ADMIN; no devuelve hashes, sales ni contraseñas. */
+var V3_SERVICIOS_WEB_EXTRA_=['BACTERIOLOGIA','CLINICA MEDICA','LABORATORIO','QUEMADOS','TRAUMATOLOGIA','UTI II'];
 function v3AdminExigir_(s){if(s.rol!=='ADMIN')throw Error('Solo Administración puede gestionar personal y accesos');}
 function v3AdminPersonal_(s){
  v3AdminExigir_(s);
  var rows=v3Rows_(v3Planilla_().getSheetByName(V3.personal)),cuentas=JSON.parse(PropertiesService.getScriptProperties().getProperty(V3.cuentasProp)||'{}');
- var servicios=new Set(['COCINA','NUTRICION']);
+ var servicios=new Set(['COCINA','NUTRICION'].concat(V3_SERVICIOS_WEB_EXTRA_));
  var personas=rows.filter(function(r){return String(r[0]||'').trim()}).map(function(r){
   var servicio=v3Norm_(r[2]);if(servicio)servicios.add(servicio);
   return {id:String(r[0]),nombre:String(r[1]),servicio:servicio,dieta:String(r[3]||'GENERAL'),activo:!['NO','FALSE'].includes(v3Norm_(r[4]))};
  });
  Object.keys(cuentas).forEach(function(k){servicios.add(k)});
- return {status:'success',personas:personas,servicios:Array.from(servicios).sort().map(function(k){return {nombre:k,rol:cuentas[k]?cuentas[k].rol:null}})};
+ return {status:'success',personas:personas,servicios:Array.from(servicios).sort().map(function(k){return {nombre:k,rol:cuentas[k]?cuentas[k].rol:null,rolSugerido:V3_SERVICIOS_WEB_EXTRA_.includes(k)?'WEB':null}})};
 }
 function v3AdminGuardarPersonal_(s,p){
  v3AdminExigir_(s);
@@ -38,6 +39,7 @@ function v3AdminGuardarAcceso_(s,p){
   if(!cuenta)throw Error('Servicio sin personal registrado');
   if(cuenta.rol==='ADMIN'||servicio==='ADMIN')throw Error('No se puede modificar el acceso ADMIN');
   if(cuenta.rol&&p.rotar!==true)throw Error('Servicio ya tiene una cuenta');
+  if(V3_SERVICIOS_WEB_EXTRA_.includes(servicio)&&rol!=='WEB')throw Error('Rol incorrecto');
   if((rol==='COCINA'&&servicio!=='COCINA')||(rol==='NUTRICION'&&servicio!=='NUTRICION')||(['COCINA','NUTRICION'].includes(servicio)&&rol!==servicio))throw Error('Rol incorrecto');
   v3ProvisionarCuenta_(servicio,rol,clave);
   v3Auditar_(v3Planilla_(),'ADMIN_ACCESO',s.servicio,'Acceso de '+servicio+' ('+rol+') actualizado');
