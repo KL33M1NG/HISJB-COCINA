@@ -264,6 +264,7 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 </div>
 <div class="card hide" id="adminPersonnel" data-panel="personal"><h2>👥 Personal y servicios</h2><p class="muted">Alta, edición y habilitación de trabajadores. No se borran registros históricos.</p><div class="grid"><div><label for="adminServiceFilter">Seleccionar servicio</label><select id="adminServiceFilter"><option value="">Elegí un servicio…</option></select></div><div><label for="adminSearch">Buscar en el servicio</label><input id="adminSearch" type="search" placeholder="Buscar por nombre" disabled></div></div><div id="adminRoster" aria-live="polite"></div><div id="adminPagination" class="actions hide" aria-label="Paginación de personal"><button type="button" class="secondary" id="adminPrevPage">← Anterior</button><select id="adminPageChoice" aria-label="Página de personal"></select><button type="button" class="secondary" id="adminNextPage">Siguiente →</button></div><button type="button" class="secondary" id="newPerson">Nueva persona</button><form id="adminPersonForm"><input type="hidden" id="adminPersonId"><div class="grid"><div><label for="adminName">Nombre y apellido</label><input id="adminName" required maxlength="100"></div><div><label for="adminService">Servicio</label><input id="adminService" required maxlength="60" list="adminServices"><datalist id="adminServices"></datalist></div><div><label for="adminDiet">Dieta</label><select id="adminDiet"></select></div></div><label><input id="adminActive" type="checkbox" checked> Personal habilitado</label><button type="submit" id="savePerson">Guardar persona</button></form><p id="adminPersonMsg" class="status" role="status"></p></div>
 <div class="card hide" id="adminAccounts" data-panel="accesos"><h2>🔐 Accesos por servicio</h2><p class="muted">Cada servicio tiene una contraseña única. Las claves se guardan como hash; no se pueden consultar posteriormente. Guardá la nueva clave en un gestor privado antes de confirmar.</p><div id="adminAccountList"></div><form id="adminAccountForm"><div class="grid"><div><label for="accountService">Servicio</label><select id="accountService" required></select></div><div><label for="accountRole">Rol</label><select id="accountRole"><option>WEB</option><option>SUPERVISOR</option><option>COCINA</option><option>NUTRICION</option></select></div><div><label for="accountPassword">Nueva contraseña (16 caracteres como mínimo)</label><input id="accountPassword" type="password" minlength="16" maxlength="128" required autocomplete="new-password"></div></div><div class="actions"><button type="button" class="secondary" id="generatePassword">Generar clave segura</button><button type="button" class="secondary" id="togglePassword">Mostrar / ocultar</button></div><label><input id="rotateAccount" type="checkbox"> Confirmo reemplazar la clave y el rol existentes</label><button id="saveAccount" type="submit">Guardar acceso</button></form><p id="adminAccountMsg" class="status" role="status"></p></div>
+<div class="card hide" id="securityPanel" data-panel="seguridad"><h2>🛡️ Seguridad de acceso</h2><p class="muted">Registro de navegadores con intentos fallidos reiterados. El identificador es anónimo y no corresponde al dispositivo físico. No se guardan contraseñas introducidas.</p><div class="summary-list"><div><b id="blockedCount">0</b>Navegadores bloqueados</div></div><button type="button" class="secondary" id="refreshSecurity">Actualizar seguridad</button><div id="securityEntries"></div><p id="securityMsg" class="status" role="status"></p></div>
 <div class="card hide" id="bulkAccountsPanel" data-panel="accesos"><h2>🔑 Configuración masiva de accesos</h2><p class="muted">Los perfiles existentes se conservan. Camilleros, Enfermería y Mantenimiento se asignan a SUPERVISOR; los demás servicios a WEB, salvo Cocina y Nutrición. ADMIN no se modifica.</p><div class="actions"><button type="button" id="previewAccounts" class="secondary">Revisar servicios</button><button type="button" id="prepareAccounts" disabled>Generar claves para seleccionados</button></div><div id="bulkAccountPreview"></div><div id="bulkAccountSecrets" class="hide"><label for="bulkAccountText">Claves nuevas — copiá a un gestor de contraseñas privado antes de confirmar</label><textarea id="bulkAccountText" readonly rows="8" autocomplete="off" spellcheck="false"></textarea><label><input type="checkbox" id="confirmAccountSaved"> Confirmo que guardé las claves de forma privada</label><div class="actions"><button type="button" id="applyAccounts" disabled>Crear cuentas seleccionadas</button><button type="button" id="discardAccounts" class="secondary">Descartar claves</button></div></div><p id="bulkAccountMsg" class="status" role="status"></p></div>
 <div class="card hide" id="bulkRosterPanel" data-panel="personal">
 <h2>👥 Administración · Incorporación masiva de personal</h2>
@@ -344,12 +345,13 @@ const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
+function navegadorV3(){const key='hisjb-v3-browser-id';try{let id=localStorage.getItem(key);if(!/^[a-f0-9]{48}$/.test(id||'')){const a=new Uint8Array(24);crypto.getRandomValues(a);id=Array.from(a,v=>v.toString(16).padStart(2,'0')).join('');localStorage.setItem(key,id)}return id}catch(e){throw Error('No se pudo identificar el navegador. Permití el almacenamiento del sitio y actualizá la página')}}
 function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','listBackups','makeBackup','searchHistory','previewRoster','savePerson','saveAccount'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
 let adminData={personas:[],servicios:[]},alertVersion=null,alertFields=[],activeTab='';
 let adminPage=1;
 let accountPreview=[],accountBatch=[];
 function clearAccountBatch(){accountBatch=[];$('bulkAccountText').value='';$('confirmAccountSaved').checked=false;$('applyAccounts').disabled=true;show('bulkAccountSecrets',false)}
-function logoutLocal(){clearAccountBatch();accountPreview=[];$('bulkAccountPreview').replaceChildren();$('prepareAccounts').disabled=true;document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];adminData={personas:[],servicios:[]};adminPage=1;$('adminServiceFilter').replaceChildren(new Option('Elegí un servicio…',''));$('adminSearch').disabled=true;show('adminPagination',false);alertVersion=null;['adminRoster','adminAccountList','adminServices','accountService','bulkRosterStats','orders','people'].forEach(id=>$(id).replaceChildren());alertFields.forEach(f=>{f.texto.value='';f.activo.checked=false;f.fijo.checked=false;f.fecha.value=''});$('adminAccountForm').reset();$('accountPassword').value='';$('accountPassword').type='password';$('adminPersonForm').reset();$('adminPersonId').value='';$('adminSearch').value='';$('bulkRosterText').value='';$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true);loadDailyAlert()}
+function logoutLocal(){clearAccountBatch();accountPreview=[];$('bulkAccountPreview').replaceChildren();$('prepareAccounts').disabled=true;document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];adminData={personas:[],servicios:[]};adminPage=1;$('adminServiceFilter').replaceChildren(new Option('Elegí un servicio…',''));$('adminSearch').disabled=true;show('adminPagination',false);alertVersion=null;['adminRoster','adminAccountList','adminServices','accountService','bulkRosterStats','orders','people','securityEntries'].forEach(id=>$(id).replaceChildren());$('blockedCount').textContent='0';$('securityMsg').textContent='';alertFields.forEach(f=>{f.texto.value='';f.activo.checked=false;f.fijo.checked=false;f.fecha.value=''});$('adminAccountForm').reset();$('accountPassword').value='';$('accountPassword').type='password';$('adminPersonForm').reset();$('adminPersonId').value='';$('adminSearch').value='';$('bulkRosterText').value='';$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true);loadDailyAlert()}
 
 function selectManagementTab(key){
  if(key!=='accesos')clearAccountBatch();
@@ -358,16 +360,28 @@ function selectManagementTab(key){
  show('turnToolbar',['pedidos','cierre'].includes(key));
  if(key==='avisos')loadAlertEditor();
  if(['personal','accesos'].includes(key))loadAdminData();
+ if(key==='seguridad')loadSecurity();
 }
 function buildManagementTabs(){
  const common=[['resumen','📊 Resumen'],['pedidos','🍽️ Pedidos y entregas'],['menus','📋 Menús'],['historial','📅 Historial']];
  if(session.rol!=='NUTRICION')common.splice(2,0,['cierre','🔒 Cierre de turno']);
  if(['NUTRICION','ADMIN'].includes(session.rol))common.push(['avisos','📢 Alertas']);
- if(session.rol==='ADMIN')common.push(['personal','👥 Personal'],['accesos','🔐 Accesos'],['respaldos','🗄️ Respaldos']);
+ if(session.rol==='ADMIN')common.push(['personal','👥 Personal'],['accesos','🔐 Accesos'],['seguridad','🛡️ Seguridad'],['respaldos','🗄️ Respaldos']);
  const nav=$('managementTabs');nav.replaceChildren();
  for(const [key,label] of common){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.key=key;b.setAttribute('aria-selected','false');b.addEventListener('click',()=>{if(!busy)selectManagementTab(key)});nav.append(b)}
  selectManagementTab(session.rol==='NUTRICION'?'menus':'resumen');
+ if(session.rol==='ADMIN')loadSecurity();
 }
+let securityLoading=false;
+async function loadSecurity(){
+ if(!session||session.rol!=='ADMIN'||securityLoading)return;securityLoading=true;
+ try{const token=session.token,r=await rpc({accion:'seguridadAcceso',token});if(!session||session.token!==token)return;
+  $('blockedCount').textContent=r.bloqueados;const tab=$('managementTabs').querySelector('[data-key="seguridad"]');if(tab)tab.textContent='🛡️ Seguridad'+(r.bloqueados?' · 🔴 '+r.bloqueados:'');
+  const box=$('securityEntries');box.replaceChildren();if(!r.dispositivos.length){const p=document.createElement('p');p.className='muted';p.textContent='Sin intentos reiterados ni bloqueos.';box.append(p)}
+  for(const d of r.dispositivos){const row=document.createElement('div'),details=document.createElement('div'),name=document.createElement('b'),small=document.createElement('small');row.className='admin-person';name.textContent='Navegador '+d.id.slice(0,12)+' · '+(d.bloqueado?'BLOQUEADO':'En observación');small.textContent=d.intentos+' intentos · último: '+new Date(d.ultimo).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'});details.append(name,small);row.append(details);if(d.bloqueado){const b=document.createElement('button');b.type='button';b.textContent='Desbloquear';b.className='secondary';b.addEventListener('click',async()=>{if(busy||!session||session.rol!=='ADMIN'||!confirm('¿Levantar el bloqueo de este navegador?'))return;b.disabled=true;try{await rpc({accion:'desbloquearNavegador',token:session.token,id:d.id});note('securityMsg','Bloqueo levantado.',false);await loadSecurity()}catch(e){note('securityMsg',e.message,true);b.disabled=false}});row.append(b)}box.append(row)}
+ }catch(e){if(session&&session.rol==='ADMIN')note('securityMsg',e.message,true)}finally{securityLoading=false}
+}
+$('refreshSecurity').addEventListener('click',loadSecurity);setInterval(()=>{if(session&&session.rol==='ADMIN'&&!busy)loadSecurity()},30000);
 
 async function loadDailyAlert(){
  try{
@@ -521,7 +535,7 @@ $('accessForm').addEventListener('submit',async e=>{
 e.preventDefault();if(busy)return;
 loading(true);note('accessMsg','Comprobando contraseña...',false);
 try{
-const auth=await rpc({accion:'login',clave:$('password').value});
+const auth=await rpc({accion:'login',clave:$('password').value,dispositivo:navegadorV3()});
 session={token:auth.token,rol:auth.rol,servicio:auth.servicio};document.body.dataset.role=session.rol;$('password').value='';
 if(!isPersonal()&&!isManagement())throw Error('Cuenta sin acceso habilitado');
 if(isPersonal()&&(!isManagement()||session.rol==='SUPERVISOR'||session.rol==='WEB')){
@@ -539,6 +553,7 @@ show('repairPanel',session.rol==='ADMIN');
 show('backupPanel',session.rol==='ADMIN');
 show('alertEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
 show('adminPersonnel',session.rol==='ADMIN');show('adminAccounts',session.rol==='ADMIN');show('bulkAccountsPanel',session.rol==='ADMIN');
+show('securityPanel',session.rol==='ADMIN');
 buildManagementTabs();
 await refreshMenus();
 historyDefaults();

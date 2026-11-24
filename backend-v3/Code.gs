@@ -32,13 +32,16 @@ function v3UiCall(p) {
   try {
     if (!p || typeof p !== 'object') throw Error('Solicitud no válida');
     var accion = String(p.accion || '');
-    if (accion === 'login') return v3Login_(p);
+    if (accion === 'login') return v3LoginControlado_(p);
     if (accion === 'avisoPublico') return v3AvisoPublico_();
     if (accion === 'logout') {
       v3CerrarSesion_(p.token);
       return {status:'success'};
     }
     var sesion = v3Sesion_(p.token);
+    if(!sesion.dispositivo)throw Error('Sesión vencida: volver a ingresar');
+    if(accion==='seguridadAcceso')return v3AdminSeguridad_(sesion);
+    if(accion==='desbloquearNavegador')return v3AdminDesbloquear_(sesion,p);
     if (accion === 'personal') return v3Personal_(sesion);
     if (accion === 'registrar') return v3Registrar_(sesion,p);
     if (accion === 'registrarManual') return v3RegistrarManual_(sesion,p);
@@ -69,6 +72,7 @@ function v3UiCall(p) {
     var m = String(err && err.message || '');
     var conocidos = [
       'Credenciales incorrectas','Sesión inválida','Sesión vencida: volver a ingresar',
+      'Navegador bloqueado. Contactá a Administración','No se pudo identificar el navegador. Actualizá la página','Identificador inválido','El navegador no está bloqueado',
       'Acceso denegado','Permiso insuficiente','Selección inválida',
       'WEB admite un registro por operación','Guardia no válida',
       'Comida inválida','Trabajador no habilitado','Trabajador de otro servicio: acceso denegado',
@@ -168,12 +172,12 @@ function v3Hash_(s) {
 function v3Norm_(s) {
   return String(s || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
-function v3Login_(p) {
+function v3Login_(p,dispositivo) {
   // La pantalla principal solicita SOLO la clave. El servidor identifica rol y servicio.
   // Un servicio opcional solo se acepta por compatibilidad con pruebas internas existentes.
   var solicitado = v3Norm_(p && p.servicio);
   var clave = String(p && p.clave || '');
-  if (!clave) throw Error('Credenciales incorrectas');
+  if (!clave||clave.length>128) throw Error('Credenciales incorrectas');
   var cuentas = JSON.parse(PropertiesService.getScriptProperties().getProperty(V3.cuentasProp) || '{}');
   var pepper = PropertiesService.getScriptProperties().getProperty(V3.secretProp);
   if (!pepper) throw Error('Credenciales incorrectas');
@@ -187,6 +191,7 @@ function v3Login_(p) {
   // Si hay claves iguales entre servicios, no se permite acceder ambiguamente.
   if (coincidencias.length !== 1) throw Error('Credenciales incorrectas');
   var cuenta = coincidencias[0];
+  if(dispositivo)cuenta.dispositivo=dispositivo;
   if (solicitado && solicitado !== cuenta.servicio) throw Error('Credenciales incorrectas');
   var token = Utilities.getUuid() + Utilities.getUuid();
   CacheService.getScriptCache().put('v3:'+token,JSON.stringify(cuenta),V3.sesionMinutos*60);
@@ -198,6 +203,7 @@ function v3Sesion_(token) {
   if (!val) throw Error('Sesión vencida: volver a ingresar');
   var sesion=JSON.parse(val),cuentas=JSON.parse(PropertiesService.getScriptProperties().getProperty(V3.cuentasProp)||'{}'),actual=cuentas[sesion.servicio];
   if(!actual||!sesion.revision||actual.salt!==sesion.revision||actual.rol!==sesion.rol)throw Error('Sesión vencida: volver a ingresar');
+  if(sesion.dispositivo){var estado=v3LoginEstado_(PropertiesService.getScriptProperties(),sesion.dispositivo);if(estado&&estado.bloqueado)throw Error('Navegador bloqueado. Contactá a Administración');}
   return sesion;
 }
 function v3Rows_(s) {

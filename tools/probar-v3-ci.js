@@ -133,4 +133,22 @@ assert.equal(pagina(personas,'FICTICIO B','',1).total,1);
 assert.equal(pagina(personas,'FICTICIO A','Persona 42',1).total,1);
 assert.equal(pagina(personas,'SIN PERSONAL','',1).total,0);
 console.log('OK: paginación por servicio, búsqueda y límite de 25 personas.');
+// Protección de acceso: propiedades, contraseñas y sesiones completamente ficticias, en memoria.
+const memoria=new Map();context.CacheService={getScriptCache:()=>({get:k=>memoria.get(k)||null,put:(k,v)=>memoria.set(k,v),remove:k=>memoria.delete(k)})};
+context.PropertiesService={getScriptProperties:()=>({getProperty:k=>props.get(k)||null,setProperty:(k,v)=>props.set(k,v),deleteProperty:k=>props.delete(k),getProperties:()=>Object.fromEntries(props)})};
+context.Utilities.getUuid=()=>require('node:crypto').randomUUID();
+context.v3Planilla_=()=>({getSheetByName:n=>sheets[n]||null,getSpreadsheetTimeZone:()=> 'America/Argentina/Buenos_Aires'});
+const dispositivo=require('node:crypto').randomBytes(24).toString('hex'),fallida=nuevaClave();
+const key=context.v3LoginDeviceKey_(dispositivo);
+for(let i=1;i<=4;i++){assert.throws(()=>context.v3LoginControlado_({dispositivo,clave:fallida}),/Credenciales incorrectas/);assert.equal(JSON.parse(props.get(key)).intentos,i)}
+assert.throws(()=>context.v3LoginControlado_({dispositivo,clave:fallida}),/bloqueado/);
+assert.equal(JSON.parse(props.get(key)).bloqueado,true);
+assert.equal(props.get(key).includes(fallida),false);assert.equal(props.get(key).includes(dispositivo),false);
+assert.throws(()=>context.v3LoginControlado_({dispositivo,clave:claveFicticia}),/bloqueado/);
+assert.throws(()=>context.v3AdminSeguridad_({rol:'WEB'}),/Solo Administración/);
+const id=context.v3AdminSeguridad_(admin).dispositivos[0].id;
+assert.throws(()=>context.v3AdminDesbloquear_({rol:'COCINA'},{id}),/Solo Administración/);
+assert.equal(context.v3AdminDesbloquear_(admin,{id}).status,'success');assert.equal(props.has(key),false);
+const login=context.v3LoginControlado_({dispositivo,clave:claveFicticia});assert.equal(login.rol,'WEB');assert.equal(context.v3Sesion_(login.token).dispositivo,key);
+console.log('OK: bloqueo al quinto fallo, metadatos sin claves y desbloqueo exclusivo ADMIN.');
 console.log('COMPROBACIÓN COMPLETADA: regresiones V3 con servicios simulados, sin datos ni escrituras reales.');
