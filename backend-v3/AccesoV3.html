@@ -108,6 +108,7 @@ body[data-theme="dark"] button.secondary{color:#dceaff}
 .metric:nth-child(5) b{color:#ac6326}
 .person{padding:calc(14px * var(--space-scale)) 12px;border-radius:9px;margin:4px 0;border:1px solid transparent;border-bottom-color:var(--line)}
 .person:hover{background:var(--accent-soft);border-color:var(--border)}
+.person-suggestion{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;gap:12px;min-height:48px;margin:6px 0}.person-suggestion span{flex:1;overflow-wrap:anywhere}.person-suggestion small,.selected-person small{display:block}.selected-person{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--border);background:var(--soft);border-radius:10px;margin:7px 0}.selected-person>div{flex:1;min-width:0;overflow-wrap:anywhere}.selected-person button{flex:none;width:auto}.selection-area{margin-top:20px;border-top:1px solid var(--border);padding-top:14px}.selection-area h3{margin:0 0 8px}.search-hint{margin:8px 0}.selection-area #submitPeople{width:100%;min-height:48px}
 .order{padding:calc(16px * var(--space-scale)) 12px;margin:5px 0;border:1px solid var(--border);border-radius:11px;background:var(--card)}
 .order.done{background:#e6f7ef;border-color:#b0e4c9}
 .order.done .pill{background:#caefdb;color:#16623a}
@@ -185,11 +186,12 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div><label for="shift">Duración de guardia</label><select id="shift"><option value="12">12 horas</option><option value="16">16 horas</option><option value="20">20 horas</option><option value="24">24 horas (almuerzo + cena)</option></select></div>
 <div><label for="meal">Comida</label><select id="meal"><option value="MAÑANA">Almuerzo</option><option value="NOCHE">Cena</option></select></div></div>
 <p id="shiftHint" class="muted"></p></div>
-<div class="card"><div class="row between"><h2>Personal de tu servicio</h2><span class="pill" id="chosenCount">0 seleccionados</span></div>
-<input id="searchPerson" type="search" placeholder="Buscar por nombre…">
-<div class="actions" id="bulkActions"><button class="secondary" id="selectAll" type="button">Seleccionar todo</button><button class="secondary" id="selectNone" type="button">Limpiar selección</button></div>
-<div id="people"></div><p id="personalMsg" class="status" role="status"></p>
-<button id="submitPeople" disabled>Registrar selección</button></div>
+<div class="card"><h2>Buscar personal de tu servicio</h2>
+<label for="searchPerson">Apellido o nombre</label><input id="searchPerson" type="search" placeholder="Escribí al menos 2 letras del apellido…" autocomplete="off" aria-describedby="searchPersonHint">
+<p id="searchPersonHint" class="muted search-hint" aria-live="polite">Escribí un apellido para buscar.</p><div id="people" aria-label="Coincidencias de personal"></div>
+<div class="selection-area"><div class="row between"><h3>Personas seleccionadas</h3><span class="pill" id="chosenCount">0 seleccionados</span></div><p id="selectionHint" class="muted"></p><div id="selectedPeople"></div>
+<div class="actions hide" id="bulkActions"><button class="secondary" id="selectNone" type="button">Limpiar selección</button></div>
+<p id="personalMsg" class="status" role="status"></p><button id="submitPeople" disabled>Solicitar vianda</button></div></div>
 <div class="card hide" id="manualPanel"><h2>Carga manual sin DNI</h2>
 <p class="manualHint">Para policías, seguridad y residentes que no aparecen en la nómina. Solo supervisores. Cada solicitud queda asociada a tu servicio y se registra en la auditoría.</p>
 <form id="manualForm">
@@ -346,12 +348,12 @@ function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
 function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
 function navegadorV3(){const key='hisjb-v3-browser-id';try{let id=localStorage.getItem(key);if(!/^[a-f0-9]{48}$/.test(id||'')){const a=new Uint8Array(24);crypto.getRandomValues(a);id=Array.from(a,v=>v.toString(16).padStart(2,'0')).join('');localStorage.setItem(key,id)}return id}catch(e){throw Error('No se pudo identificar el navegador. Permití el almacenamiento del sitio y actualizá la página')}}
-function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','listBackups','makeBackup','searchHistory','previewRoster','savePerson','saveAccount'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
+function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('searchPerson').disabled=v;$('selectNone').disabled=v;document.querySelectorAll('#people button,#selectedPeople button').forEach(b=>b.disabled=v);$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','listBackups','makeBackup','searchHistory','previewRoster','savePerson','saveAccount'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
 let adminData={personas:[],servicios:[]},alertVersion=null,alertFields=[],activeTab='';
 let adminPage=1;
 let accountPreview=[],accountBatch=[];
 function clearAccountBatch(){accountBatch=[];$('bulkAccountText').value='';$('confirmAccountSaved').checked=false;$('applyAccounts').disabled=true;show('bulkAccountSecrets',false)}
-function logoutLocal(){clearAccountBatch();accountPreview=[];$('bulkAccountPreview').replaceChildren();$('prepareAccounts').disabled=true;document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];adminData={personas:[],servicios:[]};adminPage=1;$('adminServiceFilter').replaceChildren(new Option('Elegí un servicio…',''));$('adminSearch').disabled=true;show('adminPagination',false);alertVersion=null;['adminRoster','adminAccountList','adminServices','accountService','bulkRosterStats','orders','people','securityEntries'].forEach(id=>$(id).replaceChildren());$('blockedCount').textContent='0';$('securityMsg').textContent='';alertFields.forEach(f=>{f.texto.value='';f.activo.checked=false;f.fijo.checked=false;f.fecha.value=''});$('adminAccountForm').reset();$('accountPassword').value='';$('accountPassword').type='password';$('adminPersonForm').reset();$('adminPersonId').value='';$('adminSearch').value='';$('bulkRosterText').value='';$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true);loadDailyAlert()}
+function logoutLocal(){clearAccountBatch();accountPreview=[];$('bulkAccountPreview').replaceChildren();$('prepareAccounts').disabled=true;document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];adminData={personas:[],servicios:[]};adminPage=1;$('adminServiceFilter').replaceChildren(new Option('Elegí un servicio…',''));$('adminSearch').disabled=true;show('adminPagination',false);alertVersion=null;['adminRoster','adminAccountList','adminServices','accountService','bulkRosterStats','orders','people','selectedPeople','securityEntries'].forEach(id=>$(id).replaceChildren());$('searchPerson').value='';$('personalMsg').textContent='';$('chosenCount').textContent='0 seleccionados';show('bulkActions',false);$('blockedCount').textContent='0';$('securityMsg').textContent='';alertFields.forEach(f=>{f.texto.value='';f.activo.checked=false;f.fijo.checked=false;f.fecha.value=''});$('adminAccountForm').reset();$('accountPassword').value='';$('accountPassword').type='password';$('adminPersonForm').reset();$('adminPersonId').value='';$('adminSearch').value='';$('bulkRosterText').value='';$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true);loadDailyAlert()}
 
 function selectManagementTab(key){
  if(key!=='accesos')clearAccountBatch();
@@ -540,7 +542,7 @@ session={token:auth.token,rol:auth.rol,servicio:auth.servicio};document.body.dat
 if(!isPersonal()&&!isManagement())throw Error('Cuenta sin acceso habilitado');
 if(isPersonal()&&(!isManagement()||session.rol==='SUPERVISOR'||session.rol==='WEB')){
 const response=await rpc({accion:'personal',token:session.token});
-roster=response.personas||[];chosen.clear();show('personalPanel',true);show('managementPanel',false);
+roster=response.personas||[];chosen.clear();$('searchPerson').value='';note('personalMsg','',false);show('personalPanel',true);show('managementPanel',false);
 await refreshMenus();
 show('manualPanel',session.rol==='SUPERVISOR'||session.rol==='ADMIN');
 $('heading').textContent='Registro de viandas';$('who').textContent='Servicio: '+session.servicio+' · Modalidad: '+session.rol;
@@ -565,20 +567,28 @@ show('access',false);show('workspace',true);note('accessMsg','',false)
 finally{loading(false)}
 });
 $('exit').addEventListener('click',async()=>{let token=session&&session.token;logoutLocal();if(token){try{await rpc({accion:'logout',token})}catch(e){}}});
-function renderPeople(){
-const q=$('searchPerson').value.trim().toLocaleLowerCase('es'),list=$('people');list.replaceChildren();
-for(const p of roster.filter(x=>x.nombre.toLocaleLowerCase('es').includes(q))){
-const row=document.createElement('label');row.className='person';const c=document.createElement('input');c.type='checkbox';c.checked=chosen.has(p.id);c.disabled=busy;
-c.addEventListener('change',()=>{if(session.rol==='WEB')chosen.clear();if(c.checked)chosen.add(p.id);else chosen.delete(p.id);renderPeople()});
-const span=document.createElement('span'),name=document.createElement('b'),sub=document.createElement('small');
-name.textContent=p.nombre;sub.textContent='Dieta: '+p.dieta;span.append(name,sub);row.append(c,span);list.append(row)
+function mealPersonSuggestions(personas,busqueda,seleccion){
+ const norm=s=>String(s||'').toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ');
+ const q=norm(busqueda),tokens=q.split(' ');if(q.length<2)return {total:0,items:[]};
+ const matches=personas.filter(p=>!seleccion.has(p.id)&&tokens.every(t=>norm(p.nombre).includes(t))).sort((a,b)=>Number(norm(b.nombre).startsWith(q))-Number(norm(a.nombre).startsWith(q))||a.nombre.localeCompare(b.nombre,'es')||String(a.id).localeCompare(String(b.id)));
+ return {total:matches.length,items:matches.slice(0,15)};
 }
-if(!list.childNodes.length){let p=document.createElement('p');p.className='muted';p.textContent='No hay trabajadores para este filtro.';list.append(p)}
-$('chosenCount').textContent=chosen.size+' seleccionados';show('bulkActions',session&&session.rol!=='WEB');$('submitPeople').disabled=busy||!chosen.size;
+function mealAddSelection(seleccion,id,rol){
+ if(rol==='WEB')seleccion.clear();else if(seleccion.size>=250&&!seleccion.has(id))return false;
+ seleccion.add(id);return true;
+}
+function renderPeople(){
+ const query=$('searchPerson').value.trim(),list=$('people'),selected=$('selectedPeople');list.replaceChildren();selected.replaceChildren();
+ const results=mealPersonSuggestions(roster,query,chosen);
+ $('searchPersonHint').textContent=query.length<2?'Escribí al menos 2 letras del apellido.':!results.total?'No hay coincidencias disponibles.':results.total>15?'Mostrando 15 de '+results.total+' coincidencias; escribí más letras.':results.total+' coincidencias. Tocá una persona para seleccionarla.';
+ for(const p of results.items){const row=document.createElement('button'),span=document.createElement('span'),name=document.createElement('b'),sub=document.createElement('small');row.type='button';row.className='secondary person-suggestion';row.disabled=busy;name.textContent=p.nombre;sub.textContent='Dieta: '+p.dieta;span.append(name,sub);row.append(span,document.createTextNode('+ Seleccionar'));row.addEventListener('click',()=>{if(!session||busy)return;if(!mealAddSelection(chosen,p.id,session.rol))return note('personalMsg','Máximo 250 personas por solicitud.',true);$('searchPerson').value='';renderPeople();if(session.rol!=='WEB')$('searchPerson').focus()});list.append(row)}
+ for(const id of chosen){const p=roster.find(x=>x.id===id);if(!p)continue;const row=document.createElement('div'),details=document.createElement('div'),name=document.createElement('b'),sub=document.createElement('small'),remove=document.createElement('button');row.className='selected-person';name.textContent=p.nombre;sub.textContent='Dieta: '+p.dieta;details.append(name,sub);remove.type='button';remove.className='secondary';remove.textContent='Quitar';remove.setAttribute('aria-label','Quitar '+p.nombre);remove.disabled=busy;remove.addEventListener('click',()=>{if(!busy){chosen.delete(id);renderPeople()}});row.append(details,remove);selected.append(row)}
+ $('selectionHint').textContent=session&&session.rol==='WEB'?'Seleccioná una persona. Si elegís otra, reemplazará la selección.':'Podés buscar y agregar varias personas; se conservarán hasta solicitar las viandas.';
+ if(!chosen.size){const p=document.createElement('p');p.className='muted';p.textContent='Todavía no seleccionaste a nadie.';selected.append(p)}
+ $('chosenCount').textContent=chosen.size+' seleccionados';show('bulkActions',chosen.size>0);$('submitPeople').textContent=chosen.size>1?'Solicitar viandas ('+chosen.size+')':'Solicitar vianda';$('submitPeople').disabled=busy||!chosen.size;
 }
 $('searchPerson').addEventListener('input',renderPeople);
-$('selectAll').addEventListener('click',()=>{if(!session||session.rol==='WEB')return;const q=$('searchPerson').value.trim().toLocaleLowerCase('es');roster.filter(p=>p.nombre.toLocaleLowerCase('es').includes(q)).forEach(p=>chosen.add(p.id));renderPeople()});
-$('selectNone').addEventListener('click',()=>{chosen.clear();renderPeople()});
+$('selectNone').addEventListener('click',()=>{if(!busy){chosen.clear();renderPeople()}});
 $('shift').addEventListener('change',()=>{
 const all=$('shift').value==='24';$('meal').disabled=all;
 $('shiftHint').textContent=all?'Guardia de 24 horas: se registran almuerzo y cena por separado.':'Se registra únicamente la comida seleccionada.'
@@ -602,7 +612,7 @@ if(!session||busy||!chosen.size)return;
 const ids=[...chosen],guardia=$('shift').value,turno=$('meal').value;
 if(!confirm('¿Registrar '+ids.length+' personas para '+(guardia==='24'?'almuerzo y cena':'la comida elegida')+'?'))return;
 loading(true);note('personalMsg','Registrando...',false);
-try{const r=await rpc({accion:'registrar',token:session.token,ids,guardia,turno});note('personalMsg','Pedidos creados: '+r.creados+' · Ya registrados: '+(r.duplicados||[]).length,false);chosen.clear();renderPeople()}
+try{const r=await rpc({accion:'registrar',token:session.token,ids,guardia,turno});note('personalMsg','Pedidos creados: '+r.creados+' · Ya registrados: '+(r.duplicados||[]).length,false);chosen.clear();$('searchPerson').value='';renderPeople()}
 catch(e){note('personalMsg',e.message,true)}finally{loading(false)}
 });
 async function loadOrders(){

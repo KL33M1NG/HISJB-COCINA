@@ -151,4 +151,17 @@ assert.throws(()=>context.v3AdminDesbloquear_({rol:'COCINA'},{id}),/Solo Adminis
 assert.equal(context.v3AdminDesbloquear_(admin,{id}).status,'success');assert.equal(props.has(key),false);
 const login=context.v3LoginControlado_({dispositivo,clave:claveFicticia});assert.equal(login.rol,'WEB');assert.equal(context.v3Sesion_(login.token).dispositivo,key);
 console.log('OK: bloqueo al quinto fallo, metadatos sin claves y desbloqueo exclusivo ADMIN.');
+const buscador=html.slice(html.indexOf('function mealPersonSuggestions('),html.indexOf('function renderPeople('));
+const seleccionViandas=vm.runInNewContext(buscador+'\n({buscar:mealPersonSuggestions,agregar:mealAddSelection})');
+const ficticios=[{id:'a',nombre:'Pérez Ana'},{id:'b',nombre:'Pérez Bruno'},{id:'c',nombre:'Gómez Carla'}];
+const elegidos=new Set();
+assert.equal(seleccionViandas.buscar(ficticios,'',elegidos).items.length,0);
+assert.equal(seleccionViandas.buscar(ficticios,'p',elegidos).items.length,0);
+assert.equal(seleccionViandas.buscar(ficticios,'perez',elegidos).total,2);
+assert.equal(seleccionViandas.buscar(ficticios,'perez br',elegidos).items[0].id,'b');
+seleccionViandas.agregar(elegidos,'a','WEB');seleccionViandas.agregar(elegidos,'b','WEB');assert.deepEqual([...elegidos],['b']);
+seleccionViandas.agregar(elegidos,'c','SUPERVISOR');assert.deepEqual([...elegidos],['b','c']);
+assert.equal(seleccionViandas.buscar(ficticios,'perez',elegidos).items[0].id,'a');
+assert.equal(seleccionViandas.buscar(Array.from({length:40},(_,i)=>({id:String(i),nombre:'Prueba '+i})),'pr',new Set()).items.length,15);
+console.log('OK: búsqueda de viandas sin listado inicial, selección WEB individual y SUPERVISOR acumulativa.');
 console.log('COMPROBACIÓN COMPLETADA: regresiones V3 con servicios simulados, sin datos ni escrituras reales.');
