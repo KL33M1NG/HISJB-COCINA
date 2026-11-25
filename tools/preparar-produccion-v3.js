@@ -10,10 +10,11 @@ const output=path.resolve(outputArg),relative=path.relative(repo,output);
 if(!relative||(!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative)))throw Error('La carpeta debe quedar fuera del repositorio.');
 if(fs.existsSync(output))throw Error('La carpeta de destino ya existe: usá una carpeta nueva para no sobrescribir archivos.');
 const names=['AccesoV3.html','Code.gs','AdministracionV3.gs','AdminBootstrap.gs','AvisosV3.gs','CocinaOperaciones.gs','HistorialCierres.gs','ImportacionNomina.gs','RecuperacionCierre.gs','RespaldosV3.gs','SeguridadAccesoV3.gs'];
-function replaceOnce(s,old,replacement){if(!s.includes(old))throw Error('La versión de origen cambió: revisar el preparador.');return s.replace(old,replacement)}
+function replaceOnce(s,old,replacement){if(!s.includes(old))throw Error('La versión de origen cambió: no se encontró '+old.split('\n')[0]);return s.replace(old,replacement)}
 const transformed=new Map();
 for(const name of names){
- let s=fs.readFileSync(path.join(src,name),'utf8');
+ // Git en Windows puede convertir LF a CRLF; normalizar antes de buscar fragmentos.
+ let s=fs.readFileSync(path.join(src,name),'utf8').replace(/\r\n/g,'\n');
  s=s.replaceAll('HISJB_V3_TEST_SHEET_ID','HISJB_V3_PROD_SHEET_ID').replaceAll('HISJB_V3_CUENTAS','HISJB_V3_PROD_CUENTAS').replaceAll('HISJB_V3_PEPPER','HISJB_V3_PROD_PEPPER').replaceAll('HISJB_V3_BACKUP_FOLDER_ID','HISJB_V3_PROD_BACKUP_FOLDER_ID').replaceAll('HISJB_V3_ADMIN_BOOTSTRAP','HISJB_V3_PROD_ADMIN_BOOTSTRAP').replaceAll('HISJB_V3_LOGIN_DEVICE_','HISJB_V3_PROD_LOGIN_DEVICE_');
  if(name==='Code.gs'){
   s=replaceOnce(s,'function v3Planilla_() {','function v3Planilla_() {\n  v3ExigirProyectoRespaldoV3_();');
