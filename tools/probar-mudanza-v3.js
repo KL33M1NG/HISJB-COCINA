@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'mudanza-v3.html'),'utf8');
+const pure=html.slice(html.indexOf('function migrationDestination('),html.indexOf('    (function()'));
+const destino=vm.runInNewContext(pure+'\nmigrationDestination',{URL});
+const ficticio='https://script.google.com/macros/s/ID-FICTICIO/exec';
+assert.equal(destino({modo:'pendiente',destino:ficticio}),null);
+assert.equal(destino({modo:'aviso',destino:ficticio}),ficticio);
+assert.equal(destino({modo:'redireccion',destino:ficticio}),ficticio);
+for(const invalid of ['https://script.google.com/macros/s/ID-FICTICIO/dev','http://script.google.com/macros/s/ID-FICTICIO/exec','https://example.com/macros/s/ID-FICTICIO/exec','https://script.google.com/macros/s/ID-FICTICIO/exec?test=1','https://script.google.com.ejemplo.net/macros/s/ID-FICTICIO/exec','javascript:void(0)',''])assert.equal(destino({modo:'aviso',destino:invalid}),null);
+console.log('OK: transición desactivada por defecto y destino validado (solo /exec HTTPS).');
