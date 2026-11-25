@@ -164,4 +164,10 @@ seleccionViandas.agregar(elegidos,'c','SUPERVISOR');assert.deepEqual([...elegido
 assert.equal(seleccionViandas.buscar(ficticios,'perez',elegidos).items[0].id,'a');
 assert.equal(seleccionViandas.buscar(Array.from({length:40},(_,i)=>({id:String(i),nombre:'Prueba '+i})),'pr',new Set()).items.length,15);
 console.log('OK: búsqueda de viandas sin listado inicial, selección WEB individual y SUPERVISOR acumulativa.');
+const generador=html.slice(html.indexOf('function createServicePassword('),html.indexOf("$('generatePassword').addEventListener"));
+const generarClave=vm.runInNewContext(generador+'\ncreateServicePassword',{crypto:require('node:crypto').webcrypto});
+const claves=new Set();for(let i=0;i<100;i++){const clave=generarClave('Clínica Médica');assert.match(clave,/^clinica-medica\.catamarca\.[a-zA-Z2-9]{12}$/);assert.ok(!claves.has(clave));claves.add(clave)}
+assert.match(generarClave('UTI II'),/^uti-ii\.catamarca\.[a-zA-Z2-9]{12}$/);
+assert.throws(()=>generarClave(''),/Seleccioná/);
+console.log('OK: formato legible de claves y sufijo aleatorio de doce caracteres (sin mostrar claves).');
 console.log('COMPROBACIÓN COMPLETADA: regresiones V3 con servicios simulados, sin datos ni escrituras reales.');
