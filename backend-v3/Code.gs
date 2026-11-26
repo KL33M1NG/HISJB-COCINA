@@ -7,7 +7,7 @@ const V3 = Object.freeze({
   pedidos: 'Pedidos_V3', personal: 'Personal_V3', auditoria: 'Auditoria_V3',
   menus: 'Menu_V3', avisos: 'Avisos_V3',
   cuentasProp: 'HISJB_V3_CUENTAS', hojaProp: 'HISJB_V3_TEST_SHEET_ID',
-  secretProp: 'HISJB_V3_PEPPER', sesionMinutos: 180
+  secretProp: 'HISJB_V3_PEPPER', sesionMinutos: 60
 });
 
 function v3Salida_(obj) {
@@ -40,6 +40,7 @@ function v3UiCall(p) {
     }
     var sesion = v3Sesion_(p.token);
     if(!sesion.dispositivo)throw Error('Sesión vencida: volver a ingresar');
+    if(accion==='restaurarSesion')return v3RestaurarSesion_(sesion,p);
     if(accion==='seguridadAcceso')return v3AdminSeguridad_(sesion);
     if(accion==='desbloquearNavegador')return v3AdminDesbloquear_(sesion,p);
     if (accion === 'personal') return v3Personal_(sesion);
@@ -196,17 +197,24 @@ function v3Login_(p,dispositivo) {
   if(dispositivo)cuenta.dispositivo=dispositivo;
   if (solicitado && solicitado !== cuenta.servicio) throw Error('Credenciales incorrectas');
   var token = Utilities.getUuid() + Utilities.getUuid();
-  CacheService.getScriptCache().put('v3:'+token,JSON.stringify(cuenta),V3.sesionMinutos*60);
-  return {status:'success',token:token,servicio:cuenta.servicio,rol:cuenta.rol,expiraMinutos:V3.sesionMinutos};
+  var minutos=cuenta.rol==='ADMIN'?30:V3.sesionMinutos;
+  cuenta.expiraEn=Date.now()+minutos*60000;
+  CacheService.getScriptCache().put('v3:'+token,JSON.stringify(cuenta),minutos*60);
+  return {status:'success',token:token,servicio:cuenta.servicio,rol:cuenta.rol,expiraMinutos:minutos,expiraEn:cuenta.expiraEn};
 }
 function v3Sesion_(token) {
   if (!/^[a-f\d-]{72}$/.test(String(token || ''))) throw Error('Sesión inválida');
   var val = CacheService.getScriptCache().get('v3:'+token);
   if (!val) throw Error('Sesión vencida: volver a ingresar');
   var sesion=JSON.parse(val),cuentas=JSON.parse(PropertiesService.getScriptProperties().getProperty(V3.cuentasProp)||'{}'),actual=cuentas[sesion.servicio];
+  if(!Number.isFinite(sesion.expiraEn)||Date.now()>=sesion.expiraEn)throw Error('Sesión vencida: volver a ingresar');
   if(!actual||!sesion.revision||actual.salt!==sesion.revision||actual.rol!==sesion.rol)throw Error('Sesión vencida: volver a ingresar');
   if(sesion.dispositivo){var estado=v3LoginEstado_(PropertiesService.getScriptProperties(),sesion.dispositivo);if(estado&&estado.bloqueado)throw Error('Navegador bloqueado. Contactá a Administración');}
   return sesion;
+}
+function v3RestaurarSesion_(sesion,p){
+  if(!['WEB','SUPERVISOR','COCINA','NUTRICION'].includes(sesion.rol)||sesion.dispositivo!==v3LoginDeviceKey_(p.dispositivo))throw Error('Sesión inválida');
+  return {status:'success',token:p.token,servicio:sesion.servicio,rol:sesion.rol,expiraEn:sesion.expiraEn};
 }
 function v3Rows_(s) {
   if (!s || s.getLastRow() < 2) return [];

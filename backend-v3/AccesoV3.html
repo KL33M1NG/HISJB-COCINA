@@ -174,7 +174,8 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <h1>🔐 Acceso al sistema</h1><p class="muted">Ingresá únicamente la contraseña de tu servicio.</p>
 <form id="accessForm">
 <label for="password">Contraseña del servicio</label>
-<input id="password" type="password" required autocomplete="current-password" placeholder="Contraseña">
+<input id="password" name="password" type="password" required autocomplete="current-password" placeholder="Contraseña">
+<label id="rememberSessionLabel"><input type="checkbox" id="rememberSession" checked> Mantener sesión durante 1 hora en esta pestaña (solo servicios)</label>
 <div class="actions"><button type="submit" id="enter">Ingresar</button></div>
 </form><div id="dailyAlert" class="alerta-publica hide" role="status"></div><p class="status" id="accessMsg" role="status"></p>
 </section>
@@ -347,14 +348,21 @@ const DIETS=['GENERAL','HIPOSODICA','DIABETICA','CELIACA','GASTRICA','ASTRINGENT
 const LABELS={GENERAL:'General',HIPOSODICA:'Hiposódica',DIABETICA:'Diabética',CELIACA:'Celíaca',GASTRICA:'Gástrica',ASTRINGENTE:'Astringente',VEGETARIANA:'Vegetariana'};
 function show(id,yes){$(id).classList.toggle('hide',!yes)}
 function note(id,s,err){const n=$(id);n.textContent=s;n.className='status '+(err?'error':'ok')}
-function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>r&&r.status==='error'?rej(Error(r.message||'Operación rechazada')):res(r)).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
+function rpc(p){return new Promise((res,rej)=>google.script.run.withSuccessHandler(r=>{if(r&&r.status==='error'){const msg=r.message||'Operación rechazada';if(session&&p.token===session.token&&/^(Sesión|Navegador bloqueado)/.test(msg)){logoutLocal();note('accessMsg',msg,true)}rej(Error(msg))}else res(r)}).withFailureHandler(e=>rej(Error(e&&e.message||'No se pudo conectar'))).v3UiCall(p))}
 function navegadorV3(){const key='hisjb-v3-browser-id';try{let id=localStorage.getItem(key);if(!/^[a-f0-9]{48}$/.test(id||'')){const a=new Uint8Array(24);crypto.getRandomValues(a);id=Array.from(a,v=>v.toString(16).padStart(2,'0')).join('');localStorage.setItem(key,id)}return id}catch(e){throw Error('No se pudo identificar el navegador. Permití el almacenamiento del sitio y actualizá la página')}}
 function loading(v){busy=v;$('enter').disabled=v;$('submitPeople').disabled=v||!chosen.size;$('searchPerson').disabled=v;$('selectNone').disabled=v;document.querySelectorAll('#people button,#selectedPeople button').forEach(b=>b.disabled=v);$('submitManual').disabled=v;$('refresh').disabled=v;$('saveMenu').disabled=v;$('saveAlert').disabled=v;['deliverById','deliverSelected','closeTurn','cancelClose','confirmClose','previewClose','diagnoseClose','repairClose','listBackups','makeBackup','searchHistory','previewRoster','savePerson','saveAccount'].forEach(id=>$(id).disabled=v);$('applyRoster').disabled=v||!bulkPreview}
 let adminData={personas:[],servicios:[]},alertVersion=null,alertFields=[],activeTab='';
 let adminPage=1;
 let accountPreview=[],accountBatch=[];
+const SESSION_KEY='hisjb-v3-session-v1';let sessionTimer=null;
+function clearRememberedSession(){clearTimeout(sessionTimer);sessionTimer=null;try{sessionStorage.removeItem(SESSION_KEY)}catch(e){}}
+function saveRememberedSession(auth){try{sessionStorage.setItem(SESSION_KEY,JSON.stringify({token:auth.token,expiraEn:auth.expiraEn}))}catch(e){}}
+function readRememberedSession(){try{const saved=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');if(saved&&typeof saved.token==='string'&&Number.isFinite(saved.expiraEn)&&saved.expiraEn>Date.now())return saved}catch(e){}clearRememberedSession();return null}
+function expireSession(){if(session&&Date.now()>=session.expiraEn){const token=session.token;logoutLocal();note('accessMsg','Sesión vencida: volver a ingresar',true);rpc({accion:'logout',token}).catch(()=>{})}}
+function scheduleSessionExpiry(){clearTimeout(sessionTimer);sessionTimer=setTimeout(expireSession,Math.max(0,session.expiraEn-Date.now()))}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)expireSession()});
 function clearAccountBatch(){accountBatch=[];$('bulkAccountText').value='';$('confirmAccountSaved').checked=false;$('applyAccounts').disabled=true;show('bulkAccountSecrets',false)}
-function logoutLocal(){clearAccountBatch();accountPreview=[];$('bulkAccountPreview').replaceChildren();$('prepareAccounts').disabled=true;document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];adminData={personas:[],servicios:[]};adminPage=1;$('adminServiceFilter').replaceChildren(new Option('Elegí un servicio…',''));$('adminSearch').disabled=true;show('adminPagination',false);alertVersion=null;['adminRoster','adminAccountList','adminServices','accountService','bulkRosterStats','orders','people','selectedPeople','securityEntries'].forEach(id=>$(id).replaceChildren());$('searchPerson').value='';$('personalMsg').textContent='';$('chosenCount').textContent='0 seleccionados';show('bulkActions',false);$('blockedCount').textContent='0';$('securityMsg').textContent='';alertFields.forEach(f=>{f.texto.value='';f.activo.checked=false;f.fijo.checked=false;f.fecha.value=''});$('adminAccountForm').reset();$('accountPassword').value='';$('accountPassword').type='password';$('adminPersonForm').reset();$('adminPersonId').value='';$('adminSearch').value='';$('bulkRosterText').value='';$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true);loadDailyAlert()}
+function logoutLocal(){clearRememberedSession();clearAccountBatch();accountPreview=[];$('bulkAccountPreview').replaceChildren();$('prepareAccounts').disabled=true;document.body.dataset.role='';session=null;chosen.clear();chosenOrders.clear();turnoEstado=null;bulkPreview=null;cancelCloseIntent();repairCheck=null;roster=[];orders=[];adminData={personas:[],servicios:[]};adminPage=1;$('adminServiceFilter').replaceChildren(new Option('Elegí un servicio…',''));$('adminSearch').disabled=true;show('adminPagination',false);alertVersion=null;['adminRoster','adminAccountList','adminServices','accountService','bulkRosterStats','orders','people','selectedPeople','securityEntries'].forEach(id=>$(id).replaceChildren());$('searchPerson').value='';$('personalMsg').textContent='';$('chosenCount').textContent='0 seleccionados';show('bulkActions',false);$('blockedCount').textContent='0';$('securityMsg').textContent='';alertFields.forEach(f=>{f.texto.value='';f.activo.checked=false;f.fijo.checked=false;f.fecha.value=''});$('adminAccountForm').reset();$('accountPassword').value='';$('accountPassword').type='password';$('adminPersonForm').reset();$('adminPersonId').value='';$('adminSearch').value='';$('bulkRosterText').value='';$('password').value='';show('workspace',false);show('personalPanel',false);show('managementPanel',false);show('access',true);loadDailyAlert()}
 
 function selectManagementTab(key){
  if(key!=='accesos')clearAccountBatch();
@@ -558,7 +566,15 @@ e.preventDefault();if(busy)return;
 loading(true);note('accessMsg','Comprobando contraseña...',false);
 try{
 const auth=await rpc({accion:'login',clave:$('password').value,dispositivo:navegadorV3()});
-session={token:auth.token,rol:auth.rol,servicio:auth.servicio};document.body.dataset.role=session.rol;$('password').value='';
+const remember=$('rememberSession').checked;clearRememberedSession();
+await openAuthenticatedSession(auth,remember);
+}catch(err){logoutLocal();note('accessMsg',err.message,true)}
+finally{loading(false)}
+});
+async function openAuthenticatedSession(auth,remember){
+session={token:auth.token,rol:auth.rol,servicio:auth.servicio,expiraEn:auth.expiraEn};document.body.dataset.role=session.rol;$('password').value='';
+if(!Number.isFinite(auth.expiraEn)||auth.expiraEn<=Date.now())throw Error('Sesión vencida: volver a ingresar');
+scheduleSessionExpiry();
 if(!isPersonal()&&!isManagement())throw Error('Cuenta sin acceso habilitado');
 if(isPersonal()&&(!isManagement()||session.rol==='SUPERVISOR'||session.rol==='WEB')){
 const response=await rpc({accion:'personal',token:session.token});
@@ -584,10 +600,11 @@ historyDefaults();
 $('heading').textContent='Cocina y Nutrición';$('who').textContent='Sector: '+session.servicio+' · Rol: '+session.rol;
 await loadOrders();await loadHistory(true)
 }
+if(!session||session.token!==auth.token||Date.now()>=auth.expiraEn)throw Error('Sesión vencida: volver a ingresar');
+if(remember&&session.rol!=='ADMIN')saveRememberedSession(auth);
 show('access',false);show('workspace',true);note('accessMsg','',false)
-}catch(err){logoutLocal();note('accessMsg',err.message,true)}
-finally{loading(false)}
-});
+}
+async function restoreRememberedSession(){const saved=readRememberedSession();if(!saved)return;loading(true);try{const auth=await rpc({accion:'restaurarSesion',token:saved.token,dispositivo:navegadorV3()});await openAuthenticatedSession(auth,true)}catch(e){logoutLocal();note('accessMsg','Volvé a ingresar con tu contraseña.',false)}finally{loading(false)}}
 $('exit').addEventListener('click',async()=>{let token=session&&session.token;logoutLocal();if(token){try{await rpc({accion:'logout',token})}catch(e){}}});
 function mealPersonSuggestions(personas,busqueda,seleccion){
  const norm=s=>String(s||'').toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ');
@@ -990,5 +1007,6 @@ $('filterMeal').addEventListener('change',loadOrders);
 $('filterState').addEventListener('change',()=>{chosenOrders.clear();renderOrders()});
 $('searchOrder').addEventListener('input',renderOrders);
 $('refresh').addEventListener('click',loadOrders);
+restoreRememberedSession();
 })();
 </script></body></html>
