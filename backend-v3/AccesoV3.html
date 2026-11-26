@@ -368,7 +368,7 @@ function selectManagementTab(key){
 }
 function buildManagementTabs(){
  const common=[['resumen','📊 Resumen'],['pedidos','🍽️ Pedidos y entregas'],['menus','📋 Menús'],['historial','📅 Historial']];
- if(session.rol!=='NUTRICION')common.splice(2,0,['cierre','🔒 Cierre de turno']);
+ if(canManage())common.splice(2,0,['cierre','🔒 Cierre de turno']);
  if(['NUTRICION','ADMIN'].includes(session.rol))common.push(['avisos','📢 Alertas']);
  if(session.rol==='ADMIN')common.push(['personal','👥 Personal'],['categorias','📋 Categorías sin DNI'],['accesos','🔐 Accesos'],['seguridad','🛡️ Seguridad'],['respaldos','🗄️ Respaldos']);
  const nav=$('managementTabs');nav.replaceChildren();
@@ -861,8 +861,8 @@ $('makeBackup').addEventListener('click',async()=>{
 });
 
 
-function canManage(){return session&&['COCINA','ADMIN'].includes(session.rol)}
-function canDeliverOrders(){return session&&['COCINA','NUTRICION','ADMIN'].includes(session.rol)}
+function canManage(){return session&&['COCINA','NUTRICION','ADMIN'].includes(session.rol)}
+function canDeliverOrders(){return canManage()}
 function pendingVisible(){
  const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),sector=$('serviceFilter').value,estado=$('filterState').value;
  return orders.filter(o=>(estado==='TODOS'||estado==='PENDIENTE')&&o.estado==='PENDIENTE'&&!o.duplicado&&(!sector||o.servicio===sector)&&

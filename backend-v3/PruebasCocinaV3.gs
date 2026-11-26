@@ -13,13 +13,13 @@ function pruebasCocinaSoloLecturaV3() {
   var supervisor={rol:'SUPERVISOR',servicio:'ENFERMERIA'},cocina={rol:'COCINA',servicio:'COCINA'};
   denegar('Supervisor no puede cerrar turno',function(){
     v3CerrarTurno_(supervisor,{turno:'MAÑANA'});
-  },'Solo Cocina puede cerrar turnos');
+  },'Solo Cocina o Nutrición puede cerrar turnos');
   denegar('Supervisor no puede entregar por lote',function(){
     v3EntregaLote_(supervisor,{ids:['TEST']});
   },'Solo Cocina o Nutrición puede validar o revertir');
-  denegar('Nutrición no puede cerrar turno',function(){
-    v3CerrarTurno_({rol:'NUTRICION',servicio:'NUTRICION'},{turno:'MAÑANA'});
-  },'Solo Cocina puede cerrar turnos');
+  denegar('Nutrición tiene permiso de cierre, pero rechaza un turno inválido',function(){
+    v3CerrarTurno_({rol:'NUTRICION',servicio:'NUTRICION'},{turno:'INEXISTENTE'});
+  },'Turno inválido');
   denegar('Validación rechaza un turno inválido',function(){
     v3TurnoCanonico_('INEXISTENTE');
   },'Turno inválido');

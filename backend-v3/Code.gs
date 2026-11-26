@@ -80,7 +80,7 @@ function v3UiCall(p) {
       'Comida inválida','Trabajador no habilitado','Trabajador de otro servicio: acceso denegado',
       'Sistema ocupado, reintentar','Sistema ocupado','Turno inválido',
       'Solo Cocina o Nutrición puede validar o revertir','Estado incompatible','Pedido inexistente',
-      'El turno ya está cerrado','Solo Cocina puede cerrar turnos',
+      'El turno ya está cerrado','Solo Cocina o Nutrición puede cerrar turnos',
       'Confirmación de cierre incorrecta','El turno cambió: actualizá el resumen antes de cerrar',
       'Solo Administración puede revisar cierres','Solo Administración puede reparar cierres',
       'No existe un cierre para este turno','Las cifras del cierre no coinciden: revisión manual obligatoria',

@@ -127,7 +127,7 @@ function v3ProyectarCierre_(rows,turno) {
  }),t);
 }
 function v3CerrarTurno_(sesion,p) {
-  if(!['COCINA','ADMIN'].includes(sesion.rol))throw Error('Solo Cocina puede cerrar turnos');
+  if(!v3PuedeEntregar_(sesion))throw Error('Solo Cocina o Nutrición puede cerrar turnos');
   var turno=v3TurnoCanonico_(p.turno),lock=LockService.getScriptLock();
   if(!lock.tryLock(30000))throw Error('Sistema ocupado');
   try{
