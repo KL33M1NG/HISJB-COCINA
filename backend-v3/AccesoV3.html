@@ -193,10 +193,10 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div class="actions hide" id="bulkActions"><button class="secondary" id="selectNone" type="button">Limpiar selección</button></div>
 <p id="personalMsg" class="status" role="status"></p><button id="submitPeople" disabled>Solicitar vianda</button></div></div>
 <div class="card hide" id="manualPanel"><h2>Carga manual sin DNI</h2>
-<p class="manualHint">Para policías, seguridad y residentes que no aparecen en la nómina. Solo supervisores. Cada solicitud queda asociada a tu servicio y se registra en la auditoría.</p>
+<p class="manualHint">Para personas que no aparecen en la nómina, según las categorías habilitadas por Administración. Solo supervisores. Cada solicitud queda asociada a tu servicio y se registra en la auditoría.</p>
 <form id="manualForm">
 <div class="grid"><div><label for="manualName">Apellido y nombre</label><input id="manualName" maxlength="100" placeholder="Ej.: Pérez Juan" required></div>
-<div><label for="manualCategory">Categoría</label><select id="manualCategory"><option value="POLICIA">Policía</option><option value="SEGURIDAD">Seguridad</option><option value="RESIDENTE">Residente</option></select></div>
+<div><label for="manualCategory">Categoría</label><select id="manualCategory" required><option value="">Seleccioná una categoría…</option></select><button type="button" class="secondary" id="refreshManualCategories">Actualizar categorías</button></div>
 <div><label for="manualDiet">Dieta</label><select id="manualDiet"><option value="GENERAL">General</option><option value="HIPOSODICA">Hiposódica</option><option value="CELIACA">Celíaca</option><option value="VEGETARIANA">Vegetariana</option><option value="DIABETICA">Diabética</option></select></div></div>
 <p class="muted">Se utilizarán la guardia y la comida seleccionadas arriba. Para 24 horas se crearán almuerzo y cena.</p>
 <button type="submit" id="submitManual">Registrar persona sin DNI</button></form><p class="status" id="manualMsg" role="status"></p>
@@ -255,6 +255,7 @@ body[data-theme="dark"] .notice,body[data-theme="dark"] .alerta-publica{backgrou
 <div class="actions"><button type="button" class="secondary" id="diagnoseClose">Verificar integridad del cierre</button><button type="button" class="close-button hide" id="repairClose">Completar estados pendientes</button></div>
 <p class="status" id="repairMsg" role="status"></p>
 </div>
+<div class="card hide" id="adminManualCategories" data-panel="categorias"><h2>📋 Categorías de carga sin DNI</h2><p class="muted">Agregá categorías para los supervisores. Las existentes y los pedidos históricos se conservan.</p><div id="manualCategoriesList"></div><form id="manualCategoryForm"><label for="newManualCategory">Nueva categoría</label><input id="newManualCategory" maxlength="60" required placeholder="Ej.: Acompañante"><button type="submit">Agregar categoría</button></form><p id="adminCategoryMsg" class="status" role="status"></p></div>
 <div class="card" id="historyPanel" data-panel="historial">
 <div class="row between"><h2>📅 Historial de cierres y estadísticas</h2><span class="pill">Cocina · Nutrición</span></div>
 <p class="muted">Consultá los cierres de días anteriores sin abrir Google Sheets. Los informes están disponibles después de cerrar cada turno.</p>
@@ -363,12 +364,13 @@ function selectManagementTab(key){
  if(key==='avisos')loadAlertEditor();
  if(['personal','accesos'].includes(key))loadAdminData();
  if(key==='seguridad')loadSecurity();
+ if(key==='categorias')loadManualCategories(true);
 }
 function buildManagementTabs(){
  const common=[['resumen','📊 Resumen'],['pedidos','🍽️ Pedidos y entregas'],['menus','📋 Menús'],['historial','📅 Historial']];
  if(session.rol!=='NUTRICION')common.splice(2,0,['cierre','🔒 Cierre de turno']);
  if(['NUTRICION','ADMIN'].includes(session.rol))common.push(['avisos','📢 Alertas']);
- if(session.rol==='ADMIN')common.push(['personal','👥 Personal'],['accesos','🔐 Accesos'],['seguridad','🛡️ Seguridad'],['respaldos','🗄️ Respaldos']);
+ if(session.rol==='ADMIN')common.push(['personal','👥 Personal'],['categorias','📋 Categorías sin DNI'],['accesos','🔐 Accesos'],['seguridad','🛡️ Seguridad'],['respaldos','🗄️ Respaldos']);
  const nav=$('managementTabs');nav.replaceChildren();
  for(const [key,label] of common){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.key=key;b.setAttribute('aria-selected','false');b.addEventListener('click',()=>{if(!busy)selectManagementTab(key)});nav.append(b)}
  selectManagementTab(session.rol==='NUTRICION'?'menus':'resumen');
@@ -539,6 +541,17 @@ $('discardAccounts').addEventListener('click',()=>{if(!busy)clearAccountBatch()}
 $('applyAccounts').addEventListener('click',async()=>{if(!session||session.rol!=='ADMIN'||busy||!accountBatch.length||!$('confirmAccountSaved').checked)return;if(!confirm('¿Crear '+accountBatch.length+' cuentas nuevas sin cambiar las existentes?'))return;loading(true);$('applyAccounts').disabled=true;try{const r=await rpc({accion:'crearAccesosLote',token:session.token,filas:accountBatch});clearAccountBatch();accountPreview=[];$('bulkAccountPreview').replaceChildren();$('prepareAccounts').disabled=true;await loadAdminData();note('bulkAccountMsg','Cuentas nuevas creadas: '+r.creados+'. Claves retiradas de la pantalla.',false)}catch(e){note('bulkAccountMsg',e.message,true);$('applyAccounts').disabled=!$('confirmAccountSaved').checked}finally{loading(false)}});
 
 function isPersonal(){return session&&['WEB','SUPERVISOR','ADMIN'].includes(session.rol)}
+async function loadManualCategories(admin){
+ if(!session||!(admin?session.rol==='ADMIN':session.rol==='SUPERVISOR'))return;
+ const token=session.token,msg=admin?'adminCategoryMsg':'manualMsg';
+ if(!admin)$('manualCategory').replaceChildren(new Option('Seleccioná una categoría…',''));
+ try{const r=await rpc({accion:'categoriasManual',token});if(!session||session.token!==token)return;
+ if(admin){const box=$('manualCategoriesList');box.replaceChildren();for(const c of r.categorias){const row=document.createElement('p');row.textContent=c.nombre;box.append(row)}}
+ else{$('manualCategory').replaceChildren(new Option('Seleccioná una categoría…',''),...r.categorias.map(c=>new Option(c.nombre,c.clave)))}
+ note(msg,'',false)}catch(e){note(msg,e.message,true)}
+}
+$('refreshManualCategories').addEventListener('click',()=>{if(!busy)loadManualCategories(false)});
+$('manualCategoryForm').addEventListener('submit',async e=>{e.preventDefault();if(!session||session.rol!=='ADMIN'||busy)return;loading(true);try{await rpc({accion:'agregarCategoriaManual',token:session.token,nombre:$('newManualCategory').value});$('manualCategoryForm').reset();await loadManualCategories(true);note('adminCategoryMsg','Categoría agregada.',false)}catch(err){note('adminCategoryMsg',err.message,true)}finally{loading(false)}});
 function isManagement(){return session&&['COCINA','NUTRICION','ADMIN'].includes(session.rol)}
 $('accessForm').addEventListener('submit',async e=>{
 e.preventDefault();if(busy)return;
@@ -552,6 +565,7 @@ const response=await rpc({accion:'personal',token:session.token});
 roster=response.personas||[];chosen.clear();$('searchPerson').value='';note('personalMsg','',false);show('personalPanel',true);show('managementPanel',false);
 await refreshMenus();
 show('manualPanel',session.rol==='SUPERVISOR'||session.rol==='ADMIN');
+if(session.rol==='SUPERVISOR')await loadManualCategories(false);
 $('heading').textContent='Registro de viandas';$('who').textContent='Servicio: '+session.servicio+' · Modalidad: '+session.rol;
 renderPeople()
 }else{
@@ -563,6 +577,7 @@ show('backupPanel',session.rol==='ADMIN');
 show('alertEditor',session.rol==='NUTRICION'||session.rol==='ADMIN');
 show('adminPersonnel',session.rol==='ADMIN');show('adminAccounts',session.rol==='ADMIN');show('bulkAccountsPanel',session.rol==='ADMIN');
 show('securityPanel',session.rol==='ADMIN');
+show('adminManualCategories',session.rol==='ADMIN');
 buildManagementTabs();
 await refreshMenus();
 historyDefaults();

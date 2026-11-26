@@ -20,6 +20,32 @@ for(const name of ['pruebasManualSoloLecturaV3','pruebasMenusSoloLecturaV3','pru
  vm.runInContext(name+'()',context);
 }
 // Contrato de aislamiento de tareas administrativas y carpeta de copias.
+// Catálogo editable, con almacenamiento y auditoría ficticios (sin Google).
+{
+ const oldProps=context.PropertiesService,oldAudit=context.v3Auditar_,oldPlan=context.v3Planilla_;
+ const categories=new Map(),audit=[];
+ context.PropertiesService={getScriptProperties:()=>({getProperty:k=>categories.get(k)??null,setProperty:(k,v)=>categories.set(k,v)})};
+ context.v3Planilla_=()=>({});context.v3Auditar_=(ss,a,s,d)=>audit.push([a,s,d]);
+ const admin={rol:'ADMIN',servicio:'ADMIN'},supervisor={rol:'SUPERVISOR',servicio:'ENFERMERIA'};
+ assert.equal(context.v3CategoriasManual_(supervisor).categorias.length,3);
+ for(const rol of ['WEB','COCINA','NUTRICION','SUPERVISOR'])assert.throws(()=>context.v3AgregarCategoriaManual_({rol},{nombre:'Visitante'}),/Permiso insuficiente/);
+ for(const rol of ['WEB','COCINA','NUTRICION'])assert.throws(()=>context.v3CategoriasManual_({rol}),/Permiso insuficiente/);
+ assert.throws(()=>context.v3AgregarCategoriaManual_(admin,{nombre:'=ABC'}),/Categoría inválida/);
+ assert.throws(()=>context.v3AgregarCategoriaManual_(admin,{nombre:' policía '}),/Categoría ya existente/);
+ assert.equal(context.v3AgregarCategoriaManual_(admin,{nombre:'Acompañante'}).categorias.length,4);
+ assert.equal(context.v3CategoriasManual_(supervisor).categorias[3].clave,'ACOMPANANTE');
+ assert.throws(()=>context.v3AgregarCategoriaManual_(admin,{nombre:'ACOMPANANTE'}),/Categoría ya existente/);
+ assert.throws(()=>context.v3RegistrarManual_(supervisor,{nombre:'Persona Ficticia',categoria:'NO EXISTE'}),/Categoría inválida/);
+ assert.equal(audit.length,1);
+ const savedFns=Object.fromEntries(['v3Hoy_','v3ExigirAbierto_','v3Rows_','v3PedidosHoy_'].map(k=>[k,context[k]]));
+ let recorded=[];context.v3Planilla_=()=>({getSheetByName:()=>({getLastRow:()=>1,getRange:()=>({setValues:rows=>{recorded=rows}})})});
+ context.v3Hoy_=()=> '2026-11-26';context.v3ExigirAbierto_=()=>{};context.v3Rows_=()=>[];context.v3PedidosHoy_=()=>[];
+ assert.equal(context.v3RegistrarManual_(supervisor,{nombre:'Persona Ficticia',categoria:'ACOMPANANTE',guardia:'12',turno:'MAÑANA'}).creados,1);
+ assert.equal(recorded[0][10],'MANUAL:ACOMPANANTE');assert.equal(recorded[0][5],'ENFERMERIA');
+ Object.assign(context,savedFns);
+ context.PropertiesService=oldProps;context.v3Auditar_=oldAudit;context.v3Planilla_=oldPlan;
+ console.log('OK: catálogo manual configurable, permisos, duplicados y auditoría (simulados).');
+}
 for(const name of ['v3ConfigurarAdminSeguro','v3InstalarRespaldoDiarioV3','v3RespaldoDiarioProgramado']){
  assert.equal(typeof context[name],'undefined');
  assert.equal(typeof context[name+'_'],'function');

@@ -45,6 +45,8 @@ function v3UiCall(p) {
     if (accion === 'personal') return v3Personal_(sesion);
     if (accion === 'registrar') return v3Registrar_(sesion,p);
     if (accion === 'registrarManual') return v3RegistrarManual_(sesion,p);
+    if (accion === 'categoriasManual') return v3CategoriasManual_(sesion);
+    if (accion === 'agregarCategoriaManual') return v3AgregarCategoriaManual_(sesion,p);
     if (accion === 'listado') return v3Listado_(sesion,p);
     if (accion === 'entrega') return v3Entrega_(sesion,p);
     if (accion === 'menus') return v3MenusHoy_(sesion);
@@ -86,7 +88,7 @@ function v3UiCall(p) {
       'Rango de fechas inválido','Rango máximo: 91 días',
       'Solo Administración puede importar personal','La importación admite de 1 a 150 personas',
       'La nómina cambió: repetí la vista previa',
-      'Acción no permitida','Nombre inválido','Categoría inválida',
+      'Acción no permitida','Nombre inválido','Categoría inválida','Categoría ya existente','Máximo de categorías alcanzado','Configuración de categorías inválida',
       'La persona ya está en la nómina; seleccionála desde el listado',
       'Dieta inválida','Servicio inválido','Turno inválido','Plato principal obligatorio',
       'Texto de aviso demasiado largo','Solo Nutrición puede editar menús y avisos',
@@ -298,12 +300,47 @@ function v3Registrar_(sesion,p) {
  * agregar a la nómina permanente. Un supervisor registra únicamente
  * para su sector; ADMIN debe indicar el sector explícitamente.
  */
+function v3CategoriaClave_(valor) {
+  if(typeof valor!=='string')throw Error('Categoría inválida');
+  var clave=v3Norm_(valor).replace(/\s+/g,' ');
+  if(clave.length<2||clave.length>60||!/^[A-Z0-9][A-Z0-9 -]*$/.test(clave))throw Error('Categoría inválida');
+  return clave;
+}
+function v3CatalogoManual_() {
+  var base=[{clave:'POLICIA',nombre:'Policía'},{clave:'SEGURIDAD',nombre:'Seguridad'},{clave:'RESIDENTE',nombre:'Residente'}];
+  var raw=PropertiesService.getScriptProperties().getProperty('HISJB_V3_CATEGORIAS_MANUALES');
+  if(raw===null||raw===undefined)return base;
+  var extras;try{extras=JSON.parse(raw)}catch(e){throw Error('Configuración de categorías inválida')}
+  if(!Array.isArray(extras)||extras.length>40)throw Error('Configuración de categorías inválida');
+  extras.forEach(function(nombre){var clave=v3CategoriaClave_(nombre);if(base.some(function(c){return c.clave===clave}))throw Error('Configuración de categorías inválida');base.push({clave:clave,nombre:nombre});});
+  return base;
+}
+function v3CategoriasManual_(sesion) {
+  if(!['ADMIN','SUPERVISOR'].includes(sesion.rol))throw Error('Permiso insuficiente');
+  return {status:'success',categorias:v3CatalogoManual_()};
+}
+function v3AgregarCategoriaManual_(sesion,p) {
+  if(sesion.rol!=='ADMIN')throw Error('Permiso insuficiente');
+  var clave=v3CategoriaClave_(p.nombre),nombre=p.nombre.trim().replace(/\s+/g,' ');
+  if(nombre.length>60||!/^[\p{L}\p{M}\p{N} -]+$/u.test(nombre))throw Error('Categoría inválida');
+  var lock=LockService.getScriptLock();if(!lock.tryLock(30000))throw Error('Sistema ocupado, reintentar');
+  try{
+    var catalogo=v3CatalogoManual_();
+    if(catalogo.some(function(c){return c.clave===clave}))throw Error('Categoría ya existente');
+    if(catalogo.length>=43)throw Error('Máximo de categorías alcanzado');
+    var extras=catalogo.slice(3).map(function(c){return c.nombre});extras.push(nombre);
+    var ss=v3Planilla_();
+    PropertiesService.getScriptProperties().setProperty('HISJB_V3_CATEGORIAS_MANUALES',JSON.stringify(extras));
+    v3Auditar_(ss,'AGREGAR_CATEGORIA_MANUAL',sesion.servicio,'Categoría '+clave);
+    return {status:'success',categorias:v3CatalogoManual_()};
+  }finally{lock.releaseLock()}
+}
 function v3RegistrarManual_(sesion,p) {
   if(!['SUPERVISOR','ADMIN'].includes(sesion.rol)) throw Error('Permiso insuficiente');
   var nombre=String(p.nombre||'').trim().replace(/\s+/g,' ');
   if(nombre.length<5 || nombre.length>100 || !/^[\p{L}\p{M} .'-]+$/u.test(nombre) || nombre.split(' ').length<2) throw Error('Nombre inválido');
-  var categoria=v3Norm_(p.categoria);
-  if(!['POLICIA','SEGURIDAD','RESIDENTE'].includes(categoria)) throw Error('Categoría inválida');
+  var categoria=v3CategoriaClave_(p.categoria);
+  if(!v3CatalogoManual_().some(function(c){return c.clave===categoria}))throw Error('Categoría inválida');
   var dieta=v3Norm_(p.dieta||'GENERAL');
   if(!['GENERAL','HIPOSODICA','CELIACA','VEGETARIANA','DIABETICA'].includes(dieta)) throw Error('Dieta inválida');
   var servicio=sesion.rol==='ADMIN'?v3Norm_(p.servicio):sesion.servicio;
