@@ -5,8 +5,8 @@
 ## Qué cambia
 - \`Code.gs\`: \`doGet\` entrega páginas HtmlService; \`v3UiCall\` es la única función pública de interacción con el navegador y valida sesión/rol en cada operación.
 - \`PersonalV3.html\`: autenticación por servicio, nómina de su servicio, selección individual (WEB) o múltiple (SUPERVISOR), guardia de 24 h = almuerzo y cena.
-- \`CocinaV3.html\`: autenticación Cocina/Nutrición, filtros, pendientes primero, entregados abajo, entrega y reversión solo COCINA/ADMIN.
-- El panel de Nutrición es **solo consulta**; el menú real continúa sin modificaciones en la versión estable.
+- \`CocinaV3.html\`: autenticación Cocina/Nutrición, filtros, pendientes primero, entregados abajo, entrega y reversión COCINA/NUTRICION/ADMIN.
+- Nutrición conserva menús y avisos; el cierre del turno está reservado a Cocina y ADMIN.
 - \`doPost\` devuelve error: la UI usa \`google.script.run\`, no un POST JSON entre dominios. Si hay integraciones anteriores contra este proyecto de pruebas, dejarán de funcionar.
 - Funciones administrativas renombradas a \`v3ProvisionarCuenta_\` y \`v3HojasIniciales_\`: ya **no** pueden invocarse desde el navegador. En el editor de Apps Script solo se pueden llamar mediante una función temporal auxiliar sin sufijo \`_\`, exclusivamente por el administrador.
 
@@ -48,7 +48,7 @@ El código remoto de pruebas será reemplazado; datos, propiedades privadas y pl
 - Confirmar que se ven únicamente TEST003 y TEST004.
 - Seleccionar ambos y guardia 24 h. Dado que ya existen registros de fecha actual en la planilla de pruebas, lo esperado es **0 creados / 4 repetidos**. No se deben añadir filas.
 - Entrar a Cocina como COCINA, elegir MAÑANA, comprobar la lista real de prueba, entregar un pedido **ficticio** y revertir. Debe registrarse en Auditoria_V3.
-- Si se dispone de una cuenta de Nutrición de prueba, confirmar que ve pedidos, pero **no** botones de entrega.
+- Si se dispone de una cuenta de Nutrición de prueba, confirmar que ve pedidos y botones de entrega, sin acceso al cierre del turno.
 - Si aparece un error, detener antes de tocar producción y revisar que la propiedad \`HISJB_V3_TEST_SHEET_ID\` apunte a la **planilla ficticia**.
 
 ## Limitaciones pendientes

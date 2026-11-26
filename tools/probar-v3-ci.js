@@ -20,6 +20,24 @@ for(const name of ['pruebasManualSoloLecturaV3','pruebasMenusSoloLecturaV3','pru
  vm.runInContext(name+'()',context);
 }
 // Contrato de aislamiento de tareas administrativas y carpeta de copias.
+// Entregas Nutrición: mismas reglas que Cocina, sin acceso al cierre.
+{
+ const saved=Object.fromEntries(['v3Planilla_','v3Rows_','v3Hoy_','v3ExigirAbierto_','v3Auditar_'].map(k=>[k,context[k]]));
+ const hoy='2026-11-26',rows=[['A',hoy,'MAÑANA','P1','Persona Uno','ENFERMERIA','12','GENERAL','PENDIENTE'],['B',hoy,'MAÑANA','P2','Persona Dos','LABORATORIO','12','GENERAL','PENDIENTE']],audit=[];
+ const hoja={getRange:(r,c)=>({setValue:v=>{rows[r-2][c-1]=v},setValues:v=>{v[0].forEach((x,i)=>rows[r-2][c-1+i]=x)}})};
+ context.v3Planilla_=()=>({getSheetByName:()=>hoja,getSpreadsheetTimeZone:()=> 'America/Argentina/Buenos_Aires'});context.v3Rows_=()=>rows;context.v3Hoy_=()=>hoy;context.v3ExigirAbierto_=()=>{};context.v3Auditar_=(ss,a,s,d)=>audit.push([a,s]);
+ const nutri={rol:'NUTRICION',servicio:'NUTRICION'};
+ assert.equal(context.v3Entrega_(nutri,{id:'A'}).estado,'ENTREGADO');assert.equal(rows[0][8],'ENTREGADO');
+ assert.throws(()=>context.v3Entrega_(nutri,{id:'A'}),/Estado incompatible/);
+ assert.equal(context.v3Entrega_(nutri,{id:'A',revertir:true}).estado,'PENDIENTE');
+ assert.equal(context.v3EntregaLote_(nutri,{ids:['A','B']}).entregados,2);assert.equal(rows[1][8],'ENTREGADO');
+ assert.deepEqual(audit,[['ENTREGAR','NUTRICION'],['REVERTIR','NUTRICION'],['ENTREGA_LOTE','NUTRICION']]);
+ assert.throws(()=>context.v3CerrarTurno_(nutri,{turno:'MAÑANA'}),/Solo Cocina puede cerrar/);
+ context.v3ExigirAbierto_=()=>{throw Error('El turno ya está cerrado')};assert.throws(()=>context.v3Entrega_(nutri,{id:'A',revertir:true}),/turno ya está cerrado/);
+ for(const rol of ['WEB','SUPERVISOR']){assert.throws(()=>context.v3Entrega_({rol},{id:'A'}),/Solo Cocina o Nutrición/);assert.throws(()=>context.v3EntregaLote_({rol},{ids:['B']}),/Solo Cocina o Nutrición/)}
+ Object.assign(context,saved);
+ console.log('OK: Nutrición entrega individual, reversión, lote, auditoría y límites de cierre (simulados).');
+}
 // Catálogo editable, con almacenamiento y auditoría ficticios (sin Google).
 {
  const oldProps=context.PropertiesService,oldAudit=context.v3Auditar_,oldPlan=context.v3Planilla_;

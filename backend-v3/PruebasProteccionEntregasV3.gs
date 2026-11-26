@@ -16,10 +16,11 @@ function pruebasProteccionEntregasV3(){
  denied('Se rechaza fecha anterior en entrega individual',function(){v3ExigirPedidoDeHoy_(ss,ayer)},'Solo se pueden entregar pedidos de hoy');
  denied('Se rechaza fecha futura en entrega individual',function(){v3ExigirPedidoDeHoy_(ss,'2099-12-31')},'Solo se pueden entregar pedidos de hoy');
  denied('No se puede entregar pedido inexistente',function(){v3Entrega_({rol:'COCINA',servicio:'COCINA'},{id:'TEST-INEXISTENTE-'+Utilities.getUuid()})},'Pedido inexistente');
- denied('WEB no puede entregar pedidos',function(){v3Entrega_({rol:'WEB',servicio:'TRAUMATOLOGIA'},{id:'TEST'})},'Solo Cocina puede validar o revertir');
- denied('Nutrición no puede entregar pedidos',function(){v3Entrega_({rol:'NUTRICION',servicio:'NUTRICION'},{id:'TEST'})},'Solo Cocina puede validar o revertir');
+ denied('WEB no puede entregar pedidos',function(){v3Entrega_({rol:'WEB',servicio:'TRAUMATOLOGIA'},{id:'TEST'})},'Solo Cocina o Nutrición puede validar o revertir');
+ denied('Nutrición puede validar, pero no puede entregar pedidos inexistentes',function(){v3Entrega_({rol:'NUTRICION',servicio:'NUTRICION'},{id:'TEST-INEXISTENTE-'+Utilities.getUuid()})},'Pedido inexistente');
+ denied('Nutrición puede validar lotes, pero no admite selección vacía',function(){v3EntregaLote_({rol:'NUTRICION',servicio:'NUTRICION'},{ids:[]})},'Selección inválida');
  denied('Bloquea ID repetido en lote',function(){v3EntregaLote_({rol:'COCINA',servicio:'COCINA'},{ids:['A','A']})},'Selección inválida');
  denied('Bloquea lote vacío',function(){v3EntregaLote_({rol:'COCINA',servicio:'COCINA'},{ids:[]})},'Selección inválida');
  ok('Registro de hoy usa zona horaria de la planilla',/^\d{4}-\d{2}-\d{2}$/.test(hoy));
- Logger.log('RESULTADO: '+passed+'/9 pruebas de protección de entregas (sin escritura)');
+ Logger.log('RESULTADO: '+passed+'/10 pruebas de protección de entregas (sin escritura)');
 }

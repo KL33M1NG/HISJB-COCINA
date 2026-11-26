@@ -651,8 +651,8 @@ const select=$('serviceFilter');
 for(const el of [...select.options].slice(1))el.remove();
 for(const svc of sectors){const opt=document.createElement('option');opt.value=svc;opt.textContent=svc;select.append(opt)}
 select.value=sectors.includes(sector)?sector:'';
-const closed=!!(turnoEstado&&turnoEstado.cierre),canDeliver=session&&['COCINA','ADMIN'].includes(session.rol);
-show('deliveryActions',canDeliver&&!closed);show('batchActions',canDeliver&&!closed);show('closePanel',canDeliver);
+const closed=!!(turnoEstado&&turnoEstado.cierre),canDeliver=canDeliverOrders();
+show('deliveryActions',canDeliver&&!closed);show('batchActions',canDeliver&&!closed);show('closePanel',canManage());
 $('orderId').disabled=closed;
 $('turnoState').textContent=closed?'🔒 Turno CERRADO: '+turnoEstado.cierre.fechaCierre+' · No se admiten nuevas operaciones.':'Turno abierto para registrar y entregar viandas.';
 $('deliverSelected').textContent='✅ Entregar seleccionados ('+chosenOrders.size+')';
@@ -705,7 +705,7 @@ btn.addEventListener('click',async()=>{
 list.append(row)
 }
 if(!display.length){const p=document.createElement('p');p.className='muted';p.textContent='No hay pedidos para el filtro seleccionado.';list.append(p)}
-$('managementHint').textContent=session&&session.rol==='NUTRICION'?'Nutrición: consulta habilitada, entrega deshabilitada.':'Seleccionar todos toma solo los pendientes del servicio y la búsqueda actuales. Los entregados van abajo, con opción de revertir.';
+$('managementHint').textContent='Seleccionar todos toma solo los pendientes del servicio y la búsqueda actuales. Los entregados van abajo, con opción de revertir.';
 }
 
 
@@ -862,6 +862,7 @@ $('makeBackup').addEventListener('click',async()=>{
 
 
 function canManage(){return session&&['COCINA','ADMIN'].includes(session.rol)}
+function canDeliverOrders(){return session&&['COCINA','NUTRICION','ADMIN'].includes(session.rol)}
 function pendingVisible(){
  const q=$('searchOrder').value.trim().toLocaleLowerCase('es'),sector=$('serviceFilter').value,estado=$('filterState').value;
  return orders.filter(o=>(estado==='TODOS'||estado==='PENDIENTE')&&o.estado==='PENDIENTE'&&!o.duplicado&&(!sector||o.servicio===sector)&&
@@ -896,7 +897,7 @@ function renderClosePreview(){
  ' · Entregados: '+cierre.entregados+' · No entregados: '+cierre.noEntregados:'Vista previa: datos vigentes al consultar.',false)
 }
 async function sendDeliveries(ids){
- if(!canManage()||!ids.length||busy||turnoEstado&&turnoEstado.cierre)return;
+ if(!canDeliverOrders()||!ids.length||busy||turnoEstado&&turnoEstado.cierre)return;
  if(ids.length>1&&!confirm('¿Entregar '+ids.length+' viandas seleccionadas?'))return;
  loading(true);note('managementMsg','Validando entregas...',false);
  try{

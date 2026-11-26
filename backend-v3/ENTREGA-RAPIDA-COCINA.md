@@ -11,7 +11,7 @@ Actualización de la pantalla de pruebas diseñada para filas con muchas viandas
 6. La validación por ID se conserva bajo **Opción adicional: validar por ID**, cerrada por defecto.
 
 ## Controles y límites
-- Las acciones de entrega solo se muestran con cuenta `COCINA` o `ADMIN`. Nutrición sigue en solo lectura.
+- Las acciones de entrega se muestran con cuenta `COCINA`, `NUTRICION` o `ADMIN`. El cierre de turno permanece reservado a Cocina y ADMIN.
 - El servidor rechaza un ID repetido, un pedido ya entregado, un duplicado histórico o un turno cerrado.
 - Máximo de **150 viandas por solicitud de lote**, por ahora. Si se necesita más, dividir por servicio o grupos.
 - Un clic individual solo envía una acción al servidor, sin recargar automáticamente todo el listado. Se actualizan los indicadores de fondo. Para ver nuevos pedidos cargados desde otras terminales usar **Actualizar pedidos**.
@@ -35,7 +35,7 @@ Abrir la URL de desarrollo `/dev` y refrescar con Ctrl+F5.
 - Entregar a las personas seleccionadas en una acción.
 - Comprobar que las filas entregadas bajaron y se pueden revertir.
 - Entregar una vianda individual con **✓ Entregar**, sin ventana de confirmación ni ID.
-- Comprobar que el panel de Nutrición no muestra botones de entrega.
+- Comprobar que el panel de Nutrición muestra los mismos controles de entrega y reversión, pero no puede cerrar el turno.
 - No ejecutar **Cerrar turno** en la primera prueba de este flujo.
 
 **La versión estable del hospital sigue sin alteraciones.**

@@ -79,7 +79,7 @@ function v3UiCall(p) {
       'WEB admite un registro por operación','Guardia no válida',
       'Comida inválida','Trabajador no habilitado','Trabajador de otro servicio: acceso denegado',
       'Sistema ocupado, reintentar','Sistema ocupado','Turno inválido',
-      'Solo Cocina puede validar o revertir','Estado incompatible','Pedido inexistente',
+      'Solo Cocina o Nutrición puede validar o revertir','Estado incompatible','Pedido inexistente',
       'El turno ya está cerrado','Solo Cocina puede cerrar turnos',
       'Confirmación de cierre incorrecta','El turno cambió: actualizá el resumen antes de cerrar',
       'Solo Administración puede revisar cierres','Solo Administración puede reparar cierres',
@@ -394,8 +394,11 @@ function v3ExigirPedidoDeHoy_(ss,fechaPedido) {
   if (v3FechaClave_(fechaPedido,ss.getSpreadsheetTimeZone()) !== v3Hoy_(ss))
     throw Error('Solo se pueden entregar pedidos de hoy');
 }
+function v3PuedeEntregar_(sesion) {
+  return ['COCINA','NUTRICION','ADMIN'].includes(sesion.rol);
+}
 function v3Entrega_(sesion,p) {
-  if (!['COCINA','ADMIN'].includes(sesion.rol)) throw Error('Solo Cocina puede validar o revertir');
+  if (!v3PuedeEntregar_(sesion)) throw Error('Solo Cocina o Nutrición puede validar o revertir');
   var id=String(p.id||''),revertir=p.revertir===true;
   var lock=LockService.getScriptLock();
   if (!lock.tryLock(30000)) throw Error('Sistema ocupado');

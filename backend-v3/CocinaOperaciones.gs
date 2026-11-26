@@ -76,7 +76,7 @@ function v3EstadoTurno_(sesion,p) {
 }
 /** Validar por ID y lote de entregas en UNA operación; si un ID falla no modificar nada. */
 function v3EntregaLote_(sesion,p) {
-  if(!['COCINA','ADMIN'].includes(sesion.rol))throw Error('Solo Cocina puede validar o revertir');
+  if(!v3PuedeEntregar_(sesion))throw Error('Solo Cocina o Nutrición puede validar o revertir');
   var ids=Array.isArray(p.ids)?p.ids.map(String):[];
   if(!ids.length||ids.length>150||new Set(ids).size!==ids.length||ids.some(function(x){return !x.trim();}))
     throw Error('Selección inválida');

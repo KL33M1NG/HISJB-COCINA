@@ -16,7 +16,7 @@ function pruebasCocinaSoloLecturaV3() {
   },'Solo Cocina puede cerrar turnos');
   denegar('Supervisor no puede entregar por lote',function(){
     v3EntregaLote_(supervisor,{ids:['TEST']});
-  },'Solo Cocina puede validar o revertir');
+  },'Solo Cocina o Nutrición puede validar o revertir');
   denegar('Nutrición no puede cerrar turno',function(){
     v3CerrarTurno_({rol:'NUTRICION',servicio:'NUTRICION'},{turno:'MAÑANA'});
   },'Solo Cocina puede cerrar turnos');

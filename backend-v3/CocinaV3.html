@@ -40,7 +40,7 @@ const body=document.createElement('div');body.className='details';const name=doc
 name.textContent=order.nombre;detail.textContent=order.servicio+' · Guardia '+order.guardia+' h · Dieta '+order.dieta;
 tag.className='pill';tag.textContent=order.estado;body.append(name,detail,tag);
 wrapper.append(body);
-if(auth&&['COCINA','ADMIN'].includes(auth.rol)){
+if(auth&&['COCINA','NUTRICION','ADMIN'].includes(auth.rol)){
 const button=document.createElement('button');button.className=order.estado==='ENTREGADO'?'secondary':'';
 button.textContent=order.estado==='ENTREGADO'?'Revertir':'Entregar';button.disabled=busy||!['PENDIENTE','ENTREGADO'].includes(order.estado);
 button.addEventListener('click',async()=>{
@@ -53,7 +53,7 @@ wrapper.append(button)
 }
 list.append(wrapper)
 }
-el('hint').textContent=auth&&auth.rol==='NUTRICION'?'Cuenta Nutrición: consulta de pedidos, sin permisos de entrega.':'Los pedidos entregados se muestran abajo en rojo y pueden revertirse.';
+el('hint').textContent='Los pedidos entregados se muestran abajo en rojo y pueden revertirse.';
 }
 el('loginForm').addEventListener('submit',async ev=>{
 ev.preventDefault();if(busy)return;busy=true;updateButtons();msg('loginMsg','Verificando acceso...',false);
